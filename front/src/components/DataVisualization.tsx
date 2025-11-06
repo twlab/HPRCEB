@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { getGenomeData } from '../utils/genomeDataService';
 import { createDataChart } from '../utils/chartUtils';
-import type { DataLayer } from '../utils/genomeTypes';
+import type { DataLayer, Genome } from '../utils/genomeTypes';
 import { POPULATION_MAP } from '../utils/constants';
 
 interface DataVisualizationProps {
@@ -12,6 +13,7 @@ interface DataVisualizationProps {
 
 export default function DataVisualization({ selectedGenomes, selectedLayers, nightMode = false }: DataVisualizationProps) {
   const [currentView, setCurrentView] = useState<'table' | 'chart'>('table');
+  const [selectedGenomeForDetails, setSelectedGenomeForDetails] = useState<Genome | null>(null);
   const chartCanvasRef = useRef<HTMLCanvasElement>(null);
 
   const genomeData = getGenomeData();
@@ -30,13 +32,13 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
 
       const layers = [];
       if (selectedLayers.includes("methylation") && genome.methylation) {
-        layers.push(<span key="methylation" className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">Methylation</span>);
+        layers.push(<span key="methylation" className="px-2 py-1 text-xs bg-cyan-100 text-cyan-800 rounded">Methylation</span>);
       }
       if (selectedLayers.includes("expression") && genome.expression) {
         layers.push(<span key="expression" className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">Expression</span>);
       }
       if (selectedLayers.includes("fiberseq") && genome.fiberseq) {
-        layers.push(<span key="fiberseq" className="px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded">Fiber-seq</span>);
+        layers.push(<span key="fiberseq" className="px-2 py-1 text-xs bg-orange-100 text-orange-800 rounded">Fiber-seq</span>);
       }
 
       return (
@@ -48,7 +50,12 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
             <div className="flex gap-1 flex-wrap">{layers}</div>
           </td>
           <td className={`px-6 py-4 whitespace-nowrap text-sm ${nightMode ? 'text-gray-300' : 'text-gray-500'}`}>
-            <button className="text-primary-600 hover:text-primary-900 font-medium">View Details</button>
+            <button 
+              onClick={() => setSelectedGenomeForDetails(genome)}
+              className="text-primary-600 hover:text-primary-900 font-medium transition-colors"
+            >
+              View Details
+            </button>
           </td>
         </tr>
       );
@@ -132,6 +139,208 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
       {/* Chart View */}
       {!isEmpty && currentView === 'chart' && (
         <canvas ref={chartCanvasRef} className="w-full" height="300"></canvas>
+      )}
+
+      {/* Details Modal - Rendered via Portal */}
+      {selectedGenomeForDetails && createPortal(
+        <div 
+          className="fixed inset-0 bg-gray-600/40 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setSelectedGenomeForDetails(null)}
+        >
+          <div 
+            className={`${nightMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-2xl shadow-2xl border max-w-2xl w-full max-h-[90vh] overflow-y-auto`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className={`sticky top-0 ${nightMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b px-6 py-4 flex items-center justify-between z-10`}>
+              <h3 className={`text-xl font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                Genome Details: {selectedGenomeForDetails.id}
+              </h3>
+              <button
+                onClick={() => setSelectedGenomeForDetails(null)}
+                className={`${nightMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'} transition-colors`}
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="px-6 py-4 space-y-6">
+              {/* Basic Information */}
+              <div>
+                <h4 className={`text-lg font-bold ${nightMode ? 'text-gray-200' : 'text-gray-900'} mb-3`}>Basic Information</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>Genome ID</p>
+                    <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>{selectedGenomeForDetails.id}</p>
+                  </div>
+                  <div>
+                    <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>Population</p>
+                    <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>{POPULATION_MAP[selectedGenomeForDetails.population]}</p>
+                  </div>
+                  <div>
+                    <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>Assembly Size</p>
+                    <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>{selectedGenomeForDetails.assemblySize} GB</p>
+                  </div>
+                  <div>
+                    <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>Quality</p>
+                    <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>{selectedGenomeForDetails.quality}</p>
+                  </div>
+                  <div>
+                    <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>Contig N50</p>
+                    <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>{selectedGenomeForDetails.contigN50.toLocaleString()}</p>
+                  </div>
+                  {selectedGenomeForDetails.biosample_id && (
+                    <div>
+                      <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>Biosample ID</p>
+                      <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>{selectedGenomeForDetails.biosample_id}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Data Layers */}
+              <div>
+                <h4 className={`text-lg font-bold ${nightMode ? 'text-gray-200' : 'text-gray-900'} mb-3`}>Available Data Layers</h4>
+                <div className="space-y-2">
+                  {selectedGenomeForDetails.methylation && (
+                    <div className={`flex items-center justify-between p-3 ${nightMode ? 'bg-gray-700/50' : 'bg-cyan-50'} rounded-lg`}>
+                      <span className={`font-medium ${nightMode ? 'text-gray-200' : 'text-gray-900'}`}>Methylation</span>
+                      {selectedGenomeForDetails.methylationSize && (
+                        <span className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-600'}`}>{selectedGenomeForDetails.methylationSize} GB</span>
+                      )}
+                    </div>
+                  )}
+                  {selectedGenomeForDetails.expression && (
+                    <div className={`flex items-center justify-between p-3 ${nightMode ? 'bg-gray-700/50' : 'bg-green-50'} rounded-lg`}>
+                      <span className={`font-medium ${nightMode ? 'text-gray-200' : 'text-gray-900'}`}>Expression</span>
+                      {selectedGenomeForDetails.expressionSize && (
+                        <span className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-600'}`}>{selectedGenomeForDetails.expressionSize} GB</span>
+                      )}
+                    </div>
+                  )}
+                  {selectedGenomeForDetails.fiberseq && (
+                    <div className={`flex items-center justify-between p-3 ${nightMode ? 'bg-gray-700/50' : 'bg-orange-50'} rounded-lg`}>
+                      <span className={`font-medium ${nightMode ? 'text-gray-200' : 'text-gray-900'}`}>Fiber-seq</span>
+                      {selectedGenomeForDetails.fiberseqSize && (
+                        <span className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-600'}`}>{selectedGenomeForDetails.fiberseqSize} GB</span>
+                      )}
+                    </div>
+                  )}
+                  {selectedGenomeForDetails.chromatinAccessibility && (
+                    <div className={`flex items-center justify-between p-3 ${nightMode ? 'bg-gray-700/50' : 'bg-orange-50'} rounded-lg`}>
+                      <span className={`font-medium ${nightMode ? 'text-gray-200' : 'text-gray-900'}`}>Chromatin Accessibility</span>
+                      {selectedGenomeForDetails.chromatinAccessibilitySize && (
+                        <span className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-600'}`}>{selectedGenomeForDetails.chromatinAccessibilitySize} GB</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Metadata */}
+              {selectedGenomeForDetails.metadata && Object.keys(selectedGenomeForDetails.metadata).length > 0 && (
+                <div>
+                  <h4 className={`text-lg font-bold ${nightMode ? 'text-gray-200' : 'text-gray-900'} mb-3`}>Additional Metadata</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    {Object.entries(selectedGenomeForDetails.metadata).map(([key, value]) => {
+                      if (value && value !== '' && value !== 'NA') {
+                        return (
+                          <div key={key}>
+                            <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>
+                              {key.replace(/_/g, ' ')}
+                            </p>
+                            <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>
+                              {typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value)}
+                            </p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Family Information */}
+              {(selectedGenomeForDetails.family_id || selectedGenomeForDetails.paternal_id || selectedGenomeForDetails.maternal_id) && (
+                <div>
+                  <h4 className={`text-lg font-bold ${nightMode ? 'text-gray-200' : 'text-gray-900'} mb-3`}>Family Information</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    {selectedGenomeForDetails.family_id && (
+                      <div>
+                        <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>Family ID</p>
+                        <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>{selectedGenomeForDetails.family_id}</p>
+                      </div>
+                    )}
+                    {selectedGenomeForDetails.paternal_id && (
+                      <div>
+                        <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>Paternal ID</p>
+                        <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>{selectedGenomeForDetails.paternal_id}</p>
+                      </div>
+                    )}
+                    {selectedGenomeForDetails.maternal_id && (
+                      <div>
+                        <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>Maternal ID</p>
+                        <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>{selectedGenomeForDetails.maternal_id}</p>
+                      </div>
+                    )}
+                    {selectedGenomeForDetails.trio_available !== undefined && (
+                      <div>
+                        <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>Trio Available</p>
+                        <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>
+                          {selectedGenomeForDetails.trio_available ? 'Yes' : 'No'}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Download URLs */}
+              {selectedGenomeForDetails.downloadUrls && Object.keys(selectedGenomeForDetails.downloadUrls).length > 0 && (
+                <div>
+                  <h4 className={`text-lg font-bold ${nightMode ? 'text-gray-200' : 'text-gray-900'} mb-3`}>Download Links</h4>
+                  <div className="space-y-2">
+                    {Object.entries(selectedGenomeForDetails.downloadUrls).map(([key, value]) => {
+                      if (value && typeof value === 'string') {
+                        return (
+                          <div key={key} className={`flex items-center justify-between p-3 ${nightMode ? 'bg-gray-700/50' : 'bg-gray-50'} rounded-lg`}>
+                            <span className={`font-medium ${nightMode ? 'text-gray-200' : 'text-gray-900'} capitalize`}>
+                              {key.replace(/_/g, ' ')}
+                            </span>
+                            <a
+                              href={value}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary-600 hover:text-primary-900 font-medium text-sm transition-colors"
+                            >
+                              Download →
+                            </a>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className={`sticky bottom-0 ${nightMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'} border-t px-6 py-4`}>
+              <button
+                onClick={() => setSelectedGenomeForDetails(null)}
+                className={`w-full px-4 py-2 ${nightMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'} rounded-lg font-medium transition-colors`}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );

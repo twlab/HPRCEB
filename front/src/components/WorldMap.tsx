@@ -41,8 +41,8 @@ const populationRegions = [
     id: 'eur' as Population,
     name: 'Europe',
     abbr: 'EUR',
-    color: '#3b82f6', // blue
-    hoverColor: '#2563eb',
+    color: '#3e5b95', // academic blue rgb(62, 91, 149)
+    hoverColor: '#344c7a',
     coordinates: [15, 54] as [number, number],
     zoom: { scale: 450, center: [15, 54] as [number, number] },
     countries: ['ALB', 'AND', 'AUT', 'BLR', 'BEL', 'BIH', 'BGR', 'HRV', 'CYP', 'CZE',
@@ -191,7 +191,7 @@ export default function WorldMap({ selectedPopulation, populationCounts, selecte
   return (
     <div className={`${nightMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-2xl shadow-fancy border p-6 hover-lift transition-colors duration-300`}>
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center">
+        <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-primary-600 rounded-xl flex items-center justify-center">
           <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
           </svg>
@@ -200,7 +200,7 @@ export default function WorldMap({ selectedPopulation, populationCounts, selecte
       </div>
 
       {/* Map */}
-      <div className={`relative ${nightMode ? 'bg-gradient-to-br from-blue-900/30 to-cyan-900/30 border-blue-700' : 'bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-100'} rounded-xl overflow-hidden border`}>
+      <div className={`relative ${nightMode ? 'bg-gradient-to-br from-primary-900/30 to-cyan-900/30 border-primary-700' : 'bg-gradient-to-br from-primary-50 to-cyan-50 border-primary-100'} rounded-xl overflow-hidden border`}>
         <ComposableMap
           projection="geoEqualEarth"
           projectionConfig={{
@@ -438,7 +438,7 @@ export default function WorldMap({ selectedPopulation, populationCounts, selecte
                 : 'border-transparent bg-gray-50 opacity-60 hover:opacity-100'
             }`}
           >
-            <div className="w-4 h-4 rounded bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
+            <div className="w-4 h-4 rounded bg-gradient-to-r from-primary-500 via-purple-500 to-pink-500" />
             <span className={`text-sm font-bold ${nightMode ? 'text-gray-200' : 'text-gray-700'}`}>
               All
             </span>

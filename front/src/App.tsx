@@ -19,7 +19,19 @@ function App() {
   // Check if user wants to skip landing page
   const skipLanding = getCookie('hprc_skip_landing') === 'true';
   const [showLanding, setShowLanding] = useState(!skipLanding);
-  const [currentTab, setCurrentTab] = useState<TabType>('data-selector');
+  
+  // Get initial tab from URL parameter
+  const getInitialTab = (): TabType => {
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get('tab');
+    const validTabs: TabType[] = ['availability-matrix', 'data-selector', 'browser', 'tutorials', 'sessions'];
+    if (tabParam && validTabs.includes(tabParam as TabType)) {
+      return tabParam as TabType;
+    }
+    return 'data-selector';
+  };
+  
+  const [currentTab, setCurrentTab] = useState<TabType>(getInitialTab());
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [nightMode, setNightMode] = useState(false);
@@ -76,6 +88,32 @@ function App() {
       return () => clearTimeout(timer);
     }
   }, [tutorialTriggerRequested, showLanding, isLoading, error]);
+
+  // Update URL when tab changes
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    params.set('tab', currentTab);
+    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    window.history.pushState({ tab: currentTab }, '', newUrl);
+  }, [currentTab]);
+
+  // Handle browser back/forward buttons
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      if (event.state && event.state.tab) {
+        setCurrentTab(event.state.tab);
+      } else {
+        const params = new URLSearchParams(window.location.search);
+        const tabParam = params.get('tab');
+        if (tabParam) {
+          setCurrentTab(tabParam as TabType);
+        }
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   // Handlers for session management
   const handleLoadSession = (state: DataSelectorState, tab?: string) => {

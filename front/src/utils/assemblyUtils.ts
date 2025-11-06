@@ -134,16 +134,16 @@ export function convertDataTrackToTracksProps(track: Track, sampleId: string): T
     height: 40,
     colorsForContext: {
       CG: {
-        color: "#648bd8",
-        background: "#d9d9d9"
+        color: "#3e5b95", // Academic blue rgb(62, 91, 149) for CG context
+        background: "#e8ecf4"
       },
       CHG: {
-        color: "#ff944d",
-        background: "#ffe0cc"
+        color: "#f59e0b", // Amber for CHG context - colorblind-friendly
+        background: "#fef3c7"
       },
       CHH: {
-        color: "#ff00ff",
-        background: "#ffe5ff"
+        color: "#8b5cf6", // Violet for CHH context - colorblind-friendly
+        background: "#f3e8ff"
       }
     },
     depthColor: "black",

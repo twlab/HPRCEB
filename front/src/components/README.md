@@ -1,6 +1,6 @@
 # Components Directory
 
-This directory contains all React components for the HPRC Epigenome Navigator.
+This directory contains all React components for the HPRC Epigenome Browser.
 
 ## Component Hierarchy
 

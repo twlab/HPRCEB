@@ -30,7 +30,7 @@ export default function InteractiveTutorial({
 
   const steps: TutorialStep[] = [
     {
-      title: "Welcome to HPRC Epigenome Navigator! 🎉",
+      title: "Welcome to HPRC Epigenome Browser! 🎉",
       description: "Let's take a quick tour to help you get started. This will only take a minute!",
       targetSelector: "header",
       position: "bottom",
@@ -200,7 +200,7 @@ export default function InteractiveTutorial({
             </p>
             <button
               onClick={handleSkip}
-              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300"
+              className="px-6 py-3 bg-gradient-to-r from-primary-600 to-purple-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300"
             >
               Continue to App
             </button>
@@ -320,7 +320,7 @@ export default function InteractiveTutorial({
                 key={index}
                 className={`h-2 rounded-full transition-all duration-300 ${
                   index === currentStep
-                    ? 'w-8 bg-gradient-to-r from-blue-500 to-purple-500'
+                    ? 'w-8 bg-gradient-to-r from-primary-500 to-purple-500'
                     : index < currentStep
                     ? 'w-2 bg-green-500'
                     : 'w-2 bg-gray-300'
@@ -371,7 +371,7 @@ export default function InteractiveTutorial({
             )}
             <button
               onClick={handleNext}
-              className="px-6 py-2 text-sm font-medium bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl hover:scale-105"
+              className="px-6 py-2 text-sm font-medium bg-gradient-to-r from-primary-600 to-purple-600 text-white rounded-lg hover:from-primary-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl hover:scale-105"
             >
               {currentStep === steps.length - 1 ? 'Finish' : 'Next'}
             </button>

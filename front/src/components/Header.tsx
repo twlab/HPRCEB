@@ -6,7 +6,7 @@ interface HeaderProps {
 export default function Header({ nightMode, onToggleNightMode }: HeaderProps) {
   return (
     <header className={`${nightMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} shadow-fancy border-b relative overflow-hidden transition-colors duration-300`}>
-      <div className={`absolute inset-0 ${nightMode ? 'bg-gradient-to-r from-blue-900/10 via-purple-900/10 to-pink-900/10' : 'bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-pink-500/5'}`}></div>
+      <div className={`absolute inset-0 ${nightMode ? 'bg-gradient-to-r from-primary-900/10 to-primary-800/10' : 'bg-gradient-to-r from-primary-500/5 to-primary-400/5'}`}></div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4 animate-fade-in-up">
@@ -20,11 +20,11 @@ export default function Header({ nightMode, onToggleNightMode }: HeaderProps) {
             </div>
             {/* Title */}
             <div>
-              <h1 className="text-4xl font-extrabold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                HPRC Epigenome Navigator
+              <h1 className={`text-4xl font-extrabold ${nightMode ? 'text-gray-100' : ''}`} style={!nightMode ? { color: '#3e5b95' } : {}}>
+                HPRC Epigenome Browser
               </h1>
               <p className={`mt-2 text-sm ${nightMode ? 'text-gray-300' : 'text-gray-600'} font-medium`}>
-                Human Pangenome Reference Consortium - Epigenomic Data Browser
+                Human Pangenome Reference Consortium - Epigenome Data Browser
               </p>
             </div>
           </div>

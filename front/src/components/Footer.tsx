@@ -16,7 +16,7 @@ export default function Footer({ nightMode = false }: FooterProps) {
           />
           {/* Footer text */}
           <p className={`text-center text-sm ${nightMode ? 'text-gray-300' : 'text-gray-600'} font-medium`}>
-            ✨ HPRC Epigenome Navigator | For research use only | 
+            ✨ HPRC Epigenome Browser | For research use only | 
             <a 
               href="https://humanpangenome.org" 
               target="_blank" 

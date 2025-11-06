@@ -32,28 +32,28 @@ export const DATA_LAYER_INFO: Record<string, DataLayerInfo> = {
     type: "WGBS",
     avgSize: 15,
     description: "Whole genome bisulfite sequencing data for CpG methylation profiling",
-    color: "#3b82f6",
+    color: "#3e5b95", // Academic blue rgb(62, 91, 149)
   },
   expression: {
     name: "Expression",
     type: "RNA-seq",
     avgSize: 8,
     description: "RNA sequencing data for gene expression quantification",
-    color: "#10b981",
+    color: "#10b981", // Green - colorblind-friendly contrast
   },
   fiberseq: {
     name: "Fiber-seq",
     type: "PacBio",
     avgSize: 20,
     description: "Single-molecule chromatin accessibility and nucleosome positioning",
-    color: "#8b5cf6",
+    color: "#8b5cf6", // Violet - colorblind-friendly
   },
   chromatin_accessibility: {
     name: "Chromatin Accessibility",
     type: "Fiber-seq",
     avgSize: 20,
     description: "Single-molecule chromatin accessibility and nucleosome positioning",
-    color: "#8b5cf6",
+    color: "#8b5cf6", // Violet - colorblind-friendly
   },
 };
 

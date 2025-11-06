@@ -170,7 +170,7 @@ export default function Sessions({
         <div className="flex flex-wrap gap-4">
           <button
             onClick={() => setShowSaveDialog(true)}
-            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300 hover:scale-105 flex items-center gap-2"
+            className="px-6 py-3 bg-gradient-to-r from-primary-600 to-purple-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300 hover:scale-105 flex items-center gap-2"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
@@ -229,7 +229,7 @@ export default function Sessions({
             <div className="flex gap-3 mt-4">
               <button
                 onClick={handleSaveSession}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300"
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-primary-600 to-purple-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300"
               >
                 Save
               </button>
@@ -264,7 +264,7 @@ export default function Sessions({
             <div className="flex gap-3 mt-4">
               <button
                 onClick={handleImport}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300"
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-primary-600 to-purple-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300"
               >
                 Import
               </button>
@@ -369,7 +369,7 @@ export default function Sessions({
                       <>
                         <button
                           onClick={() => handleLoadSession(session)}
-                          className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200"
+                          className="p-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-all duration-200"
                           title="Load session"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

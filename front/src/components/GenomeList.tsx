@@ -38,8 +38,8 @@ export default function GenomeList({ genomes, selectedGenomes, onGenomeToggle, n
             className={`genome-item p-4 border-2 rounded-xl cursor-pointer transition-all hover-lift ${
               isSelected
                 ? nightMode 
-                  ? "border-primary-500 bg-gradient-to-r from-primary-900/50 to-blue-900/50 shadow-md"
-                  : "border-primary-400 bg-gradient-to-r from-primary-50 to-blue-50 shadow-md"
+                  ? "border-primary-500 bg-gradient-to-r from-primary-900/50 to-primary-800/50 shadow-md"
+                  : "border-primary-400 bg-gradient-to-r from-primary-50 to-primary-100 shadow-md"
                 : nightMode
                   ? "border-gray-600 hover:border-primary-500 hover:shadow-md bg-gray-700/50"
                   : "border-gray-200 hover:border-primary-200 hover:shadow-md bg-white"
@@ -81,7 +81,7 @@ export default function GenomeList({ genomes, selectedGenomes, onGenomeToggle, n
                 <div className="mt-2 ml-8 flex gap-1.5">
                   {genome.methylation && (
                     <span 
-                      className="w-2.5 h-2.5 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full shadow-sm animate-pulse-slow" 
+                      className="w-2.5 h-2.5 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full shadow-sm animate-pulse-slow" 
                       title="Methylation"
                     />
                   )}

@@ -87,17 +87,27 @@ export default function AvailabilityMatrixTable({ genomes, onGenomeClick, nightM
       );
     }
     return sortDirection === 'asc' ? (
-      <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7"></path>
       </svg>
     ) : (
-      <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
       </svg>
     );
   };
 
   const renderAvailabilityCell = (genome: Genome, dataType: 'assembly' | 'methylation' | 'expression' | 'fiberseq') => {
+    // Color mapping for each data type
+    const colorMap = {
+      assembly: { bg: 'bg-indigo-100', text: 'text-indigo-800', check: 'text-indigo-500' },
+      methylation: { bg: 'bg-cyan-100', text: 'text-cyan-800', check: 'text-cyan-500' },
+      expression: { bg: 'bg-green-100', text: 'text-green-800', check: 'text-green-500' },
+      fiberseq: { bg: 'bg-orange-100', text: 'text-orange-800', check: 'text-orange-500' },
+    };
+    
+    const colors = colorMap[dataType];
+    
     if (dataType === 'assembly') {
       const tracks = genome.assemblyTracks || (genome.assemblyTrack ? [genome.assemblyTrack] : []);
       if (tracks.length === 0) return <span className="text-gray-300">✗</span>;
@@ -106,7 +116,7 @@ export default function AvailabilityMatrixTable({ genomes, onGenomeClick, nightM
       return (
         <>
           {genomeTypes.map((g, i) => (
-            <span key={i} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 mr-1">
+            <span key={i} className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${colors.bg} ${colors.text} mr-1`}>
               {g}
             </span>
           ))}
@@ -117,17 +127,17 @@ export default function AvailabilityMatrixTable({ genomes, onGenomeClick, nightM
     if (!genome[dataType]) return <span className="text-gray-300">✗</span>;
     
     const tracks = genome[`${dataType}Tracks` as keyof Genome] as any[] | undefined;
-    if (!tracks || tracks.length === 0) return <span className="text-green-500">✓</span>;
+    if (!tracks || tracks.length === 0) return <span className={colors.check}>✓</span>;
     
     const genomeTypes = tracks.map(t => t.genome || t.browser?.genome).filter(Boolean);
     const uniqueGenomes = [...new Set(genomeTypes)];
     
-    if (uniqueGenomes.length === 0) return <span className="text-green-500">✓</span>;
+    if (uniqueGenomes.length === 0) return <span className={colors.check}>✓</span>;
     
     return (
       <>
         {uniqueGenomes.map((g, i) => (
-          <span key={i} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 mr-1">
+          <span key={i} className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${colors.bg} ${colors.text} mr-1`}>
             {g}
           </span>
         ))}

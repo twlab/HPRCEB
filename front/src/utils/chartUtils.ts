@@ -52,8 +52,8 @@ export function createDataChart(
         const genome = genomeData.find((g) => g.id === id);
         return genome && genome.methylation ? genome.methylationSize || 0 : 0;
       }),
-      backgroundColor: "rgba(59, 130, 246, 0.7)",
-      borderColor: "rgba(59, 130, 246, 1)",
+      backgroundColor: "rgba(62, 91, 149, 0.7)", // Academic blue
+      borderColor: "rgba(62, 91, 149, 1)",
       borderWidth: 1,
     });
   }

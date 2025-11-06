@@ -77,8 +77,8 @@ interface Config {
 
 export const config: Config = {
   // Portal metadata
-  title: "HPRC Year 2 Data Portal",
-  subtitle: "Human Pangenome Reference Consortium - Release Year 2",
+  title: "HPRC Epigenome Browser",
+  subtitle: "Human Pangenome Reference Consortium - Epigenome Data Browser",
   
   // External links
   links: {
@@ -126,7 +126,7 @@ export const config: Config = {
       label: "DNA Methylation",
       description: "Whole genome bisulfite sequencing data for CpG methylation profiling",
       type: "WGBS",
-      color: "#3b82f6",
+      color: "#06b6d4", // Vibrant cyan - colorblind-friendly
       avgSize: 15,
     },
     expression: {
@@ -134,7 +134,7 @@ export const config: Config = {
       label: "Expression",
       description: "RNA sequencing data for gene expression quantification",
       type: "RNA-seq",
-      color: "#10b981",
+      color: "#10b981", // Green - colorblind-friendly
       avgSize: 8,
     },
     fiberseq: {
@@ -142,7 +142,7 @@ export const config: Config = {
       label: "Fiber-seq",
       description: "Single-molecule chromatin accessibility and nucleosome positioning",
       type: "PacBio",
-      color: "#8b5cf6",
+      color: "#f97316", // Orange - colorblind-friendly
       avgSize: 20,
     },
   },

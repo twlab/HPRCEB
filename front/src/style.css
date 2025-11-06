@@ -17,28 +17,29 @@ body {
 
 @theme {
   /* Primary color palette using hex for maximum browser compatibility */
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-200: #bfdbfe;
-  --color-primary-300: #93c5fd;
-  --color-primary-400: #60a5fa;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #2563eb;
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1e3a8a;
+  /* Academic blue palette based on rgb(62, 91, 149) */
+  --color-primary-50: #f1f4f9;
+  --color-primary-100: #e0e6f2;
+  --color-primary-200: #c4d0e6;
+  --color-primary-300: #9bb0d6;
+  --color-primary-400: #7089c2;
+  --color-primary-500: #5270af;
+  --color-primary-600: #3e5b95;
+  --color-primary-700: #344c7a;
+  --color-primary-800: #2e4065;
+  --color-primary-900: #2a3855;
 
   /* Static color variants */
-  --color-primary-static-50: #eff6ff;
-  --color-primary-static-100: #dbeafe;
-  --color-primary-static-200: #bfdbfe;
-  --color-primary-static-300: #93c5fd;
-  --color-primary-static-400: #60a5fa;
-  --color-primary-static-500: #3b82f6;
-  --color-primary-static-600: #2563eb;
-  --color-primary-static-700: #1d4ed8;
-  --color-primary-static-800: #1e40af;
-  --color-primary-static-900: #1e3a8a;
+  --color-primary-static-50: #f1f4f9;
+  --color-primary-static-100: #e0e6f2;
+  --color-primary-static-200: #c4d0e6;
+  --color-primary-static-300: #9bb0d6;
+  --color-primary-static-400: #7089c2;
+  --color-primary-static-500: #5270af;
+  --color-primary-static-600: #3e5b95;
+  --color-primary-static-700: #344c7a;
+  --color-primary-static-800: #2e4065;
+  --color-primary-static-900: #2a3855;
 
   /* Custom animations */
   --animate-fade-in-up: fadeInUp 0.5s ease-out;
@@ -144,12 +145,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, rgb(96 165 250 / 1), rgb(37 99 235 / 1));
+  background: linear-gradient(to bottom, rgb(112 137 194 / 1), rgb(62 91 149 / 1));
   border-radius: 0.125rem;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, rgb(59 130 246 / 1), rgb(29 78 216 / 1));
+  background: linear-gradient(to bottom, rgb(82 112 175 / 1), rgb(52 76 122 / 1));
 }
 
 /* Custom checkbox styling */
@@ -163,15 +164,15 @@ input[type="checkbox"].peer:checked ~ label .check-icon {
 }
 
 .gradient-primary {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, #5270af 0%, #3e5b95 100%);
 }
 
 .gradient-success {
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
 }
 
-.gradient-purple {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+.gradient-orange {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
 }
 
 /* Glassmorphism effect */
@@ -188,15 +189,19 @@ input[type="checkbox"].peer:checked ~ label .check-icon {
 }
 
 .shadow-glow {
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+}
+
+.shadow-glow-cyan {
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
 }
 
 .shadow-glow-green {
   box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
 }
 
-.shadow-glow-purple {
-  box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+.shadow-glow-orange {
+  box-shadow: 0 0 20px rgba(249, 115, 22, 0.3);
 }
 
 /* Animation classes */
@@ -252,7 +257,7 @@ input[type="checkbox"].peer:checked ~ label .check-icon {
 }
 
 .hover-glow:hover {
-  box-shadow: 0 0 30px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 0 30px rgba(62, 91, 149, 0.4);
 }
 
 /* Badge animations */

@@ -30,7 +30,7 @@ export default function GenomeSelection({
     <div>
       <div className={`${nightMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-2xl shadow-fancy border p-6 sticky top-8 hover-lift transition-colors duration-300`}>
         <div className="flex items-center gap-3 mb-5">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+          <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-purple-600 rounded-xl flex items-center justify-center">
             <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
             </svg>
@@ -75,7 +75,7 @@ export default function GenomeSelection({
 
         {/* Selection Counter and Clear Button */}
         <div className="flex items-center justify-between gap-3 mb-4">
-          <div className={`flex items-center gap-2 px-3 py-2.5 ${nightMode ? 'bg-gradient-to-r from-primary-900/50 to-blue-900/50' : 'bg-gradient-to-r from-primary-50 to-blue-50'} rounded-xl`}>
+          <div className={`flex items-center gap-2 px-3 py-2.5 ${nightMode ? 'bg-gradient-to-r from-primary-900/50 to-primary-800/50' : 'bg-gradient-to-r from-primary-50 to-primary-100'} rounded-xl`}>
             <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
             </svg>

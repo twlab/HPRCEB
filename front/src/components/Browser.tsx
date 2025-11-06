@@ -191,12 +191,12 @@ export default function Browser({ selectedGenomes, selectedLayers, referenceGeno
         <div className={`w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden ${nightMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-200'} border`}>
           <img 
             src="https://epgg.github.io/assets/images/eg-51ea8bd8d2ca299ede6ceb5f1c987ff7.png" 
-            alt="WashU Epigenome Browser" 
+            alt="HPRC Epigenome Browser" 
             className="w-full h-full object-contain"
           />
         </div>
         <div className="flex-1">
-          <h2 className={`text-xl font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>WashU Epigenome Browser</h2>
+          <h2 className={`text-xl font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>HPRC Epigenome Browser</h2>
           <p className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-500'} mt-0.5`}>
             Interactive genomic data visualization
           </p>
@@ -219,14 +219,14 @@ export default function Browser({ selectedGenomes, selectedLayers, referenceGeno
             </div>
           </div>
 
-          <div className={`${nightMode ? 'bg-gradient-to-br from-blue-900/50 to-blue-800/50 border-blue-700' : 'bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200'} rounded-lg p-3 border`}>
+          <div className={`${nightMode ? 'bg-gradient-to-br from-primary-900/50 to-primary-800/50 border-primary-700' : 'bg-gradient-to-br from-primary-50 to-primary-100 border-primary-200'} rounded-lg p-3 border`}>
             <div className="flex items-center gap-2">
-              <svg className={`w-5 h-5 ${nightMode ? 'text-blue-400' : 'text-blue-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className={`w-5 h-5 ${nightMode ? 'text-primary-400' : 'text-primary-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
               </svg>
               <div>
-                <p className={`text-xs ${nightMode ? 'text-blue-300' : 'text-blue-600'} font-medium`}>Genomes</p>
-                <p className={`text-lg font-bold ${nightMode ? 'text-blue-100' : 'text-blue-900'}`}>{selectedGenomes.length}</p>
+                <p className={`text-xs ${nightMode ? 'text-primary-300' : 'text-primary-600'} font-medium`}>Genomes</p>
+                <p className={`text-lg font-bold ${nightMode ? 'text-primary-100' : 'text-primary-900'}`}>{selectedGenomes.length}</p>
               </div>
             </div>
           </div>
@@ -397,7 +397,7 @@ export default function Browser({ selectedGenomes, selectedLayers, referenceGeno
             className="w-full p-4 flex items-center justify-between hover:opacity-80 transition-opacity"
           >
             <div className="flex items-center gap-2">
-              <svg className={`w-5 h-5 ${nightMode ? 'text-blue-400' : 'text-blue-600'} flex-shrink-0`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className={`w-5 h-5 ${nightMode ? 'text-primary-400' : 'text-primary-600'} flex-shrink-0`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
               <div className="text-left">
@@ -462,7 +462,7 @@ export default function Browser({ selectedGenomes, selectedLayers, referenceGeno
                         )}
                         
                         <p className="font-semibold truncate flex items-center gap-2" title={trackName}>
-                          <span className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded text-xs font-bold ${nightMode ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'}`}>
+                          <span className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded text-xs font-bold ${nightMode ? 'bg-primary-600 text-white' : 'bg-primary-500 text-white'}`}>
                             {idx + 1}
                           </span>
                           <span className="truncate">{trackName}</span>
@@ -470,7 +470,7 @@ export default function Browser({ selectedGenomes, selectedLayers, referenceGeno
                         <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} mt-1`}>Type: {trackType}</p>
                         {dataAttrs.description && <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-600'} mt-1 line-clamp-2`}>{dataAttrs.description}</p>}
                         <div className="flex flex-wrap gap-1 mt-1">
-                          {dataAttrs.platform && <span className={`inline-block text-xs px-1.5 py-0.5 rounded ${nightMode ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-100 text-blue-800'}`}>{dataAttrs.platform}</span>}
+                          {dataAttrs.platform && <span className={`inline-block text-xs px-1.5 py-0.5 rounded ${nightMode ? 'bg-primary-900/50 text-primary-300' : 'bg-primary-100 text-primary-800'}`}>{dataAttrs.platform}</span>}
                           {dataAttrs.coverage && <span className={`inline-block text-xs px-1.5 py-0.5 rounded ${nightMode ? 'bg-purple-900/50 text-purple-300' : 'bg-purple-100 text-purple-800'}`}>{dataAttrs.coverage}</span>}
                         </div>
                       </div>
@@ -506,9 +506,9 @@ export default function Browser({ selectedGenomes, selectedLayers, referenceGeno
 
       {/* Browser Documentation Hint */}
       {selectedGenomes.length > 0 && (
-        <div className={`mt-4 p-3 rounded-lg ${nightMode ? 'bg-gray-800/50 border-gray-700' : 'bg-blue-50 border-blue-200'} border flex items-center justify-between`}>
+        <div className={`mt-4 p-3 rounded-lg ${nightMode ? 'bg-gray-800/50 border-gray-700' : 'bg-primary-50 border-primary-200'} border flex items-center justify-between`}>
           <div className="flex items-center gap-2">
-            <svg className={`w-5 h-5 ${nightMode ? 'text-blue-400' : 'text-blue-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className={`w-5 h-5 ${nightMode ? 'text-primary-400' : 'text-primary-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
             </svg>
             <p className={`text-sm ${nightMode ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -517,9 +517,9 @@ export default function Browser({ selectedGenomes, selectedLayers, referenceGeno
                 href="https://epgg.github.io/" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-blue-600 hover:text-blue-800 underline font-semibold"
+                className="text-primary-600 hover:text-primary-800 underline font-semibold"
               >
-                WashU Epigenome Browser Documentation
+                Browser Documentation
               </a>
             </p>
           </div>

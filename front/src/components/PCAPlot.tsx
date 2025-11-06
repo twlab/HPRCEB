@@ -31,10 +31,10 @@ interface SampleMetadata {
   super_population: string;
 }
 
-// Population colors matching WorldMap
+// Population colors matching WorldMap - colorblind-friendly palette
 const POPULATION_COLORS: Record<string, string> = {
   'afr': '#f59e0b',  // amber
-  'eur': '#3b82f6',  // blue
+  'eur': '#3e5b95',  // academic blue rgb(62, 91, 149)
   'sas': '#8b5cf6',  // violet
   'eas': '#ec4899',  // pink
   'amr': '#10b981',  // emerald
@@ -366,8 +366,8 @@ export default function PCAPlot({ selectedGenomes = [], nightMode = false }: PCA
               onClick={handleResetZoom}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
                 nightMode 
-                  ? 'bg-blue-600 hover:bg-blue-700 text-white' 
-                  : 'bg-blue-500 hover:bg-blue-600 text-white'
+                  ? 'bg-primary-600 hover:bg-primary-700 text-white' 
+                  : 'bg-primary-500 hover:bg-primary-600 text-white'
               }`}
             >
               Reset Zoom

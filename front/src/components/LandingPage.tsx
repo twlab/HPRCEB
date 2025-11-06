@@ -36,7 +36,7 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
       ),
       title: "Complete Genome Assemblies",
       description: "Access high-quality haplotype-resolved genome assemblies from diverse populations worldwide.",
-      gradient: "from-blue-500 to-cyan-500"
+      gradient: "from-primary-500 to-cyan-500"
     },
     {
       icon: (
@@ -46,7 +46,7 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
       ),
       title: "Epigenomic Landscapes",
       description: "Explore DNA methylation, chromatin accessibility, and gene expression across the pangenome.",
-      gradient: "from-purple-500 to-pink-500"
+      gradient: "from-primary-500 to-primary-600"
     },
     {
       icon: (
@@ -80,11 +80,11 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 relative overflow-hidden">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-blue-500/10 to-transparent rounded-full blur-3xl animate-pulse-slow"></div>
-        <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-purple-500/10 to-transparent rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-primary-200/30 to-transparent rounded-full blur-3xl animate-pulse-slow"></div>
+        <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-blue-200/30 to-transparent rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '1s' }}></div>
       </div>
 
       <div className="relative z-10">
@@ -102,20 +102,20 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
 
             {/* Main Title */}
             <h1 className="text-6xl md:text-7xl lg:text-8xl font-black mb-6 animate-fade-in-up">
-              <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              <span style={{ color: '#3e5b95' }}>
                 HPRC
               </span>
               <br />
-              <span className="text-white">
-                Epigenome Navigator
+              <span className="text-gray-800">
+                Epigenome Browser
               </span>
             </h1>
 
             {/* Subtitle */}
-            <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+            <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
               Explore the Human Pangenome Reference Consortium's comprehensive collection of 
-              <span className="text-purple-400 font-semibold"> genome assemblies</span> and 
-              <span className="text-blue-400 font-semibold"> epigenomic data</span> across diverse populations
+              <span className="text-primary-700 font-semibold"> genome assemblies</span> and 
+              <span className="text-primary-600 font-semibold"> epigenomic data</span> across diverse populations
             </p>
 
             {/* CTA Button */}
@@ -123,7 +123,7 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
               <div className="flex flex-col sm:flex-row gap-4">
                 <button
                   onClick={handleEnter}
-                  className="group relative px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-lg font-bold rounded-2xl shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 hover:scale-105"
+                  className="group relative px-8 py-4 bg-primary-600 hover:bg-primary-700 text-white text-lg font-bold rounded-2xl shadow-2xl hover:shadow-primary-500/50 transition-all duration-300 hover:scale-105"
                 >
                   <span className="relative z-10 flex items-center gap-2">
                     Enter Portal
@@ -131,14 +131,14 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
                     </svg>
                   </span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="absolute inset-0 bg-primary-700 rounded-2xl opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
                 </button>
 
                 <a
                   href="https://humanpangenome.org"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-8 py-4 bg-white/10 backdrop-blur-sm text-white text-lg font-bold rounded-2xl border-2 border-white/20 hover:bg-white/20 transition-all duration-300"
+                  className="px-8 py-4 bg-white text-primary-600 text-lg font-bold rounded-2xl border-2 border-primary-200 hover:bg-primary-50 transition-all duration-300 shadow-lg"
                 >
                   Learn More
                 </a>
@@ -150,9 +150,9 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
                   type="checkbox"
                   checked={skipLandingPage}
                   onChange={(e) => setSkipLandingPage(e.target.checked)}
-                  className="w-5 h-5 rounded border-2 border-white/30 bg-white/10 text-purple-600 focus:ring-2 focus:ring-purple-500 focus:ring-offset-0 cursor-pointer"
+                  className="w-5 h-5 rounded border-2 border-gray-300 bg-white text-primary-600 focus:ring-2 focus:ring-primary-500 focus:ring-offset-0 cursor-pointer"
                 />
-                <span className="text-gray-300 group-hover:text-white transition-colors text-sm">
+                <span className="text-gray-600 group-hover:text-gray-800 transition-colors text-sm">
                   Skip this page in the future
                 </span>
               </label>
@@ -163,11 +163,11 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
               {stats.map((stat, index) => (
                 <div
                   key={index}
-                  className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-4 hover:bg-white/10 transition-all duration-300 hover:scale-105"
+                  className="bg-white/80 backdrop-blur-md border border-primary-200 rounded-xl p-4 hover:bg-white transition-all duration-300 hover:scale-105 shadow-lg"
                 >
                   <div className="text-3xl mb-2">{stat.icon}</div>
-                  <div className="text-2xl md:text-3xl font-bold text-white mb-1">{stat.value}</div>
-                  <div className="text-xs text-gray-400 uppercase tracking-wide">{stat.label}</div>
+                  <div className="text-2xl md:text-3xl font-bold text-gray-800 mb-1">{stat.value}</div>
+                  <div className="text-xs text-gray-600 uppercase tracking-wide">{stat.label}</div>
                 </div>
               ))}
             </div>
@@ -177,7 +177,7 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
         {/* Features Section */}
         <section className="px-4 sm:px-6 lg:px-8 py-20">
           <div className="max-w-7xl mx-auto">
-            <h2 className="text-4xl md:text-5xl font-bold text-center text-white mb-16 animate-fade-in">
+            <h2 className="text-4xl md:text-5xl font-bold text-center text-gray-800 mb-16 animate-fade-in">
               What You Can Explore
             </h2>
 
@@ -185,14 +185,14 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
               {features.map((feature, index) => (
                 <div
                   key={index}
-                  className="group bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-all duration-300 hover:scale-105 hover:shadow-2xl animate-fade-in-up"
+                  className="group bg-white/80 backdrop-blur-md border border-primary-200 rounded-2xl p-8 hover:bg-white transition-all duration-300 hover:scale-105 hover:shadow-2xl animate-fade-in-up"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <div className={`inline-flex p-4 rounded-xl bg-gradient-to-br ${feature.gradient} text-white mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                     {feature.icon}
                   </div>
-                  <h3 className="text-2xl font-bold text-white mb-3">{feature.title}</h3>
-                  <p className="text-gray-300 leading-relaxed">{feature.description}</p>
+                  <h3 className="text-2xl font-bold text-gray-800 mb-3">{feature.title}</h3>
+                  <p className="text-gray-600 leading-relaxed">{feature.description}</p>
                 </div>
               ))}
             </div>
@@ -202,16 +202,16 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
         {/* Footer CTA */}
         <section className="px-4 sm:px-6 lg:px-8 py-20 text-center">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 animate-fade-in">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-800 mb-6 animate-fade-in">
               Ready to Explore?
             </h2>
-            <p className="text-xl text-gray-300 mb-8 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+            <p className="text-xl text-gray-600 mb-8 animate-fade-in" style={{ animationDelay: '0.1s' }}>
               Access comprehensive genomic and epigenomic data from the world's most diverse pangenome collection
             </p>
             <div className="flex flex-col gap-4 items-center">
               <button
                 onClick={handleEnter}
-                className="group relative px-12 py-5 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xl font-bold rounded-2xl shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 hover:scale-105 animate-fade-in"
+                className="group relative px-12 py-5 bg-primary-600 hover:bg-primary-700 text-white text-xl font-bold rounded-2xl shadow-2xl hover:shadow-primary-500/50 transition-all duration-300 hover:scale-105 animate-fade-in"
                 style={{ animationDelay: '0.2s' }}
               >
                 <span className="relative z-10 flex items-center gap-3">
@@ -220,7 +220,7 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
                   </svg>
                 </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="absolute inset-0 bg-primary-700 rounded-2xl opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
               </button>
               
               <label className="flex items-center gap-3 cursor-pointer group animate-fade-in" style={{ animationDelay: '0.3s' }}>
@@ -228,9 +228,9 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
                   type="checkbox"
                   checked={skipLandingPage}
                   onChange={(e) => setSkipLandingPage(e.target.checked)}
-                  className="w-5 h-5 rounded border-2 border-white/30 bg-white/10 text-purple-600 focus:ring-2 focus:ring-purple-500 focus:ring-offset-0 cursor-pointer"
+                  className="w-5 h-5 rounded border-2 border-gray-300 bg-white text-primary-600 focus:ring-2 focus:ring-primary-500 focus:ring-offset-0 cursor-pointer"
                 />
-                <span className="text-gray-300 group-hover:text-white transition-colors text-sm">
+                <span className="text-gray-600 group-hover:text-gray-800 transition-colors text-sm">
                   Skip this page in the future
                 </span>
               </label>
@@ -239,11 +239,11 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
         </section>
 
         {/* Footer */}
-        <footer className="border-t border-white/10 py-8 text-center text-gray-400 text-sm">
-          <p>© 2024 Human Pangenome Reference Consortium. All rights reserved.</p>
+        <footer className="border-t border-gray-300 py-8 text-center text-gray-500 text-sm">
+          <p>© 2025-2026 Human Pangenome Reference Consortium. All rights reserved.</p>
           <p className="mt-2">
             Part of the{" "}
-            <a href="https://humanpangenome.org" target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:text-purple-300 transition-colors">
+            <a href="https://humanpangenome.org" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 transition-colors font-semibold">
               NHGRI Human Pangenome Project
             </a>
           </p>
