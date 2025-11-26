@@ -30,7 +30,7 @@ export default function InteractiveTutorial({
 
   const steps: TutorialStep[] = [
     {
-      title: "Welcome to HPRC Epigenome Browser! 🎉",
+      title: "Welcome to WashU Epigenome Browser! 🎉",
       description: "Let's take a quick tour to help you get started. This will only take a minute!",
       targetSelector: "header",
       position: "bottom",
@@ -38,7 +38,7 @@ export default function InteractiveTutorial({
     },
     {
       title: "Navigation Tabs",
-      description: "Use these tabs to navigate between different sections. Let's start with the Data Selector.",
+      description: "Use these tabs to navigate between different sections. The workflow is: Sample → Track → Browser.",
       targetSelector: "nav",
       position: "bottom",
       highlightPadding: 10,
@@ -51,37 +51,44 @@ export default function InteractiveTutorial({
       highlightPadding: 15,
     },
     {
-      title: "Data Selector Tab",
-      description: "This is where you'll select genomes and configure data layers. Click the 'Data Selector' tab to continue.",
+      title: "Step 1: Sample Tab",
+      description: "Start here! Select genomes and configure data layers (methylation, expression, chromatin accessibility, chromatin conformation).",
       targetSelector: "nav button:nth-child(1)",
       position: "bottom",
       highlightPadding: 10,
-      action: () => onTabChange?.('data-selector'),
+      action: () => onTabChange?.('sample'),
     },
     {
-      title: "Browser Tab",
-      description: "After selecting your data, visit the Browser tab to visualize it in an interactive genome browser.",
+      title: "Step 2: Track Tab 🎯",
+      description: "Configure which tracks to display. Enable/disable specific tracks before visualization.",
       targetSelector: "nav button:nth-child(2)",
       position: "bottom",
       highlightPadding: 10,
     },
     {
-      title: "Sessions Tab 💾",
-      description: "Save your selections here! You can store up to 10 sessions and load them anytime.",
+      title: "Step 3: Browser Tab 🧬",
+      description: "Visualize your selected tracks in the WashU Epigenome Browser with interactive genomic data.",
       targetSelector: "nav button:nth-child(3)",
+      position: "bottom",
+      highlightPadding: 10,
+    },
+    {
+      title: "Sessions Tab 💾",
+      description: "Save your complete configuration (genomes, data layers, and track selections) for later use!",
+      targetSelector: "nav button:nth-child(4)",
       position: "bottom",
       highlightPadding: 10,
     },
     {
       title: "Tutorials & Help 📚",
       description: "Need help? Visit the Tutorials tab for detailed guides and documentation.",
-      targetSelector: "nav button:nth-child(5)",
+      targetSelector: "nav button:nth-child(6)",
       position: "bottom",
       highlightPadding: 10,
     },
     {
       title: "You're All Set! ✨",
-      description: "You now know the basics! Start exploring by selecting genomes in the Data Selector tab. You can restart this tutorial anytime from the Sessions tab.",
+      description: "You now know the basics! Start by selecting genomes in the Sample tab, configure tracks in the Track tab, then visualize in the Browser. You can restart this tutorial anytime from the Tutorials tab.",
       targetSelector: "main",
       position: "top",
       highlightPadding: 20,
@@ -382,7 +389,7 @@ export default function InteractiveTutorial({
         {currentStep === steps.length - 1 && (
           <div className={`mt-4 pt-4 border-t ${nightMode ? 'border-gray-700' : 'border-gray-200'}`}>
             <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              💡 You can restart this tutorial anytime from the Sessions tab
+              💡 You can restart this tutorial anytime from the Tutorials tab
             </p>
           </div>
         )}

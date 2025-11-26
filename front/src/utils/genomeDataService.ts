@@ -1,8 +1,21 @@
 // Genome data service - handles loading and managing genome data
 import type { Genome, Population, DataLayer } from './genomeTypes';
+import type { TracksProps } from './browserTypes';
 
 // In-memory genome data cache
 let genomeDataCache: Genome[] = [];
+
+// Track entry from TSV with all fields parsed as-is
+export interface TrackEntry {
+  sample_id: string;
+  data_type: string;
+  size_bytes: string;
+  data_attributes: Record<string, any>;
+  browser_attributes: Record<string, any>;
+}
+
+// In-memory track data cache as dictionary keyed by sample_id
+let trackDataCache: Record<string, TrackEntry[]> = {};
 
 /**
  * Load genome data from external JSON file
@@ -50,14 +63,6 @@ export function getFilteredGenomes(searchTerm: string, population: Population): 
 }
 
 /**
- * Get data layer availability for a specific genome
- */
-export function getDataLayerAvailability(genomeId: string, dataLayer: DataLayer): boolean {
-  const genome = genomeDataCache.find((g) => g.id === genomeId);
-  return genome ? genome[dataLayer] : false;
-}
-
-/**
  * Calculate total data size for selected genomes and layers
  */
 export function calculateTotalSize(selectedGenomes: string[], selectedLayers: DataLayer[]): number {
@@ -77,9 +82,54 @@ export function calculateTotalSize(selectedGenomes: string[], selectedLayers: Da
 }
 
 /**
- * Get a specific genome by ID
+ * Load track data from TSV file into a dictionary keyed by sample_id
+ * @returns Dictionary of sample_id -> TrackEntry[]
  */
-export function getGenomeById(genomeId: string): Genome | undefined {
-  return genomeDataCache.find(g => g.id === genomeId);
+export async function loadTrackData(): Promise<Record<string, TrackEntry[]>> {
+  try {
+    const response = await fetch('./data/tracks.tsv');
+    if (!response.ok) {
+      throw new Error(`Failed to load track data: ${response.statusText}`);
+    }
+    const text = await response.text();
+    const lines = text.trim().split('\n');
+    
+    // Skip header line, parse all fields as-is
+    const tracks: Record<string, TrackEntry[]> = {};
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i];
+      const [sample_id, data_type, size_bytes, data_attributes, browser_attributes] = line.split('\t');
+      
+      try {
+        const entry: TrackEntry = {
+          sample_id,
+          data_type,
+          size_bytes,
+          data_attributes: JSON.parse(data_attributes),
+          browser_attributes: JSON.parse(browser_attributes),
+        };
+        
+        if (!tracks[sample_id]) {
+          tracks[sample_id] = [];
+        }
+        tracks[sample_id].push(entry);
+      } catch (parseError) {
+        console.warn(`Failed to parse track at line ${i + 1}:`, parseError);
+      }
+    }
+    
+    trackDataCache = tracks;
+    return trackDataCache;
+  } catch (error) {
+    console.error('Error loading track data:', error);
+    throw error;
+  }
 }
 
+/**
+ * Get the cached track data
+ * @returns Dictionary of sample_id -> TrackEntry[]
+ */
+export function getTrackData(): Record<string, TrackEntry[]> {
+  return trackDataCache;
+}

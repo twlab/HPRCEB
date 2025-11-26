@@ -1,19 +1,22 @@
 import { useState, useEffect } from 'react';
 import Header from './components/Header';
-import TabNavigation from './components/TabNavigation';
+import TabNavigation, { TabType } from './components/TabNavigation';
 import DataAvailabilityMatrix from './components/DataAvailabilityMatrix';
 import DataSelector, { DataSelectorState } from './components/DataSelector';
+import Tracks from './components/Tracks';
 import Browser from './components/Browser';
 import Tutorials from './components/Tutorials';
 import Sessions from './components/Sessions';
 import Footer from './components/Footer';
 import LandingPage from './components/LandingPage';
 import InteractiveTutorial from './components/InteractiveTutorial';
-import { loadGenomeData } from './utils/genomeDataService';
-import { getCookie, deleteCookie } from './utils/cookieUtils';
+import CookieBanner from './components/CookieBanner';
+import CookieSettings from './components/CookieSettings';
+import { loadGenomeData, loadTrackData, getTrackData, TrackEntry } from './utils/genomeDataService';
+import { getCookie } from './utils/cookieUtils';
+import { selectTracks, Track } from './utils/trackSelection';
+import type { TracksProps } from './utils/browserTypes';
 import './style.css';
-
-type TabType = 'availability-matrix' | 'data-selector' | 'browser' | 'tutorials' | 'sessions';
 
 function App() {
   // Check if user wants to skip landing page
@@ -24,17 +27,18 @@ function App() {
   const getInitialTab = (): TabType => {
     const params = new URLSearchParams(window.location.search);
     const tabParam = params.get('tab');
-    const validTabs: TabType[] = ['availability-matrix', 'data-selector', 'browser', 'tutorials', 'sessions'];
+    const validTabs: TabType[] = ['availability-matrix', 'sample', 'tracks', 'browser', 'tutorials', 'sessions'];
     if (tabParam && validTabs.includes(tabParam as TabType)) {
       return tabParam as TabType;
     }
-    return 'data-selector';
+    return 'sample';
   };
   
   const [currentTab, setCurrentTab] = useState<TabType>(getInitialTab());
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [nightMode, setNightMode] = useState(false);
+  const [showCookieSettings, setShowCookieSettings] = useState(false);
   
   // Tutorial state
   const tutorialCompleted = localStorage.getItem('hprc_tutorial_completed') === 'true';
@@ -50,16 +54,37 @@ function App() {
     referenceGenome: 'hg38',
   });
 
-  // Load genome data on mount
+  // Available tracks loaded from tracks.tsv (dictionary: sample_id -> TrackEntry[])
+  const [availableTracks, setAvailableTracks] = useState<Record<string, TrackEntry[]>>({});
+  
+  // Selected tracks to display (result of selectTracks)
+  const [selectedTracks, setSelectedTracks] = useState<Track[]>([]);
+
+  // Fire selectTracks only when reference, samples, or functional data layers change
+  useEffect(() => {
+    const result = selectTracks({
+      selectedSamples: dataSelectorState.selectedGenomes,
+      reference: dataSelectorState.referenceGenome,
+      availableTracks: availableTracks,
+      selectedLayers: dataSelectorState.selectedLayers,
+    });
+    
+    setSelectedTracks(result.tracks);
+    console.log('Track selection result:', result);
+  }, [dataSelectorState.selectedGenomes, dataSelectorState.referenceGenome, availableTracks, dataSelectorState.selectedLayers]);
+
+  // Load genome and track data on mount
   useEffect(() => {
     const initializeData = async () => {
       try {
         setIsLoading(true);
         await loadGenomeData();
+        const tracks = await loadTrackData();
+        setAvailableTracks(tracks);
         setIsLoading(false);
       } catch (err) {
-        console.error('Failed to load genome data:', err);
-        setError('Failed to load genome data. Please refresh the page or contact support.');
+        console.error('Failed to load data:', err);
+        setError('Failed to load data. Please refresh the page or contact support.');
         setIsLoading(false);
       }
     };
@@ -116,8 +141,9 @@ function App() {
   }, []);
 
   // Handlers for session management
-  const handleLoadSession = (state: DataSelectorState, tab?: string) => {
+  const handleLoadSession = (state: DataSelectorState, tracks: Track[], tab?: string) => {
     setDataSelectorState(state);
+    setSelectedTracks(tracks);
     if (tab && tab !== 'sessions') {
       setCurrentTab(tab as TabType);
     }
@@ -126,6 +152,11 @@ function App() {
   const handleResetLandingPage = () => {
     // This just confirms the reset - the actual effect happens on next page load
     // We could force showing the landing page here, but it might confuse the user
+  };
+
+  // Handler to navigate to Sample tab
+  const handleNavigateToDataSelector = () => {
+    setCurrentTab('sample');
   };
 
   // Tutorial handlers
@@ -193,20 +224,33 @@ function App() {
       <Header nightMode={nightMode} onToggleNightMode={() => setNightMode(!nightMode)} />
       <TabNavigation currentTab={currentTab} onTabChange={setCurrentTab} nightMode={nightMode} />
       
-      {/* Browser tab uses full width, other tabs use max-width constraint */}
-      {currentTab === 'browser' ? (
+      {/* Browser and Tracks tabs use full width, other tabs use max-width constraint */}
+      {currentTab === 'browser' || currentTab === 'tracks' ? (
         <main className="px-4 sm:px-6 lg:px-8 py-8">
-          <Browser 
-            selectedGenomes={dataSelectorState.selectedGenomes}
-            selectedLayers={dataSelectorState.selectedLayers}
-            referenceGenome={dataSelectorState.referenceGenome}
-            nightMode={nightMode}
-          />
+          {currentTab === 'tracks' && (
+            <Tracks
+              tracks={selectedTracks}
+              selectedGenomes={dataSelectorState.selectedGenomes}
+              referenceGenome={dataSelectorState.referenceGenome}
+              nightMode={nightMode}
+              onTracksChange={setSelectedTracks}
+              onNavigateToDataSelector={handleNavigateToDataSelector}
+            />
+          )}
+          {currentTab === 'browser' && (
+            <Browser 
+              tracks={selectedTracks}
+              selectedGenomes={dataSelectorState.selectedGenomes}
+              referenceGenome={dataSelectorState.referenceGenome}
+              nightMode={nightMode}
+              onNavigateToDataSelector={handleNavigateToDataSelector}
+            />
+          )}
         </main>
       ) : (
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
           {currentTab === 'availability-matrix' && <DataAvailabilityMatrix nightMode={nightMode} />}
-          {currentTab === 'data-selector' && (
+          {currentTab === 'sample' && (
             <DataSelector 
               state={dataSelectorState} 
               onStateChange={setDataSelectorState}
@@ -222,6 +266,7 @@ function App() {
           {currentTab === 'sessions' && (
             <Sessions
               dataSelectorState={dataSelectorState}
+              selectedTracks={selectedTracks}
               currentTab={currentTab}
               onLoadSession={handleLoadSession}
               onResetLandingPage={handleResetLandingPage}
@@ -231,10 +276,25 @@ function App() {
         </main>
       )}
 
-      <Footer nightMode={nightMode} />
+      <Footer 
+        nightMode={nightMode} 
+        onOpenCookieSettings={() => setShowCookieSettings(true)} 
+      />
+      
+      {/* Cookie consent banner */}
+      <CookieBanner 
+        nightMode={nightMode} 
+        onShowSettings={() => setShowCookieSettings(true)} 
+      />
+      
+      {/* Cookie settings modal */}
+      <CookieSettings 
+        isOpen={showCookieSettings}
+        onClose={() => setShowCookieSettings(false)}
+        nightMode={nightMode}
+      />
     </div>
   );
 }
 
 export default App;
-

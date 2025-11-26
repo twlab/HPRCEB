@@ -14,6 +14,11 @@ export default function ReferenceGenomeSelection({
   onReferenceGenomeChange, 
   nightMode = false 
 }: ReferenceGenomeSelectionProps) {
+  const handleGenomeChange = (genome: string) => {
+    console.log(`[Reference Genome] Changed to: ${genome}`);
+    onReferenceGenomeChange(genome);
+  };
+  
   return (
     <div className={`${nightMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-2xl shadow-fancy border p-6 hover-lift transition-colors duration-300`}>
       <div className="flex items-center gap-3 mb-5">
@@ -29,7 +34,7 @@ export default function ReferenceGenomeSelection({
         {AVAILABLE_GENOMES.map((genome) => (
           <button
             key={genome.value}
-            onClick={() => onReferenceGenomeChange(genome.value)}
+            onClick={() => handleGenomeChange(genome.value)}
             className={`w-full px-5 py-4 rounded-xl border-2 transition-all duration-200 text-left font-semibold ${
               referenceGenome === genome.value
                 ? nightMode

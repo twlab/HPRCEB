@@ -48,10 +48,10 @@ const layers: Array<{
     badgeColor: 'bg-green-100 text-green-800',
   },
   {
-    id: 'fiberseq',
-    title: 'Fiber-seq',
-    description: 'Single-molecule chromatin accessibility',
-    technology: 'ONT / PacBio',
+    id: 'chromatin_accessibility',
+    title: 'Chromatin Accessibility',
+    description: 'Single-molecule chromatin accessibility and nucleosome positioning',
+    technology: 'Fiber-seq',
     colorClass: 'orange',
     hoverColor: 'hover:border-orange-300',
     gradientFrom: 'from-orange-50',
@@ -59,6 +59,19 @@ const layers: Array<{
     shadowGlow: 'shadow-glow-orange',
     borderColor: 'border-orange-500',
     badgeColor: 'bg-orange-100 text-orange-800',
+  },
+  {
+    id: 'chromatin_conformation',
+    title: 'Chromatin Conformation',
+    description: '3D genome organization and chromatin interactions',
+    technology: 'Omni-C',
+    colorClass: 'purple',
+    hoverColor: 'hover:border-purple-300',
+    gradientFrom: 'from-purple-50',
+    gradientTo: 'to-purple-100',
+    shadowGlow: 'shadow-glow-purple',
+    borderColor: 'border-purple-500',
+    badgeColor: 'bg-purple-100 text-purple-800',
   },
 ];
 
@@ -129,7 +142,7 @@ export default function DataLayerSelection({ selectedLayers, onLayerToggle, onCl
         )}
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {layers.map((layer) => (
           <div key={layer.id} className="relative">
             <input 
@@ -141,18 +154,18 @@ export default function DataLayerSelection({ selectedLayers, onLayerToggle, onCl
             />
             <label htmlFor={layer.id} className="block cursor-pointer">
               <div 
-                className={`layer-card border-2 ${nightMode ? 'border-gray-600' : 'border-gray-200'} rounded-xl p-5 ${layer.hoverColor} hover:shadow-lg transition-all ${nightMode ? 'bg-gray-700/50' : ''} min-h-[200px] flex flex-col`}
+                className={`layer-card border-2 ${nightMode ? 'border-gray-600' : 'border-gray-200'} rounded-xl p-4 ${layer.hoverColor} hover:shadow-lg transition-all ${nightMode ? 'bg-gray-700/50' : ''} min-h-[180px] flex flex-col`}
                 data-layer={layer.id}
               >
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className={`font-bold text-base ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>{layer.title}</h3>
-                  <div className={`layer-checkbox w-6 h-6 border-2 ${nightMode ? 'border-gray-500' : 'border-gray-300'} rounded flex items-center justify-center transition-all`}>
-                    <svg className="layer-checkmark w-4 h-4 text-white hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className={`font-bold text-sm ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>{layer.title}</h3>
+                  <div className={`layer-checkbox w-5 h-5 border-2 ${nightMode ? 'border-gray-500' : 'border-gray-300'} rounded flex items-center justify-center transition-all flex-shrink-0`}>
+                    <svg className="layer-checkmark w-3.5 h-3.5 text-white hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
                     </svg>
                   </div>
                 </div>
-                <p className={`text-sm ${nightMode ? 'text-gray-300' : 'text-gray-600'} mb-3 flex-grow`}>{layer.description}</p>
+                <p className={`text-xs ${nightMode ? 'text-gray-300' : 'text-gray-600'} mb-2 flex-grow leading-relaxed`}>{layer.description}</p>
                 <div className="mt-auto">
                   <div className="flex items-center gap-2">
                     <svg className={`w-4 h-4 ${nightMode ? 'text-gray-400' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">

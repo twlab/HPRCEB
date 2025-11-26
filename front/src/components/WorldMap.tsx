@@ -163,7 +163,7 @@ export default function WorldMap({ selectedPopulation, populationCounts, selecte
     }
     
     // Countries not in any population group (e.g., Middle East, Southeast Asia, Oceania)
-    return '#e5e7eb'; // Light gray for non-population countries
+    return nightMode ? '#1f2937' : '#e5e7eb'; // Darker gray in night mode for better contrast
   };
 
   const getCountryOpacity = (geo: any) => {
@@ -232,7 +232,7 @@ export default function WorldMap({ selectedPopulation, populationCounts, selecte
                         fill: countryColor,
                         opacity: countryOpacity,
                         outline: 'none',
-                        stroke: '#ffffff',
+                        stroke: nightMode ? '#0f172a' : '#ffffff',
                         strokeWidth: 0.75,
                         transition: 'all 0.2s',
                       },
@@ -240,14 +240,14 @@ export default function WorldMap({ selectedPopulation, populationCounts, selecte
                         fill: region ? region.hoverColor : countryColor,
                         opacity: 1,
                         outline: 'none',
-                        stroke: '#1f2937',
+                        stroke: nightMode ? '#000000' : '#1f2937',
                         strokeWidth: 1.5,
                       },
                       pressed: {
                         fill: countryColor,
                         opacity: 1,
                         outline: 'none',
-                        stroke: '#ffffff',
+                        stroke: nightMode ? '#0f172a' : '#ffffff',
                         strokeWidth: 0.75,
                       },
                     }}
@@ -291,7 +291,7 @@ export default function WorldMap({ selectedPopulation, populationCounts, selecte
                     width={50}
                     height={24}
                     rx={4}
-                    fill="white"
+                    fill={nightMode ? '#1f2937' : 'white'}
                     opacity={0.95}
                     stroke={region.color}
                     strokeWidth={2}
@@ -365,7 +365,7 @@ export default function WorldMap({ selectedPopulation, populationCounts, selecte
                   {/* Sample marker circle */}
                   <circle
                     r={isSelected ? 6 : 4}
-                    fill={isSelected ? markerColor : 'white'}
+                    fill={isSelected ? markerColor : (nightMode ? '#374151' : 'white')}
                     stroke={markerColor}
                     strokeWidth={isSelected ? 3 : 2}
                     opacity={isSelected ? 0.9 : 0.5}
@@ -392,7 +392,7 @@ export default function WorldMap({ selectedPopulation, populationCounts, selecte
       </div>
 
       {/* Legend */}
-      <div className="mt-4 pt-4 border-t border-gray-200">
+      <div className={`mt-4 pt-4 border-t ${nightMode ? 'border-gray-600' : 'border-gray-200'}`}>
         <div className="flex flex-wrap gap-3 justify-center">
           {populationRegions.map((region) => {
             const count = populationCounts[region.id] || 0;
@@ -407,7 +407,7 @@ export default function WorldMap({ selectedPopulation, populationCounts, selecte
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg border-2 transition-all ${
                   isActive 
                     ? nightMode
-                      ? 'border-gray-600 bg-gray-700 shadow-md'
+                      ? 'border-gray-500 bg-gray-700 shadow-md'
                       : 'border-gray-300 bg-white shadow-md'
                     : nightMode
                       ? 'border-transparent bg-gray-700/50 opacity-60 hover:opacity-100'
@@ -434,8 +434,12 @@ export default function WorldMap({ selectedPopulation, populationCounts, selecte
             onMouseLeave={() => setHoveredRegion(null)}
             className={`flex items-center gap-2 px-3 py-2 rounded-lg border-2 transition-all ${
               selectedPopulation === 'all' 
-                ? 'border-gray-400 bg-gradient-to-r from-gray-100 to-gray-50 shadow-md' 
-                : 'border-transparent bg-gray-50 opacity-60 hover:opacity-100'
+                ? nightMode
+                  ? 'border-gray-500 bg-gray-700 shadow-md'
+                  : 'border-gray-400 bg-gradient-to-r from-gray-100 to-gray-50 shadow-md'
+                : nightMode
+                  ? 'border-transparent bg-gray-700/50 opacity-60 hover:opacity-100'
+                  : 'border-transparent bg-gray-50 opacity-60 hover:opacity-100'
             }`}
           >
             <div className="w-4 h-4 rounded bg-gradient-to-r from-primary-500 via-purple-500 to-pink-500" />

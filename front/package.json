@@ -1,7 +1,7 @@
 {
-  "name": "hprc-epigenome-navigator",
+  "name": "hprc-epigenome-browser",
   "version": "1.0.0",
-  "description": "Epigenome data browser for HPRC Year 2 release",
+  "description": "HPRC Epigenome Browser - Human Pangenome Reference Consortium Epigenome Data Browser",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -27,6 +27,6 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-simple-maps": "^3.0.0",
-    "wuepgg": "^57.0.6"
+    "wuepgg": "^58.0.3"
   }
 }

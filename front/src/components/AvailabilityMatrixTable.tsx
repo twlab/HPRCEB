@@ -7,7 +7,7 @@ interface AvailabilityMatrixTableProps {
   nightMode?: boolean;
 }
 
-type SortColumn = 'sample' | 'assembly' | 'methylation' | 'expression' | 'fiberseq' | 'totalSize';
+type SortColumn = 'sample' | 'assembly' | 'methylation' | 'expression' | 'chromatin_accessibility' | 'chromatin_conformation' | 'totalSize';
 type SortDirection = 'asc' | 'desc';
 
 export default function AvailabilityMatrixTable({ genomes, onGenomeClick, nightMode = false }: AvailabilityMatrixTableProps) {
@@ -51,13 +51,17 @@ export default function AvailabilityMatrixTable({ genomes, onGenomeClick, nightM
           aValue = a.expression ? 1 : 0;
           bValue = b.expression ? 1 : 0;
           break;
-        case 'fiberseq':
-          aValue = a.fiberseq ? 1 : 0;
-          bValue = b.fiberseq ? 1 : 0;
+        case 'chromatin_accessibility':
+          aValue = a.chromatinAccessibility ? 1 : 0;
+          bValue = b.chromatinAccessibility ? 1 : 0;
+          break;
+        case 'chromatin_conformation':
+          aValue = a.chromatinConformation ? 1 : 0;
+          bValue = b.chromatinConformation ? 1 : 0;
           break;
         case 'totalSize':
-          aValue = a.assemblySize + (a.methylationSize || 0) + (a.expressionSize || 0) + (a.fiberseqSize || 0);
-          bValue = b.assemblySize + (b.methylationSize || 0) + (b.expressionSize || 0) + (b.fiberseqSize || 0);
+          aValue = a.assemblySize + (a.methylationSize || 0) + (a.expressionSize || 0) + (a.chromatinAccessibilitySize || 0) + (a.chromatinConformationSize || 0);
+          bValue = b.assemblySize + (b.methylationSize || 0) + (b.expressionSize || 0) + (b.chromatinAccessibilitySize || 0) + (b.chromatinConformationSize || 0);
           break;
         default:
           aValue = a.id;
@@ -97,13 +101,14 @@ export default function AvailabilityMatrixTable({ genomes, onGenomeClick, nightM
     );
   };
 
-  const renderAvailabilityCell = (genome: Genome, dataType: 'assembly' | 'methylation' | 'expression' | 'fiberseq') => {
+  const renderAvailabilityCell = (genome: Genome, dataType: 'assembly' | 'methylation' | 'expression' | 'chromatin_accessibility' | 'chromatin_conformation') => {
     // Color mapping for each data type
     const colorMap = {
       assembly: { bg: 'bg-indigo-100', text: 'text-indigo-800', check: 'text-indigo-500' },
       methylation: { bg: 'bg-cyan-100', text: 'text-cyan-800', check: 'text-cyan-500' },
       expression: { bg: 'bg-green-100', text: 'text-green-800', check: 'text-green-500' },
-      fiberseq: { bg: 'bg-orange-100', text: 'text-orange-800', check: 'text-orange-500' },
+      chromatin_accessibility: { bg: 'bg-orange-100', text: 'text-orange-800', check: 'text-orange-500' },
+      chromatin_conformation: { bg: 'bg-purple-100', text: 'text-purple-800', check: 'text-purple-500' },
     };
     
     const colors = colorMap[dataType];
@@ -187,11 +192,20 @@ export default function AvailabilityMatrixTable({ genomes, onGenomeClick, nightM
           </th>
           <th 
             className={`px-4 py-3 text-center text-xs font-medium ${nightMode ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-500 hover:bg-gray-100'} uppercase cursor-pointer transition-colors group`}
-            onClick={() => handleSort('fiberseq')}
+            onClick={() => handleSort('chromatin_accessibility')}
           >
             <div className="flex items-center justify-center gap-2">
-              Fiber-seq
-              {renderSortIcon('fiberseq')}
+              Chromatin Acc.
+              {renderSortIcon('chromatin_accessibility')}
+            </div>
+          </th>
+          <th 
+            className={`px-4 py-3 text-center text-xs font-medium ${nightMode ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-500 hover:bg-gray-100'} uppercase cursor-pointer transition-colors group`}
+            onClick={() => handleSort('chromatin_conformation')}
+          >
+            <div className="flex items-center justify-center gap-2">
+              Chromatin Conf.
+              {renderSortIcon('chromatin_conformation')}
             </div>
           </th>
           <th 
@@ -207,7 +221,7 @@ export default function AvailabilityMatrixTable({ genomes, onGenomeClick, nightM
       </thead>
       <tbody className={`${nightMode ? 'bg-gray-800 divide-gray-700' : 'bg-white divide-gray-200'} divide-y`}>
         {sortedGenomes.map(genome => {
-          const totalSize = genome.assemblySize + (genome.methylationSize || 0) + (genome.expressionSize || 0) + (genome.fiberseqSize || 0);
+          const totalSize = genome.assemblySize + (genome.methylationSize || 0) + (genome.expressionSize || 0) + (genome.chromatinAccessibilitySize || 0) + (genome.chromatinConformationSize || 0);
           return (
             <tr 
               key={genome.id}
@@ -218,7 +232,8 @@ export default function AvailabilityMatrixTable({ genomes, onGenomeClick, nightM
               <td className="px-4 py-3 text-center">{renderAvailabilityCell(genome, 'assembly')}</td>
               <td className="px-4 py-3 text-center">{renderAvailabilityCell(genome, 'methylation')}</td>
               <td className="px-4 py-3 text-center">{renderAvailabilityCell(genome, 'expression')}</td>
-              <td className="px-4 py-3 text-center">{renderAvailabilityCell(genome, 'fiberseq')}</td>
+              <td className="px-4 py-3 text-center">{renderAvailabilityCell(genome, 'chromatin_accessibility')}</td>
+              <td className="px-4 py-3 text-center">{renderAvailabilityCell(genome, 'chromatin_conformation')}</td>
               <td className={`px-4 py-3 text-center ${nightMode ? 'text-gray-300' : 'text-gray-600'}`}>{totalSize.toFixed(1)} GB</td>
             </tr>
           );

@@ -88,12 +88,15 @@ export interface Genome {
   fiberseqSize?: number;
   chromatinAccessibility?: boolean;
   chromatinAccessibilitySize?: number;
+  chromatinConformation?: boolean;
+  chromatinConformationSize?: number;
   assemblyTrack?: Track;
   assemblyTracks?: Track[];
   methylationTracks?: Track[];
   expressionTracks?: Track[];
   fiberseqTracks?: Track[];  // Legacy field
   chromatinAccessibilityTracks?: Track[];
+  chromatinConformationTracks?: Track[];
   downloadUrls?: DownloadUrls;
   metadata?: GenomeMetadata;
   // New fields from updated samples.tsv
@@ -110,7 +113,7 @@ export interface Genome {
 }
 
 export type Population = 'all' | 'afr' | 'amr' | 'eas' | 'eur' | 'sas';
-export type DataLayer = 'methylation' | 'expression' | 'fiberseq';
+export type DataLayer = 'methylation' | 'expression' | 'chromatin_accessibility' | 'chromatin_conformation';
 
 export interface DataLayerInfo {
   name: string;

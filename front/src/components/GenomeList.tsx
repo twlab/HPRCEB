@@ -54,7 +54,11 @@ export default function GenomeList({ genomes, selectedGenomes, onGenomeToggle, n
                     checked={isSelected}
                     onChange={() => onGenomeToggle(genome.id)}
                     onClick={(e) => e.stopPropagation()}
-                    className={`genome-checkbox w-5 h-5 text-primary-600 border-2 ${nightMode ? 'border-gray-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-primary-500 transition-all`}
+                    className={`genome-checkbox w-5 h-5 text-primary-600 border-2 rounded-lg focus:ring-2 focus:ring-primary-500 transition-all ${
+                      nightMode 
+                        ? 'border-gray-400 bg-gray-600 checked:bg-primary-600 checked:border-primary-600' 
+                        : 'border-gray-300 bg-white'
+                    }`}
                   />
                   <div className="flex-1 min-w-0">
                     <h3 className={`text-base font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'} truncate`}>{genome.id}</h3>
@@ -92,11 +96,18 @@ export default function GenomeList({ genomes, selectedGenomes, onGenomeToggle, n
                       style={{ animationDelay: '0.5s' }}
                     />
                   )}
-                  {genome.fiberseq && (
+                  {genome.chromatinAccessibility && (
+                    <span 
+                      className="w-2.5 h-2.5 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full shadow-sm animate-pulse-slow" 
+                      title="Chromatin Accessibility"
+                      style={{ animationDelay: '1s' }}
+                    />
+                  )}
+                  {genome.chromatinConformation && (
                     <span 
                       className="w-2.5 h-2.5 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full shadow-sm animate-pulse-slow" 
-                      title="Fiber-seq"
-                      style={{ animationDelay: '1s' }}
+                      title="Chromatin Conformation"
+                      style={{ animationDelay: '1.5s' }}
                     />
                   )}
                 </div>

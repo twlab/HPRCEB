@@ -71,12 +71,25 @@ export function createDataChart(
     });
   }
 
-  if (selectedLayers.includes("fiberseq")) {
+  if (selectedLayers.includes("chromatin_accessibility")) {
     datasets.push({
-      label: "Fiber-seq",
+      label: "Chromatin Accessibility",
       data: selectedGenomes.map((id) => {
         const genome = genomeData.find((g) => g.id === id);
-        return genome && genome.fiberseq ? genome.fiberseqSize || 0 : 0;
+        return genome && genome.chromatinAccessibility ? genome.chromatinAccessibilitySize || 0 : 0;
+      }),
+      backgroundColor: "rgba(245, 158, 11, 0.7)",
+      borderColor: "rgba(245, 158, 11, 1)",
+      borderWidth: 1,
+    });
+  }
+
+  if (selectedLayers.includes("chromatin_conformation")) {
+    datasets.push({
+      label: "Chromatin Conformation",
+      data: selectedGenomes.map((id) => {
+        const genome = genomeData.find((g) => g.id === id);
+        return genome && genome.chromatinConformation ? genome.chromatinConformationSize || 0 : 0;
       }),
       backgroundColor: "rgba(139, 92, 246, 0.7)",
       borderColor: "rgba(139, 92, 246, 1)",
@@ -128,11 +141,3 @@ export function createDataChart(
     },
   });
 }
-
-export function destroyChart(): void {
-  if (chartInstance) {
-    chartInstance.destroy();
-    chartInstance = null;
-  }
-}
-

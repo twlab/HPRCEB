@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 interface TutorialsProps {
   nightMode?: boolean;
@@ -6,6 +6,30 @@ interface TutorialsProps {
 }
 
 export default function Tutorials({ nightMode = false, onStartInteractiveGuide }: TutorialsProps) {
+  const [copiedSession, setCopiedSession] = useState(false);
+
+  const exampleSession = `[
+  {
+    "id": "session_1761255625847_1d1eewse3",
+    "name": "HG02257",
+    "timestamp": 1761255625847,
+    "dataSelectorState": {
+      "selectedGenomes": ["HG02257"],
+      "selectedLayers": ["expression", "methylation", "chromatin_accessibility", "chromatin_conformation"],
+      "searchTerm": "HG02257",
+      "populationFilter": "all",
+      "referenceGenome": "hg38"
+    },
+    "currentTab": "sessions"
+  }
+]`;
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(exampleSession);
+    setCopiedSession(true);
+    setTimeout(() => setCopiedSession(false), 2000);
+  };
+
   return (
     <div className={`${nightMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-2xl shadow-fancy border p-8 hover-lift transition-colors duration-300`}>
       {/* Title */}
@@ -36,15 +60,12 @@ export default function Tutorials({ nightMode = false, onStartInteractiveGuide }
         {/* Getting Started */}
         <div className={`border-l-4 border-blue-500 ${nightMode ? 'bg-blue-900/30' : 'bg-blue-50'} p-6 rounded-r-lg`}>
           <h3 className={`text-lg font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'} mb-2`}>Getting Started</h3>
-          <p className={`${nightMode ? 'text-gray-300' : 'text-gray-700'} mb-4`}>
-            Welcome to the HPRC Epigenome Browser! This tool allows you to explore, visualize, and save your selections of epigenomic data from the Human Pangenome Reference Consortium Year 2 release.
-          </p>
-          <p className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-600'} italic mb-3`}>
-            The portal is organized into five main tabs following a natural workflow: <strong>Select → View → Save → Reference → Help</strong>
+          <p className={`${nightMode ? 'text-gray-300' : 'text-gray-700'} mb-3`}>
+            Explore epigenomic data from the Human Pangenome Reference Consortium. The workflow is simple: <strong>Sample → Track → Browser → Sessions</strong>
           </p>
           <div className={`mt-3 pt-3 border-t ${nightMode ? 'border-gray-700' : 'border-blue-300'}`}>
             <p className={`text-sm ${nightMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              <strong>Browser Documentation:</strong> For detailed information about the browser features and usage, visit{' '}
+              <strong>Browser Documentation:</strong>{' '}
               <a 
                 href="https://epgg.github.io/" 
                 target="_blank" 
@@ -60,278 +81,170 @@ export default function Tutorials({ nightMode = false, onStartInteractiveGuide }
         {/* Quick Start Workflow */}
         <div className={`bg-gradient-to-r ${nightMode ? 'from-purple-900/40 to-primary-900/40 border-purple-700' : 'from-purple-50 to-primary-50 border-purple-300'} border-l-4 p-6 rounded-r-xl`}>
           <h3 className={`text-md font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'} mb-3`}>
-            Quick Start - Your First Session
+            Quick Start
           </h3>
-          <ol className={`space-y-3 text-sm ${nightMode ? 'text-gray-300' : 'text-gray-700'}`}>
+          <ol className={`space-y-2 text-sm ${nightMode ? 'text-gray-300' : 'text-gray-700'}`}>
             <li className="flex items-start gap-3">
-              <span className="font-bold text-purple-600 flex-shrink-0 bg-white dark:bg-gray-800 w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span>
-              <span><strong>Select Data:</strong> Use the Data Selector tab to choose genomes (e.g., search for "HG002") and data layers (Methylation, Expression, Fiber-seq)</span>
+              <span className={`font-bold text-purple-600 flex-shrink-0 ${nightMode ? 'bg-gray-700' : 'bg-white'} w-6 h-6 rounded-full flex items-center justify-center text-xs`}>1</span>
+              <span><strong>Sample:</strong> Choose genomes and data layers</span>
             </li>
             <li className="flex items-start gap-3">
-              <span className="font-bold text-purple-600 flex-shrink-0 bg-white dark:bg-gray-800 w-6 h-6 rounded-full flex items-center justify-center text-xs">2</span>
-              <span><strong>Visualize:</strong> Switch to the Browser tab to explore your selections in an interactive genome browser</span>
+              <span className={`font-bold text-purple-600 flex-shrink-0 ${nightMode ? 'bg-gray-700' : 'bg-white'} w-6 h-6 rounded-full flex items-center justify-center text-xs`}>2</span>
+              <span><strong>Track:</strong> Configure which tracks to display</span>
             </li>
             <li className="flex items-start gap-3">
-              <span className="font-bold text-purple-600 flex-shrink-0 bg-white dark:bg-gray-800 w-6 h-6 rounded-full flex items-center justify-center text-xs">3</span>
-              <span><strong>Save:</strong> Go to the Sessions tab to save your selections for future access</span>
+              <span className={`font-bold text-purple-600 flex-shrink-0 ${nightMode ? 'bg-gray-700' : 'bg-white'} w-6 h-6 rounded-full flex items-center justify-center text-xs`}>3</span>
+              <span><strong>Browser:</strong> Visualize in WashU Epigenome Browser</span>
             </li>
             <li className="flex items-start gap-3">
-              <span className="font-bold text-purple-600 flex-shrink-0 bg-white dark:bg-gray-800 w-6 h-6 rounded-full flex items-center justify-center text-xs">4</span>
-              <span><strong>Return:</strong> Load your saved session anytime to pick up where you left off</span>
+              <span className={`font-bold text-purple-600 flex-shrink-0 ${nightMode ? 'bg-gray-700' : 'bg-white'} w-6 h-6 rounded-full flex items-center justify-center text-xs`}>4</span>
+              <span><strong>Sessions:</strong> Save for later (optional)</span>
             </li>
           </ol>
         </div>
 
         {/* Tab-by-Tab Guide */}
-        <div className="space-y-4">
-          <h3 className={`text-lg font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>Navigation Guide</h3>
+        <div className="space-y-3">
+          <h3 className={`text-lg font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>Tab Guide</h3>
           
-          {/* Tab 1: Data Selector */}
-          <div className={`${nightMode ? 'bg-gradient-to-br from-primary-900/30 to-cyan-900/30 border-primary-700' : 'bg-gradient-to-br from-primary-50 to-cyan-50 border-primary-200'} p-5 rounded-xl border`}>
-            <div className="mb-3">
-              <h4 className={`text-md font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>Tab 1: Data Selector</h4>
-            </div>
-            <p className={`text-sm ${nightMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
-              <strong>Purpose:</strong> Your main workspace for selecting genomes and configuring data
+          {/* Tab 1: Sample */}
+          <div className={`${nightMode ? 'bg-gradient-to-br from-primary-900/30 to-cyan-900/30 border-primary-700' : 'bg-gradient-to-br from-primary-50 to-cyan-50 border-primary-200'} p-4 rounded-xl border`}>
+            <h4 className={`text-sm font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'} mb-2`}>1️⃣ Sample</h4>
+            <p className={`text-xs ${nightMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              Select genomes, choose data layers (Methylation/Expression/Chromatin Accessibility), and pick a reference genome (hg38 or chm13). Filter by population and view data visualizations.
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
-              <div>
-                <p className={`text-xs font-semibold ${nightMode ? 'text-gray-200' : 'text-gray-800'} mb-1`}>Left Panel - Genome Selection:</p>
-                <ul className={`space-y-1 text-xs ${nightMode ? 'text-gray-300' : 'text-gray-700'} ml-4`}>
-                  <li>• Search genomes by ID or name</li>
-                  <li>• Filter by population (AFR, AMR, EAS, EUR, SAS)</li>
-                  <li>• See selection count in real-time</li>
-                  <li>• Clear all selections quickly</li>
-                  <li>• Each genome shows available data layers</li>
-                </ul>
-              </div>
-              <div>
-                <p className={`text-xs font-semibold ${nightMode ? 'text-gray-200' : 'text-gray-800'} mb-1`}>Right Panel - Data Configuration:</p>
-                <ul className={`space-y-1 text-xs ${nightMode ? 'text-gray-300' : 'text-gray-700'} ml-4`}>
-                  <li>• <strong>Reference Genome:</strong> Choose GRCh38 or CHM13 T2T (v2.0)</li>
-                  <li>• <strong>Data Layers:</strong> Select functional data types</li>
-                  <li>• <strong>Visualizations:</strong> View selections as table, chart, world map, or PCA plot</li>
-                  <li>• See total data size in real-time</li>
-                </ul>
-              </div>
-            </div>
-            <div className={`mt-3 p-3 ${nightMode ? 'bg-yellow-900/30 border-yellow-700' : 'bg-yellow-50 border-yellow-200'} border rounded-lg`}>
-              <p className={`text-xs ${nightMode ? 'text-yellow-300' : 'text-yellow-800'}`}>
-                <strong>Performance Note:</strong> Selecting more than 5 genomes may slow down browser performance.
-              </p>
-            </div>
           </div>
 
-          {/* Tab 2: Browser */}
-          <div className={`${nightMode ? 'bg-gradient-to-br from-purple-900/30 to-indigo-900/30 border-purple-700' : 'bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-200'} p-5 rounded-xl border`}>
-            <div className="mb-3">
-              <h4 className={`text-md font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>Tab 2: Browser</h4>
-            </div>
-            <p className={`text-sm ${nightMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
-              <strong>Purpose:</strong> Interactive genome browser for visualizing epigenomic data
+          {/* Tab 2: Tracks */}
+          <div className={`${nightMode ? 'bg-gradient-to-br from-amber-900/30 to-yellow-900/30 border-amber-700' : 'bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200'} p-4 rounded-xl border`}>
+            <h4 className={`text-sm font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'} mb-2`}>2️⃣ Track</h4>
+            <p className={`text-xs ${nightMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              Configure which tracks to display in the browser. Enable/disable individual tracks, search and filter by type. Reference tracks (ruler, genes) and sample tracks (methylation, expression, genome alignments) can be customized. Note: Genome alignment tracks are always enabled.
             </p>
-            <ul className={`space-y-1 text-sm ${nightMode ? 'text-gray-300' : 'text-gray-700'} ml-4`}>
-              <li>• <strong>Full-width display</strong> for maximum viewing area</li>
-              <li>• Shows genomes and data layers selected in Data Selector tab</li>
-              <li>• Navigate chromosomes and zoom into regions of interest</li>
-              <li>• View tracks in real-time with smooth interactions</li>
-              <li>• Uses reference genome selected in Data Selector</li>
-            </ul>
-            <div className={`mt-3 p-3 ${nightMode ? 'bg-primary-900/30 border-primary-700' : 'bg-primary-50 border-primary-200'} border rounded-lg`}>
-              <p className={`text-xs ${nightMode ? 'text-primary-300' : 'text-primary-800'}`}>
-                <strong>Tip:</strong> Configure your selections in the Data Selector tab first, then switch to Browser tab to visualize.
-              </p>
-            </div>
           </div>
 
-          {/* Tab 3: Sessions */}
-          <div className={`${nightMode ? 'bg-gradient-to-br from-green-900/30 to-emerald-900/30 border-green-700' : 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200'} p-5 rounded-xl border`}>
-            <div className="mb-3">
-              <h4 className={`text-md font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>Tab 3: Sessions (NEW!)</h4>
-            </div>
-            <p className={`text-sm ${nightMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
-              <strong>Purpose:</strong> Save and manage your data selections for quick access later
+          {/* Tab 3: Browser */}
+          <div className={`${nightMode ? 'bg-gradient-to-br from-purple-900/30 to-indigo-900/30 border-purple-700' : 'bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-200'} p-4 rounded-xl border`}>
+            <h4 className={`text-sm font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'} mb-2`}>3️⃣ Browser</h4>
+            <p className={`text-xs ${nightMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              Visualize your configured tracks in the WashU Epigenome Browser. Navigate chromosomes, zoom in/out, and explore epigenomic data interactively. Supports fullscreen mode (press F or click the fullscreen button).
             </p>
-            <ul className={`space-y-1 text-sm ${nightMode ? 'text-gray-300' : 'text-gray-700'} ml-4`}>
-              <li>• <strong>Save Sessions:</strong> Store up to 10 sessions with custom names</li>
-              <li>• <strong>Load Sessions:</strong> Restore all your selections with one click</li>
-              <li>• <strong>Manage:</strong> Rename or delete saved sessions</li>
-              <li>• <strong>Export/Import:</strong> Backup sessions as JSON files</li>
-              <li>• <strong>Reset Landing Page:</strong> Re-enable the landing page if you skipped it</li>
-              <li>• Sessions persist across browser sessions (stored in cookies for 365 days)</li>
-            </ul>
-            <div className={`mt-3 p-3 ${nightMode ? 'bg-green-900/30 border-green-700' : 'bg-green-50 border-green-200'} border rounded-lg`}>
-              <p className={`text-xs ${nightMode ? 'text-green-300' : 'text-green-800'}`}>
-                <strong>Pro Tip:</strong> Save different sessions for different research projects or comparisons!
-              </p>
-            </div>
           </div>
 
-          {/* Tab 4: Data Availability Matrix */}
-          <div className={`${nightMode ? 'bg-gradient-to-br from-pink-900/30 to-rose-900/30 border-pink-700' : 'bg-gradient-to-br from-pink-50 to-rose-50 border-pink-200'} p-5 rounded-xl border`}>
-            <div className="mb-3">
-              <h4 className={`text-md font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>Tab 4: Data Availability Matrix</h4>
-            </div>
-            <p className={`text-sm ${nightMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
-              <strong>Purpose:</strong> Quick overview of available data across all genomes
+          {/* Tab 4: Sessions */}
+          <div className={`${nightMode ? 'bg-gradient-to-br from-green-900/30 to-emerald-900/30 border-green-700' : 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200'} p-4 rounded-xl border`}>
+            <h4 className={`text-sm font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'} mb-2`}>💾 Sessions</h4>
+            <p className={`text-xs ${nightMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
+              Save your complete configuration (genomes, data layers, and track selections) as sessions. Store up to 10 sessions, export/import as JSON, and quickly restore your work.
             </p>
-            <ul className={`space-y-1 text-sm ${nightMode ? 'text-gray-300' : 'text-gray-700'} ml-4`}>
-              <li>• View all 94 genomes at a glance</li>
-              <li>• See which data types (Methylation, Expression, Fiber-seq) are available for each genome</li>
-              <li>• Check reference genome availability (GRCh38, CHM13 T2T)</li>
-              <li>• Click any row to see detailed track information</li>
-              <li>• Filter and search across the entire dataset</li>
-            </ul>
           </div>
 
-          {/* Tab 5: Tutorials */}
-          <div className={`${nightMode ? 'bg-gradient-to-br from-amber-900/30 to-orange-900/30 border-amber-700' : 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200'} p-5 rounded-xl border`}>
-            <div className="mb-3">
-              <h4 className={`text-md font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>Tab 5: Tutorials (You Are Here!)</h4>
-            </div>
-            <p className={`text-sm ${nightMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              Documentation, guides, and best practices for using the HPRC Epigenome Browser
+          {/* Tab 5: Data Availability Matrix */}
+          <div className={`${nightMode ? 'bg-gradient-to-br from-pink-900/30 to-rose-900/30 border-pink-700' : 'bg-gradient-to-br from-pink-50 to-rose-50 border-pink-200'} p-4 rounded-xl border`}>
+            <h4 className={`text-sm font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'} mb-2`}>📊 Data Availability Matrix</h4>
+            <p className={`text-xs ${nightMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              Overview of all genomes and their available data types. Useful for quickly seeing what data is available across samples.
+            </p>
+          </div>
+
+          {/* Tab 6: Tutorials */}
+          <div className={`${nightMode ? 'bg-gradient-to-br from-blue-900/30 to-indigo-900/30 border-blue-700' : 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200'} p-4 rounded-xl border`}>
+            <h4 className={`text-sm font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'} mb-2`}>📚 Tutorials (Current Tab)</h4>
+            <p className={`text-xs ${nightMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              Documentation and guides. You can also restart the interactive tutorial from here.
             </p>
           </div>
         </div>
 
         {/* Data Types */}
-        <div className={`${nightMode ? 'bg-gradient-to-br from-purple-900/30 to-pink-900/30 border-purple-700' : 'bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200'} p-6 rounded-xl border`}>
-          <div className="mb-3">
-            <h3 className={`text-md font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>Available Data Types</h3>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className={`${nightMode ? 'bg-gradient-to-br from-purple-900/30 to-pink-900/30 border-purple-700' : 'bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200'} p-5 rounded-xl border`}>
+          <h3 className={`text-md font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'} mb-3`}>Available Data Layers</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div className={`p-3 ${nightMode ? 'bg-gray-700 border-cyan-600' : 'bg-white border-cyan-200'} rounded-lg border`}>
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-2 mb-1">
                 <div className="w-3 h-3 bg-cyan-500 rounded-full"></div>
-                <h4 className={`font-semibold text-sm ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>DNA Methylation</h4>
+                <h4 className={`font-semibold text-xs ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>DNA Methylation</h4>
               </div>
-              <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-600'} mb-2`}>Long-read CpG methylation patterns</p>
-              <ul className={`text-xs ${nightMode ? 'text-gray-300' : 'text-gray-700'} space-y-1`}>
-                <li><strong>Platform:</strong> ONT / PacBio</li>
-                <li><strong>Size:</strong> ~15 GB/sample</li>
-              </ul>
+              <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-600'}`}>ONT/PacBio • ~15 GB/sample</p>
             </div>
             <div className={`p-3 ${nightMode ? 'bg-gray-700 border-green-600' : 'bg-white border-green-200'} rounded-lg border`}>
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-2 mb-1">
                 <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <h4 className={`font-semibold text-sm ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>Expression</h4>
+                <h4 className={`font-semibold text-xs ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>Expression</h4>
               </div>
-              <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-600'} mb-2`}>Gene expression quantification</p>
-              <ul className={`text-xs ${nightMode ? 'text-gray-300' : 'text-gray-700'} space-y-1`}>
-                <li><strong>Platform:</strong> Iso-Seq</li>
-                <li><strong>Size:</strong> ~8 GB/sample</li>
-              </ul>
+              <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-600'}`}>Iso-Seq • ~8 GB/sample</p>
             </div>
             <div className={`p-3 ${nightMode ? 'bg-gray-700 border-orange-600' : 'bg-white border-orange-200'} rounded-lg border`}>
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-2 mb-1">
                 <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                <h4 className={`font-semibold text-sm ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>Fiber-seq</h4>
+                <h4 className={`font-semibold text-xs ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>Chromatin Accessibility</h4>
               </div>
-              <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-600'} mb-2`}>Chromatin accessibility & nucleosomes</p>
-              <ul className={`text-xs ${nightMode ? 'text-gray-300' : 'text-gray-700'} space-y-1`}>
-                <li><strong>Platform:</strong> ONT / PacBio</li>
-                <li><strong>Size:</strong> ~20 GB/sample</li>
-              </ul>
+              <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-600'}`}>Fiber-seq • ~20 GB/sample</p>
             </div>
-          </div>
-        </div>
-
-        {/* Session Management Guide */}
-        <div className={`${nightMode ? 'bg-gradient-to-r from-cyan-900/30 to-primary-900/30 border-cyan-700' : 'bg-gradient-to-r from-cyan-50 to-primary-50 border-cyan-400'} border-l-4 p-6 rounded-r-xl`}>
-          <h3 className={`text-md font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'} mb-3`}>
-            Working with Sessions
-          </h3>
-          <div className={`space-y-3 text-sm ${nightMode ? 'text-gray-300' : 'text-gray-700'}`}>
-            <div>
-              <p className="font-semibold mb-1">What gets saved in a session?</p>
-              <ul className="ml-4 space-y-1">
-                <li>• Selected genomes</li>
-                <li>• Selected data layers (Methylation, Expression, Fiber-seq)</li>
-                <li>• Population filter</li>
-                <li>• Reference genome (GRCh38 or CHM13 T2T)</li>
-                <li>• Search terms and current tab</li>
-              </ul>
-            </div>
-            <div>
-              <p className="font-semibold mb-1">Best practices:</p>
-              <ul className="ml-4 space-y-1">
-                <li>• Give sessions descriptive names (e.g., "HG002 Methylation Study" or "African Pop Comparison")</li>
-                <li>• Export sessions periodically as backup</li>
-                <li>• Delete old sessions you no longer need (10 session limit)</li>
-                <li>• Load a session before switching to Browser tab for best results</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        {/* Tips & Best Practices */}
-        <div className={`${nightMode ? 'bg-yellow-900/30 border-yellow-700' : 'bg-yellow-50 border-yellow-200'} border rounded-xl p-6`}>
-          <div>
-            <div>
-              <h3 className={`text-md font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'} mb-2`}>Tips & Best Practices</h3>
-              <ul className={`space-y-1 text-sm ${nightMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                <li>• <strong>Start simple:</strong> Begin with 1-2 genomes to get familiar with the interface</li>
-                <li>• <strong>Use population filters:</strong> Narrow down genomes by ancestry (AFR, AMR, EAS, EUR, SAS)</li>
-                <li>• <strong>Save your work:</strong> Create sessions for different research projects or data combinations</li>
-                <li>• <strong>Choose reference genome first:</strong> Select GRCh38 or CHM13 T2T before choosing data layers</li>
-                <li>• <strong>Browser optimized:</strong> The Browser tab uses full-width for better visualization</li>
-                <li>• <strong>Persistent selections:</strong> All selections persist when switching between tabs</li>
-                <li>• <strong>Monitor data size:</strong> Watch the total data size indicator when selecting multiple genomes</li>
-                <li>• <strong>Skip landing page:</strong> Check "Skip this page in the future" on the landing page for quicker access</li>
-                <li>• <strong>Night mode:</strong> Toggle night mode (top right) for comfortable viewing in low-light conditions</li>
-              </ul>
+            <div className={`p-3 ${nightMode ? 'bg-gray-700 border-purple-600' : 'bg-white border-purple-200'} rounded-lg border`}>
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                <h4 className={`font-semibold text-xs ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>Chromatin Conformation</h4>
+              </div>
+              <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-600'}`}>Omni-C • ~25 GB/sample</p>
             </div>
           </div>
         </div>
 
         {/* Reference Genomes */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className={`${nightMode ? 'bg-blue-900/30 border-blue-700' : 'bg-blue-50 border-blue-200'} border rounded-xl p-4`}>
-            <h4 className={`font-bold text-sm ${nightMode ? 'text-gray-100' : 'text-gray-900'} mb-2`}>GRCh38</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className={`${nightMode ? 'bg-blue-900/30 border-blue-700' : 'bg-blue-50 border-blue-200'} border rounded-xl p-3`}>
+            <h4 className={`font-bold text-xs ${nightMode ? 'text-gray-100' : 'text-gray-900'} mb-1`}>GRCh38</h4>
             <p className={`text-xs ${nightMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              The Genome Reference Consortium Human Build 38, the current standard reference genome assembly. Widely used in genomics research and clinical applications.
+              Current standard reference genome.
             </p>
           </div>
-          <div className={`${nightMode ? 'bg-purple-900/30 border-purple-700' : 'bg-purple-50 border-purple-200'} border rounded-xl p-4`}>
-            <h4 className={`font-bold text-sm ${nightMode ? 'text-gray-100' : 'text-gray-900'} mb-2`}>CHM13 T2T (v2.0)</h4>
+          <div className={`${nightMode ? 'bg-purple-900/30 border-purple-700' : 'bg-purple-50 border-purple-200'} border rounded-xl p-3`}>
+            <h4 className={`font-bold text-xs ${nightMode ? 'text-gray-100' : 'text-gray-900'} mb-1`}>CHM13 T2T (v2.0)</h4>
             <p className={`text-xs ${nightMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              The Telomere-to-Telomere CHM13 assembly, the first complete human genome assembly without gaps. Includes previously inaccessible regions like centromeres.
+              First complete gapless human genome.
             </p>
           </div>
         </div>
 
-        {/* Example Workflow */}
-        <div className={`${nightMode ? 'bg-gradient-to-r from-orange-900/30 to-yellow-900/30 border-orange-700' : 'bg-gradient-to-r from-orange-50 to-yellow-50 border-orange-400'} border-l-4 p-6 rounded-r-xl`}>
-          <h3 className={`text-md font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'} mb-3`}>
-            Example Workflow: Comparing Methylation Across Populations
+        {/* Session Import Example */}
+        <div className={`${nightMode ? 'bg-gradient-to-r from-cyan-900/30 to-primary-900/30 border-cyan-700' : 'bg-gradient-to-r from-cyan-50 to-primary-50 border-cyan-400'} border-l-4 p-5 rounded-r-xl`}>
+          <h3 className={`text-md font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'} mb-2`}>
+            Session Import Example
           </h3>
-          <ol className={`space-y-3 text-sm ${nightMode ? 'text-gray-300' : 'text-gray-700'}`}>
-            <li className="flex items-start gap-3">
-              <span className={`font-bold ${nightMode ? 'text-orange-400' : 'text-orange-600'} flex-shrink-0 ${nightMode ? 'bg-gray-700' : 'bg-white'} w-6 h-6 rounded-full flex items-center justify-center text-xs`}>1</span>
-              <span><strong>Data Selector:</strong> Filter by "AFR" population, select 2-3 genomes (e.g., HG002, HG005)</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className={`font-bold ${nightMode ? 'text-orange-400' : 'text-orange-600'} flex-shrink-0 ${nightMode ? 'bg-gray-700' : 'bg-white'} w-6 h-6 rounded-full flex items-center justify-center text-xs`}>2</span>
-              <span><strong>Configure:</strong> Choose "GRCh38" reference and select "Methylation" layer</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className={`font-bold ${nightMode ? 'text-orange-400' : 'text-orange-600'} flex-shrink-0 ${nightMode ? 'bg-gray-700' : 'bg-white'} w-6 h-6 rounded-full flex items-center justify-center text-xs`}>3</span>
-              <span><strong>Browser:</strong> Switch to Browser tab to visualize methylation patterns</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className={`font-bold ${nightMode ? 'text-orange-400' : 'text-orange-600'} flex-shrink-0 ${nightMode ? 'bg-gray-700' : 'bg-white'} w-6 h-6 rounded-full flex items-center justify-center text-xs`}>4</span>
-              <span><strong>Save:</strong> Go to Sessions tab and save as "AFR Methylation Comparison"</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className={`font-bold ${nightMode ? 'text-orange-400' : 'text-orange-600'} flex-shrink-0 ${nightMode ? 'bg-gray-700' : 'bg-white'} w-6 h-6 rounded-full flex items-center justify-center text-xs`}>5</span>
-              <span><strong>Compare:</strong> Repeat for other populations (EUR, EAS) and save as separate sessions</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className={`font-bold ${nightMode ? 'text-orange-400' : 'text-orange-600'} flex-shrink-0 ${nightMode ? 'bg-gray-700' : 'bg-white'} w-6 h-6 rounded-full flex items-center justify-center text-xs`}>6</span>
-              <span><strong>Quick Switch:</strong> Load any saved session to quickly switch between comparisons</span>
-            </li>
-          </ol>
+          <p className={`text-xs ${nightMode ? 'text-gray-300' : 'text-gray-700'} mb-3`}>
+            Go to the <strong>Sessions</strong> tab, click "Import Session", and paste this example:
+          </p>
+          <div className="relative">
+            <pre className={`${nightMode ? 'bg-gray-900 text-gray-300' : 'bg-gray-100 text-gray-800'} p-3 rounded-lg text-xs overflow-x-auto`}>
+              <code>{exampleSession}</code>
+            </pre>
+            <button
+              onClick={copyToClipboard}
+              className={`absolute top-2 right-2 px-3 py-1 text-xs font-medium rounded-lg transition-all ${
+                copiedSession
+                  ? 'bg-green-600 text-white'
+                  : nightMode
+                    ? 'bg-gray-700 text-gray-200 hover:bg-gray-600'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              {copiedSession ? '✓ Copied!' : 'Copy'}
+            </button>
+          </div>
+        </div>
+
+        {/* Tips */}
+        <div className={`${nightMode ? 'bg-yellow-900/30 border-yellow-700' : 'bg-yellow-50 border-yellow-200'} border rounded-xl p-5`}>
+          <h3 className={`text-md font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'} mb-2`}>Quick Tips</h3>
+          <ul className={`space-y-1 text-xs ${nightMode ? 'text-gray-300' : 'text-gray-700'}`}>
+            <li>• Start with 1-2 genomes (selecting 5+ may slow performance)</li>
+            <li>• Use the Track tab to customize which tracks display in the Browser</li>
+            <li>• Genome alignment tracks are always enabled and cannot be disabled</li>
+            <li>• Use population filters to narrow genome selections</li>
+            <li>• Save sessions to preserve your genome, data layer, and track selections</li>
+            <li>• Press F or click the fullscreen button in the Browser for immersive viewing</li>
+          </ul>
         </div>
 
         {/* Learn More */}

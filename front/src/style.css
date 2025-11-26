@@ -94,6 +94,17 @@ body {
   }
 }
 
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes float {
   0%,
   100% {
@@ -221,6 +232,10 @@ input[type="checkbox"].peer:checked ~ label .check-icon {
   animation: slideInRight 0.4s ease-out;
 }
 
+.animate-slide-up {
+  animation: slideUp 0.5s ease-out;
+}
+
 .animate-pulse-slow {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
@@ -344,4 +359,39 @@ input[type="checkbox"].peer:checked ~ label .check-icon {
 
 .icon-spin-hover:hover {
   transform: rotate(180deg);
+}
+
+/* Fullscreen browser styles */
+.fullscreen-browser:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  max-height: none;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+  overflow-y: auto;
+}
+
+.fullscreen-browser:fullscreen .max-h-\[800px\] {
+  max-height: calc(100vh - 200px);
+}
+
+/* Webkit fullscreen support (Safari) */
+.fullscreen-browser:-webkit-full-screen {
+  width: 100vw;
+  height: 100vh;
+  max-height: none;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+}
+
+/* Firefox fullscreen support */
+.fullscreen-browser:-moz-full-screen {
+  width: 100vw;
+  height: 100vh;
+  max-height: none;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
 }

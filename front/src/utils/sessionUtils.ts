@@ -10,6 +10,7 @@ export interface SessionData {
   name: string;
   timestamp: number;
   dataSelectorState: DataSelectorState;
+  enabledTracks?: string[]; // Array of track IDs
   currentTab?: string;
   browserState?: {
     viewRegion?: string;
@@ -42,6 +43,7 @@ export function getSessions(): SessionData[] {
 export function saveSession(
   name: string,
   dataSelectorState: DataSelectorState,
+  enabledTracks?: Set<string>,
   currentTab?: string,
   browserState?: { viewRegion?: string; genomeName?: string }
 ): SessionData {
@@ -52,6 +54,7 @@ export function saveSession(
     name,
     timestamp: Date.now(),
     dataSelectorState,
+    enabledTracks: enabledTracks ? Array.from(enabledTracks) : undefined,
     currentTab,
     browserState,
   };
@@ -95,21 +98,6 @@ export function updateSessionName(sessionId: string, newName: string): void {
 }
 
 /**
- * Load a session by ID
- */
-export function loadSession(sessionId: string): SessionData | null {
-  const sessions = getSessions();
-  return sessions.find(s => s.id === sessionId) || null;
-}
-
-/**
- * Clear all sessions
- */
-export function clearAllSessions(): void {
-  setCookie(SESSIONS_COOKIE_NAME, '', 365);
-}
-
-/**
  * Export sessions as JSON (for backup)
  */
 export function exportSessions(): string {
@@ -134,5 +122,4 @@ export function importSessions(jsonString: string): boolean {
     return false;
   }
 }
-
 

@@ -10,17 +10,20 @@ import {
   SessionData,
 } from '../utils/sessionUtils';
 import { deleteCookie } from '../utils/cookieUtils';
+import type { Track } from '../utils/trackSelection';
 
 interface SessionsProps {
   dataSelectorState: DataSelectorState;
+  selectedTracks: Track[];
   currentTab: string;
-  onLoadSession: (state: DataSelectorState, tab?: string) => void;
+  onLoadSession: (state: DataSelectorState, tracks: Track[], tab?: string) => void;
   onResetLandingPage: () => void;
   nightMode?: boolean;
 }
 
 export default function Sessions({
   dataSelectorState,
+  selectedTracks,
   currentTab,
   onLoadSession,
   onResetLandingPage,
@@ -50,9 +53,12 @@ export default function Sessions({
     }
 
     const sessionName = newSessionName.trim();
+    // Convert Track[] to string[] for storage (track identifiers)
+    const trackIds = selectedTracks.map((t, i) => `${i}__${t.sampleId}__${t.displayAttributes.type}__${t.displayAttributes.name}`);
     saveSession(
       sessionName,
       dataSelectorState,
+      new Set(trackIds),
       currentTab
     );
 
@@ -83,7 +89,8 @@ export default function Sessions({
   };
 
   const handleLoadSession = (session: SessionData) => {
-    onLoadSession(session.dataSelectorState, session.currentTab);
+    // Note: Loading session resets tracks - they will be regenerated from sample selection
+    onLoadSession(session.dataSelectorState, [], session.currentTab);
     setSuccessMessage(`Session "${session.name}" loaded successfully!`);
     setTimeout(() => setSuccessMessage(null), 3000);
   };
@@ -330,6 +337,11 @@ export default function Sessions({
                     <p className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-600'} mt-1`}>
                       {formatSelection(session.dataSelectorState)}
                     </p>
+                    {session.enabledTracks && (
+                      <p className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-600'} mt-1`}>
+                        🎯 {session.enabledTracks.length} tracks configured
+                      </p>
+                    )}
                     {session.currentTab && (
                       <p className={`text-xs ${nightMode ? 'text-gray-500' : 'text-gray-500'} mt-1`}>
                         Tab: {session.currentTab}

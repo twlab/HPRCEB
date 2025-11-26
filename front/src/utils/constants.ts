@@ -41,19 +41,19 @@ export const DATA_LAYER_INFO: Record<string, DataLayerInfo> = {
     description: "RNA sequencing data for gene expression quantification",
     color: "#10b981", // Green - colorblind-friendly contrast
   },
-  fiberseq: {
-    name: "Fiber-seq",
-    type: "PacBio",
-    avgSize: 20,
-    description: "Single-molecule chromatin accessibility and nucleosome positioning",
-    color: "#8b5cf6", // Violet - colorblind-friendly
-  },
   chromatin_accessibility: {
     name: "Chromatin Accessibility",
     type: "Fiber-seq",
     avgSize: 20,
     description: "Single-molecule chromatin accessibility and nucleosome positioning",
-    color: "#8b5cf6", // Violet - colorblind-friendly
+    color: "#f59e0b", // Amber/orange for chromatin accessibility
+  },
+  chromatin_conformation: {
+    name: "Chromatin Conformation",
+    type: "Omni-C",
+    avgSize: 25,
+    description: "3D genome organization and chromatin interactions measured by Omni-C",
+    color: "#8b5cf6", // Violet for chromatin conformation
   },
 };
 

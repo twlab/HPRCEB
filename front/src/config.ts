@@ -137,13 +137,21 @@ export const config: Config = {
       color: "#10b981", // Green - colorblind-friendly
       avgSize: 8,
     },
-    fiberseq: {
+    chromatin_accessibility: {
       enabled: true,
-      label: "Fiber-seq",
+      label: "Chromatin Accessibility",
       description: "Single-molecule chromatin accessibility and nucleosome positioning",
-      type: "PacBio",
-      color: "#f97316", // Orange - colorblind-friendly
+      type: "Fiber-seq",
+      color: "#f59e0b", // Amber/orange for chromatin accessibility
       avgSize: 20,
+    },
+    chromatin_conformation: {
+      enabled: true,
+      label: "Chromatin Conformation",
+      description: "3D genome organization and chromatin interactions measured by Omni-C",
+      type: "Omni-C",
+      color: "#8b5cf6", // Violet for chromatin conformation
+      avgSize: 25,
     },
   },
 

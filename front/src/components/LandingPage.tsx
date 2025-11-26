@@ -21,10 +21,11 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
   const totalGenomes = genomeData.length;
   const withMethylation = genomeData.filter(g => g.methylation).length;
   const withExpression = genomeData.filter(g => g.expression).length;
-  const withFiberseq = genomeData.filter(g => g.fiberseq).length;
+  const withChromatinAccessibility = genomeData.filter(g => g.chromatinAccessibility).length;
+  const withChromatinConformation = genomeData.filter(g => g.chromatinConformation).length;
   
   const totalDataSize = genomeData.reduce((sum, g) => {
-    return sum + g.assemblySize + (g.methylationSize || 0) + (g.expressionSize || 0) + (g.fiberseqSize || 0);
+    return sum + g.assemblySize + (g.methylationSize || 0) + (g.expressionSize || 0) + (g.chromatinAccessibilitySize || 0) + (g.chromatinConformationSize || 0);
   }, 0);
 
   const features = [
@@ -45,7 +46,7 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
         </svg>
       ),
       title: "Epigenomic Landscapes",
-      description: "Explore DNA methylation, chromatin accessibility, and gene expression across the pangenome.",
+      description: "Explore DNA methylation, chromatin accessibility, chromatin conformation, and gene expression across the pangenome.",
       gradient: "from-primary-500 to-primary-600"
     },
     {
@@ -74,7 +75,8 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
     { label: "Genome Assemblies", value: totalGenomes, icon: "🧬" },
     { label: "Methylation Samples", value: withMethylation, icon: "🔬" },
     { label: "Expression Data", value: withExpression, icon: "📊" },
-    { label: "Fiber-seq Samples", value: withFiberseq, icon: "🧪" },
+    { label: "Chromatin Accessibility", value: withChromatinAccessibility, icon: "🧪" },
+    { label: "Chromatin Conformation", value: withChromatinConformation, icon: "🔗" },
     { label: "Total Data Size", value: `${totalDataSize.toFixed(1)} TB`, icon: "💾" },
     { label: "Global Populations", value: "5", icon: "🌍" }
   ];
