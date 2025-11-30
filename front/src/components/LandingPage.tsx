@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { getGenomeData } from '../utils/genomeDataService';
+import { getGenomeData, getDataStatistics } from '../utils/genomeDataService';
 import { setCookie } from '../utils/cookieUtils';
 
 interface LandingPageProps {
@@ -17,16 +17,14 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
     onEnter();
   };
   
-  // Calculate statistics
-  const totalGenomes = genomeData.length;
-  const withMethylation = genomeData.filter(g => g.methylation).length;
-  const withExpression = genomeData.filter(g => g.expression).length;
-  const withChromatinAccessibility = genomeData.filter(g => g.chromatinAccessibility).length;
-  const withChromatinConformation = genomeData.filter(g => g.chromatinConformation).length;
-  
-  const totalDataSize = genomeData.reduce((sum, g) => {
-    return sum + g.assemblySize + (g.methylationSize || 0) + (g.expressionSize || 0) + (g.chromatinAccessibilitySize || 0) + (g.chromatinConformationSize || 0);
-  }, 0);
+  // Calculate statistics from track data
+  const stats_data = getDataStatistics();
+  const totalGenomes = stats_data.totalSamples;
+  const withMethylation = stats_data.withMethylation;
+  const withExpression = stats_data.withExpression;
+  const withChromatinAccessibility = stats_data.withChromatinAccessibility;
+  const withChromatinConformation = stats_data.withChromatinConformation;
+  const totalDataSize = stats_data.totalDataSizeGB / 1024; // Convert to TB
 
   const features = [
     {
@@ -254,4 +252,3 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
     </div>
   );
 }
-

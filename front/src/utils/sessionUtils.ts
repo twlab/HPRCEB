@@ -3,34 +3,78 @@
  */
 
 import { DataSelectorState } from '../components/DataSelector';
-import { setCookie, getCookie } from './cookieUtils';
+import type { Track } from './trackSelection';
 
+const SESSIONS_STORAGE_KEY = 'hprc_sessions';
+const MAX_SESSIONS = 20;
+
+/**
+ * Session data structure
+ */
 export interface SessionData {
   id: string;
   name: string;
   timestamp: number;
+  // Data selector state (reference genome, selected samples, layers, etc.)
   dataSelectorState: DataSelectorState;
-  enabledTracks?: string[]; // Array of track IDs
-  currentTab?: string;
-  browserState?: {
-    viewRegion?: string;
-    genomeName?: string;
-  };
+  // Track selection: array of tracks with their isSelected state
+  tracks: SerializedTrack[];
 }
 
-const SESSIONS_COOKIE_NAME = 'hprc_sessions';
-const MAX_SESSIONS = 10;
+/**
+ * Serialized track for storage (minimal data needed to restore selection)
+ */
+export interface SerializedTrack {
+  // Unique identifier: sampleId + type + name
+  id: string;
+  isSelected: boolean;
+}
 
 /**
- * Get all saved sessions from cookies
+ * Generate a unique identifier for a track
+ */
+export function getTrackId(track: Track): string {
+  return `${track.sampleId}__${track.displayAttributes.type}__${track.displayAttributes.name || ''}`;
+}
+
+/**
+ * Serialize tracks for storage
+ */
+export function serializeTracks(tracks: Track[]): SerializedTrack[] {
+  return tracks.map(track => ({
+    id: getTrackId(track),
+    isSelected: track.isSelected,
+  }));
+}
+
+/**
+ * Apply saved track selection to regenerated tracks
+ */
+export function applyTrackSelection(tracks: Track[], savedTracks: SerializedTrack[]): Track[] {
+  // Build a map of saved track selections
+  const selectionMap = new Map<string, boolean>();
+  savedTracks.forEach(t => selectionMap.set(t.id, t.isSelected));
+  
+  // Apply saved selections to tracks
+  return tracks.map(track => {
+    const trackId = getTrackId(track);
+    if (selectionMap.has(trackId)) {
+      return { ...track, isSelected: selectionMap.get(trackId)! };
+    }
+    return track;
+  });
+}
+
+/**
+ * Get all saved sessions from localStorage
  */
 export function getSessions(): SessionData[] {
   try {
-    const sessionsJson = getCookie(SESSIONS_COOKIE_NAME);
+    const sessionsJson = localStorage.getItem(SESSIONS_STORAGE_KEY);
     if (!sessionsJson) {
       return [];
     }
-    return JSON.parse(decodeURIComponent(sessionsJson));
+    return JSON.parse(sessionsJson);
   } catch (error) {
     console.error('Error loading sessions:', error);
     return [];
@@ -43,9 +87,7 @@ export function getSessions(): SessionData[] {
 export function saveSession(
   name: string,
   dataSelectorState: DataSelectorState,
-  enabledTracks?: Set<string>,
-  currentTab?: string,
-  browserState?: { viewRegion?: string; genomeName?: string }
+  tracks: Track[]
 ): SessionData {
   const sessions = getSessions();
   
@@ -54,9 +96,7 @@ export function saveSession(
     name,
     timestamp: Date.now(),
     dataSelectorState,
-    enabledTracks: enabledTracks ? Array.from(enabledTracks) : undefined,
-    currentTab,
-    browserState,
+    tracks: serializeTracks(tracks),
   };
   
   // Add new session at the beginning
@@ -65,9 +105,8 @@ export function saveSession(
   // Keep only the most recent MAX_SESSIONS
   const trimmedSessions = sessions.slice(0, MAX_SESSIONS);
   
-  // Save to cookie
-  const sessionsJson = encodeURIComponent(JSON.stringify(trimmedSessions));
-  setCookie(SESSIONS_COOKIE_NAME, sessionsJson, 365);
+  // Save to localStorage
+  localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(trimmedSessions));
   
   return newSession;
 }
@@ -78,9 +117,7 @@ export function saveSession(
 export function deleteSession(sessionId: string): void {
   const sessions = getSessions();
   const filteredSessions = sessions.filter(s => s.id !== sessionId);
-  
-  const sessionsJson = encodeURIComponent(JSON.stringify(filteredSessions));
-  setCookie(SESSIONS_COOKIE_NAME, sessionsJson, 365);
+  localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(filteredSessions));
 }
 
 /**
@@ -92,13 +129,12 @@ export function updateSessionName(sessionId: string, newName: string): void {
   
   if (sessionIndex !== -1) {
     sessions[sessionIndex].name = newName;
-    const sessionsJson = encodeURIComponent(JSON.stringify(sessions));
-    setCookie(SESSIONS_COOKIE_NAME, sessionsJson, 365);
+    localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
   }
 }
 
 /**
- * Export sessions as JSON (for backup)
+ * Export sessions as JSON string (for backup/sharing)
  */
 export function exportSessions(): string {
   const sessions = getSessions();
@@ -106,14 +142,18 @@ export function exportSessions(): string {
 }
 
 /**
- * Import sessions from JSON
+ * Import sessions from JSON string
  */
 export function importSessions(jsonString: string): boolean {
   try {
     const sessions = JSON.parse(jsonString);
     if (Array.isArray(sessions)) {
-      const sessionsJson = encodeURIComponent(JSON.stringify(sessions));
-      setCookie(SESSIONS_COOKIE_NAME, sessionsJson, 365);
+      // Merge with existing sessions, avoiding duplicates by ID
+      const existingSessions = getSessions();
+      const existingIds = new Set(existingSessions.map(s => s.id));
+      const newSessions = sessions.filter((s: SessionData) => !existingIds.has(s.id));
+      const mergedSessions = [...newSessions, ...existingSessions].slice(0, MAX_SESSIONS);
+      localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(mergedSessions));
       return true;
     }
     return false;

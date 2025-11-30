@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Header from './components/Header';
 import TabNavigation, { TabType } from './components/TabNavigation';
 import DataAvailabilityMatrix from './components/DataAvailabilityMatrix';
@@ -12,10 +12,9 @@ import LandingPage from './components/LandingPage';
 import InteractiveTutorial from './components/InteractiveTutorial';
 import CookieBanner from './components/CookieBanner';
 import CookieSettings from './components/CookieSettings';
-import { loadGenomeData, loadTrackData, getTrackData, TrackEntry } from './utils/genomeDataService';
+import { loadGenomeData, loadTrackData, TrackEntry } from './utils/genomeDataService';
 import { getCookie } from './utils/cookieUtils';
 import { selectTracks, Track } from './utils/trackSelection';
-import type { TracksProps } from './utils/browserTypes';
 import './style.css';
 
 function App() {
@@ -59,9 +58,18 @@ function App() {
   
   // Selected tracks to display (result of selectTracks)
   const [selectedTracks, setSelectedTracks] = useState<Track[]>([]);
+  
+  // Ref to skip automatic track regeneration (used when loading sessions)
+  // Using ref instead of state to avoid triggering the useEffect
+  const skipTrackRegenerationRef = useRef(false);
 
   // Fire selectTracks only when reference, samples, or functional data layers change
   useEffect(() => {
+    // Skip if we're loading a session (tracks are already restored)
+    if (skipTrackRegenerationRef.current) {
+      return;
+    }
+    
     const result = selectTracks({
       selectedSamples: dataSelectorState.selectedGenomes,
       reference: dataSelectorState.referenceGenome,
@@ -70,7 +78,6 @@ function App() {
     });
     
     setSelectedTracks(result.tracks);
-    console.log('Track selection result:', result);
   }, [dataSelectorState.selectedGenomes, dataSelectorState.referenceGenome, availableTracks, dataSelectorState.selectedLayers]);
 
   // Load genome and track data on mount
@@ -139,20 +146,6 @@ function App() {
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
-
-  // Handlers for session management
-  const handleLoadSession = (state: DataSelectorState, tracks: Track[], tab?: string) => {
-    setDataSelectorState(state);
-    setSelectedTracks(tracks);
-    if (tab && tab !== 'sessions') {
-      setCurrentTab(tab as TabType);
-    }
-  };
-
-  const handleResetLandingPage = () => {
-    // This just confirms the reset - the actual effect happens on next page load
-    // We could force showing the landing page here, but it might confuse the user
-  };
 
   // Handler to navigate to Sample tab
   const handleNavigateToDataSelector = () => {
@@ -267,9 +260,17 @@ function App() {
             <Sessions
               dataSelectorState={dataSelectorState}
               selectedTracks={selectedTracks}
-              currentTab={currentTab}
-              onLoadSession={handleLoadSession}
-              onResetLandingPage={handleResetLandingPage}
+              onLoadSession={(state, tracks) => {
+                // Set flag to skip automatic track regeneration
+                skipTrackRegenerationRef.current = true;
+                // Reset the flag after state updates are processed
+                setTimeout(() => {
+                  skipTrackRegenerationRef.current = false;
+                }, 100);
+                // Restore both states
+                setSelectedTracks(tracks);
+                setDataSelectorState(state);
+              }}
               nightMode={nightMode}
             />
           )}

@@ -7,26 +7,23 @@ import {
   updateSessionName,
   exportSessions,
   importSessions,
+  applyTrackSelection,
   SessionData,
 } from '../utils/sessionUtils';
-import { deleteCookie } from '../utils/cookieUtils';
-import type { Track } from '../utils/trackSelection';
+import { selectTracks, Track } from '../utils/trackSelection';
+import { getTrackData } from '../utils/genomeDataService';
 
 interface SessionsProps {
   dataSelectorState: DataSelectorState;
   selectedTracks: Track[];
-  currentTab: string;
-  onLoadSession: (state: DataSelectorState, tracks: Track[], tab?: string) => void;
-  onResetLandingPage: () => void;
+  onLoadSession: (state: DataSelectorState, tracks: Track[]) => void;
   nightMode?: boolean;
 }
 
 export default function Sessions({
   dataSelectorState,
   selectedTracks,
-  currentTab,
   onLoadSession,
-  onResetLandingPage,
   nightMode = false,
 }: SessionsProps) {
   const [sessions, setSessions] = useState<SessionData[]>([]);
@@ -53,14 +50,7 @@ export default function Sessions({
     }
 
     const sessionName = newSessionName.trim();
-    // Convert Track[] to string[] for storage (track identifiers)
-    const trackIds = selectedTracks.map((t, i) => `${i}__${t.sampleId}__${t.displayAttributes.type}__${t.displayAttributes.name}`);
-    saveSession(
-      sessionName,
-      dataSelectorState,
-      new Set(trackIds),
-      currentTab
-    );
+    saveSession(sessionName, dataSelectorState, selectedTracks);
 
     setNewSessionName('');
     setShowSaveDialog(false);
@@ -88,11 +78,31 @@ export default function Sessions({
     loadSessions();
   };
 
-  const handleLoadSession = (session: SessionData) => {
-    // Note: Loading session resets tracks - they will be regenerated from sample selection
-    onLoadSession(session.dataSelectorState, [], session.currentTab);
-    setSuccessMessage(`Session "${session.name}" loaded successfully!`);
-    setTimeout(() => setSuccessMessage(null), 3000);
+  const handleLoadSession = async (session: SessionData) => {
+    try {
+      // Get available tracks data
+      const availableTracks = getTrackData();
+      
+      // Regenerate tracks based on saved data selector state
+      const result = selectTracks({
+        selectedSamples: session.dataSelectorState.selectedGenomes,
+        reference: session.dataSelectorState.referenceGenome,
+        availableTracks: availableTracks,
+        selectedLayers: session.dataSelectorState.selectedLayers,
+      });
+      
+      // Apply saved track selection state
+      const tracksWithSelection = applyTrackSelection(result.tracks, session.tracks);
+      
+      // Call the parent handler with restored state
+      onLoadSession(session.dataSelectorState, tracksWithSelection);
+      
+      setSuccessMessage(`Session "${session.name}" loaded successfully!`);
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (error) {
+      console.error('Error loading session:', error);
+      alert('Error loading session. Please try again.');
+    }
   };
 
   const handleExport = () => {
@@ -113,20 +123,13 @@ export default function Sessions({
         setImportJson('');
         setShowImportDialog(false);
         loadSessions();
-        alert('Sessions imported successfully!');
+        setSuccessMessage('Sessions imported successfully!');
+        setTimeout(() => setSuccessMessage(null), 3000);
       } else {
         alert('Invalid JSON format');
       }
     } catch (error) {
       alert('Error importing sessions: ' + error);
-    }
-  };
-
-  const handleResetLandingPage = () => {
-    if (confirm('This will show the landing page the next time you visit. Continue?')) {
-      deleteCookie('hprc_skip_landing');
-      onResetLandingPage();
-      alert('Landing page reset! It will show on your next visit.');
     }
   };
 
@@ -136,16 +139,20 @@ export default function Sessions({
 
   const formatSelection = (state: DataSelectorState) => {
     const parts = [];
+    parts.push(`Reference: ${state.referenceGenome}`);
     if (state.selectedGenomes.length > 0) {
-      parts.push(`${state.selectedGenomes.length} genome${state.selectedGenomes.length > 1 ? 's' : ''}`);
+      parts.push(`${state.selectedGenomes.length} sample${state.selectedGenomes.length > 1 ? 's' : ''}`);
     }
     if (state.selectedLayers.length > 0) {
       parts.push(`${state.selectedLayers.length} layer${state.selectedLayers.length > 1 ? 's' : ''}`);
     }
-    if (state.populationFilter !== 'all') {
-      parts.push(`${state.populationFilter} population`);
-    }
-    return parts.length > 0 ? parts.join(', ') : 'No selections';
+    return parts.join(' • ');
+  };
+
+  const formatTrackSelection = (session: SessionData) => {
+    const total = session.tracks.length;
+    const selected = session.tracks.filter(t => t.isSelected).length;
+    return `${selected}/${total} tracks enabled`;
   };
 
   return (
@@ -168,7 +175,7 @@ export default function Sessions({
           Sessions
         </h1>
         <p className={`${nightMode ? 'text-gray-400' : 'text-gray-600'}`}>
-          Save and manage your data selections and settings for quick access later.
+          Save and restore your data selections, including reference genome, samples, data layers, and track configurations.
         </p>
       </div>
 
@@ -204,16 +211,6 @@ export default function Sessions({
             </svg>
             Import
           </button>
-
-          <button
-            onClick={handleResetLandingPage}
-            className={`px-6 py-3 ${nightMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'} font-semibold rounded-xl transition-all duration-300 flex items-center gap-2`}
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-            </svg>
-            Reset Landing Page
-          </button>
         </div>
       </div>
 
@@ -224,6 +221,9 @@ export default function Sessions({
             <h3 className={`text-xl font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'} mb-4`}>
               Save Session
             </h3>
+            <p className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-600'} mb-4`}>
+              This will save your current reference genome, selected samples, data layers, and track configurations.
+            </p>
             <input
               type="text"
               value={newSessionName}
@@ -301,7 +301,7 @@ export default function Sessions({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
             </svg>
             <p className="text-lg font-medium">No saved sessions yet</p>
-            <p className="mt-2">Save your current selections to quickly access them later</p>
+            <p className="mt-2">Save your current selections to quickly restore them later</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -337,16 +337,9 @@ export default function Sessions({
                     <p className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-600'} mt-1`}>
                       {formatSelection(session.dataSelectorState)}
                     </p>
-                    {session.enabledTracks && (
-                      <p className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-600'} mt-1`}>
-                        🎯 {session.enabledTracks.length} tracks configured
-                      </p>
-                    )}
-                    {session.currentTab && (
-                      <p className={`text-xs ${nightMode ? 'text-gray-500' : 'text-gray-500'} mt-1`}>
-                        Tab: {session.currentTab}
-                      </p>
-                    )}
+                    <p className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-600'} mt-1`}>
+                      🎯 {formatTrackSelection(session)}
+                    </p>
                     <p className={`text-xs ${nightMode ? 'text-gray-500' : 'text-gray-500'} mt-1`}>
                       Saved: {formatDate(session.timestamp)}
                     </p>

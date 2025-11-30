@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { getGenomeData } from '../utils/genomeDataService';
+import { getGenomeData, hasDataType, getSampleDataSize } from '../utils/genomeDataService';
 import { createDataChart } from '../utils/chartUtils';
 import type { DataLayer, Genome } from '../utils/genomeTypes';
 import { POPULATION_MAP } from '../utils/constants';
@@ -21,9 +21,9 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
 
   useEffect(() => {
     if (!isEmpty && currentView === 'chart' && chartCanvasRef.current) {
-      createDataChart(selectedGenomes, genomeData, selectedLayers, chartCanvasRef.current);
+      createDataChart(selectedGenomes, selectedLayers, chartCanvasRef.current);
     }
-  }, [selectedGenomes, selectedLayers, currentView, isEmpty, genomeData]);
+  }, [selectedGenomes, selectedLayers, currentView, isEmpty]);
 
   const renderTableRows = () => {
     return selectedGenomes.map((genomeId) => {
@@ -31,24 +31,26 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
       if (!genome) return null;
 
       const layers = [];
-      if (selectedLayers.includes("methylation") && genome.methylation) {
+      if (selectedLayers.includes("methylation") && hasDataType(genomeId, 'methylation')) {
         layers.push(<span key="methylation" className="px-2 py-1 text-xs bg-cyan-100 text-cyan-800 rounded">Methylation</span>);
       }
-      if (selectedLayers.includes("expression") && genome.expression) {
+      if (selectedLayers.includes("expression") && hasDataType(genomeId, 'expression')) {
         layers.push(<span key="expression" className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">Expression</span>);
       }
-      if (selectedLayers.includes("chromatin_accessibility") && genome.chromatinAccessibility) {
+      if (selectedLayers.includes("chromatin_accessibility") && hasDataType(genomeId, 'chromatin_accessibility')) {
         layers.push(<span key="chromatin_accessibility" className="px-2 py-1 text-xs bg-orange-100 text-orange-800 rounded">Chromatin Accessibility</span>);
       }
-      if (selectedLayers.includes("chromatin_conformation") && genome.chromatinConformation) {
+      if (selectedLayers.includes("chromatin_conformation") && hasDataType(genomeId, 'chromatin_conformation')) {
         layers.push(<span key="chromatin_conformation" className="px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded">Chromatin Conformation</span>);
       }
+
+      const assemblySize = getSampleDataSize(genomeId, ['assembly']);
 
       return (
         <tr key={genomeId}>
           <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>{genome.id}</td>
           <td className={`px-6 py-4 whitespace-nowrap text-sm ${nightMode ? 'text-gray-300' : 'text-gray-500'}`}>{POPULATION_MAP[genome.population]}</td>
-          <td className={`px-6 py-4 whitespace-nowrap text-sm ${nightMode ? 'text-gray-300' : 'text-gray-500'}`}>{genome.assemblySize} GB</td>
+          <td className={`px-6 py-4 whitespace-nowrap text-sm ${nightMode ? 'text-gray-300' : 'text-gray-500'}`}>{assemblySize.toFixed(1)} GB</td>
           <td className={`px-6 py-4 whitespace-nowrap text-sm ${nightMode ? 'text-gray-300' : 'text-gray-500'}`}>
             <div className="flex gap-1 flex-wrap">{layers}</div>
           </td>
@@ -157,7 +159,7 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
             {/* Modal Header */}
             <div className={`sticky top-0 ${nightMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b px-6 py-4 flex items-center justify-between z-10`}>
               <h3 className={`text-xl font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>
-                Genome Details: {selectedGenomeForDetails.id}
+                Sample Detail: {selectedGenomeForDetails.id}
               </h3>
               <button
                 onClick={() => setSelectedGenomeForDetails(null)}
@@ -171,12 +173,12 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
 
             {/* Modal Content */}
             <div className="px-6 py-4 space-y-6">
-              {/* Basic Information */}
+              {/* Section 1: Basic Information */}
               <div>
                 <h4 className={`text-lg font-bold ${nightMode ? 'text-gray-200' : 'text-gray-900'} mb-3`}>Basic Information</h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>Genome ID</p>
+                    <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>Sample ID</p>
                     <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>{selectedGenomeForDetails.id}</p>
                   </div>
                   <div>
@@ -185,7 +187,7 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
                   </div>
                   <div>
                     <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>Assembly Size</p>
-                    <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>{selectedGenomeForDetails.assemblySize} GB</p>
+                    <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>{getSampleDataSize(selectedGenomeForDetails.id, ['assembly']).toFixed(1)} GB</p>
                   </div>
                   <div>
                     <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>Quality</p>
@@ -201,73 +203,58 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
                       <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>{selectedGenomeForDetails.biosample_id}</p>
                     </div>
                   )}
-                </div>
-              </div>
-
-              {/* Data Layers */}
-              <div>
-                <h4 className={`text-lg font-bold ${nightMode ? 'text-gray-200' : 'text-gray-900'} mb-3`}>Available Data Layers</h4>
-                <div className="space-y-2">
-                  {selectedGenomeForDetails.methylation && (
-                    <div className={`flex items-center justify-between p-3 ${nightMode ? 'bg-gray-700/50' : 'bg-cyan-50'} rounded-lg`}>
-                      <span className={`font-medium ${nightMode ? 'text-gray-200' : 'text-gray-900'}`}>Methylation</span>
-                      {selectedGenomeForDetails.methylationSize && (
-                        <span className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-600'}`}>{selectedGenomeForDetails.methylationSize} GB</span>
-                      )}
+                  {selectedGenomeForDetails.population_descriptor && (
+                    <div>
+                      <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>Population Descriptor</p>
+                      <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>{selectedGenomeForDetails.population_descriptor}</p>
                     </div>
                   )}
-                  {selectedGenomeForDetails.expression && (
-                    <div className={`flex items-center justify-between p-3 ${nightMode ? 'bg-gray-700/50' : 'bg-green-50'} rounded-lg`}>
-                      <span className={`font-medium ${nightMode ? 'text-gray-200' : 'text-gray-900'}`}>Expression</span>
-                      {selectedGenomeForDetails.expressionSize && (
-                        <span className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-600'}`}>{selectedGenomeForDetails.expressionSize} GB</span>
-                      )}
+                  {selectedGenomeForDetails.population_abbreviation && (
+                    <div>
+                      <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>Population Abbreviation</p>
+                      <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>{selectedGenomeForDetails.population_abbreviation}</p>
                     </div>
                   )}
-                  {selectedGenomeForDetails.chromatinAccessibility && (
-                    <div className={`flex items-center justify-between p-3 ${nightMode ? 'bg-gray-700/50' : 'bg-orange-50'} rounded-lg`}>
-                      <span className={`font-medium ${nightMode ? 'text-gray-200' : 'text-gray-900'}`}>Chromatin Accessibility</span>
-                      {selectedGenomeForDetails.chromatinAccessibilitySize && (
-                        <span className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-600'}`}>{selectedGenomeForDetails.chromatinAccessibilitySize} GB</span>
-                      )}
+                  {selectedGenomeForDetails.super_population && (
+                    <div>
+                      <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>Super Population</p>
+                      <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>{selectedGenomeForDetails.super_population}</p>
                     </div>
                   )}
-                  {selectedGenomeForDetails.chromatinConformation && (
-                    <div className={`flex items-center justify-between p-3 ${nightMode ? 'bg-gray-700/50' : 'bg-purple-50'} rounded-lg`}>
-                      <span className={`font-medium ${nightMode ? 'text-gray-200' : 'text-gray-900'}`}>Chromatin Conformation</span>
-                      {selectedGenomeForDetails.chromatinConformationSize && (
-                        <span className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-600'}`}>{selectedGenomeForDetails.chromatinConformationSize} GB</span>
-                      )}
+                  {selectedGenomeForDetails.longitude && (
+                    <div>
+                      <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>Longitude</p>
+                      <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>{selectedGenomeForDetails.longitude}</p>
                     </div>
                   )}
-                </div>
-              </div>
-
-              {/* Metadata */}
-              {selectedGenomeForDetails.metadata && Object.keys(selectedGenomeForDetails.metadata).length > 0 && (
-                <div>
-                  <h4 className={`text-lg font-bold ${nightMode ? 'text-gray-200' : 'text-gray-900'} mb-3`}>Additional Metadata</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    {Object.entries(selectedGenomeForDetails.metadata).map(([key, value]) => {
-                      if (value && value !== '' && value !== 'NA') {
-                        return (
-                          <div key={key}>
-                            <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>
-                              {key.replace(/_/g, ' ')}
-                            </p>
-                            <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>
-                              {typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value)}
-                            </p>
-                          </div>
-                        );
-                      }
+                  {selectedGenomeForDetails.latitude && (
+                    <div>
+                      <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>Latitude</p>
+                      <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>{selectedGenomeForDetails.latitude}</p>
+                    </div>
+                  )}
+                  {/* Additional metadata fields (excluding family info) */}
+                  {selectedGenomeForDetails.metadata && Object.entries(selectedGenomeForDetails.metadata).map(([key, value]) => {
+                    // Skip family-related fields and empty values
+                    const familyFields = ['family_id', 'paternal_id', 'maternal_id', 'trio_available'];
+                    if (familyFields.includes(key) || !value || value === '' || value === 'NA' || value === 'N/A') {
                       return null;
-                    })}
-                  </div>
+                    }
+                    return (
+                      <div key={key}>
+                        <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>
+                          {key.replace(/_/g, ' ')}
+                        </p>
+                        <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>
+                          {typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value)}
+                        </p>
+                      </div>
+                    );
+                  })}
                 </div>
-              )}
+              </div>
 
-              {/* Family Information */}
+              {/* Section 2: Family Information */}
               {(selectedGenomeForDetails.family_id || selectedGenomeForDetails.paternal_id || selectedGenomeForDetails.maternal_id) && (
                 <div>
                   <h4 className={`text-lg font-bold ${nightMode ? 'text-gray-200' : 'text-gray-900'} mb-3`}>Family Information</h4>
@@ -302,6 +289,45 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
                 </div>
               )}
 
+              {/* Section 3: Available Data Layers */}
+              <div>
+                <h4 className={`text-lg font-bold ${nightMode ? 'text-gray-200' : 'text-gray-900'} mb-3`}>Available Data Layers</h4>
+                <div className="space-y-2">
+                  {hasDataType(selectedGenomeForDetails.id, 'methylation') && (
+                    <div className={`flex items-center justify-between p-3 ${nightMode ? 'bg-gray-700/50' : 'bg-cyan-50'} rounded-lg`}>
+                      <span className={`font-medium ${nightMode ? 'text-gray-200' : 'text-gray-900'}`}>Methylation</span>
+                      <span className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        {getSampleDataSize(selectedGenomeForDetails.id, ['methylation']).toFixed(1)} GB
+                      </span>
+                    </div>
+                  )}
+                  {hasDataType(selectedGenomeForDetails.id, 'expression') && (
+                    <div className={`flex items-center justify-between p-3 ${nightMode ? 'bg-gray-700/50' : 'bg-green-50'} rounded-lg`}>
+                      <span className={`font-medium ${nightMode ? 'text-gray-200' : 'text-gray-900'}`}>Expression</span>
+                      <span className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        {getSampleDataSize(selectedGenomeForDetails.id, ['expression']).toFixed(1)} GB
+                      </span>
+                    </div>
+                  )}
+                  {hasDataType(selectedGenomeForDetails.id, 'chromatin_accessibility') && (
+                    <div className={`flex items-center justify-between p-3 ${nightMode ? 'bg-gray-700/50' : 'bg-orange-50'} rounded-lg`}>
+                      <span className={`font-medium ${nightMode ? 'text-gray-200' : 'text-gray-900'}`}>Chromatin Accessibility</span>
+                      <span className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        {getSampleDataSize(selectedGenomeForDetails.id, ['chromatin_accessibility']).toFixed(1)} GB
+                      </span>
+                    </div>
+                  )}
+                  {hasDataType(selectedGenomeForDetails.id, 'chromatin_conformation') && (
+                    <div className={`flex items-center justify-between p-3 ${nightMode ? 'bg-gray-700/50' : 'bg-purple-50'} rounded-lg`}>
+                      <span className={`font-medium ${nightMode ? 'text-gray-200' : 'text-gray-900'}`}>Chromatin Conformation</span>
+                      <span className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        {getSampleDataSize(selectedGenomeForDetails.id, ['chromatin_conformation']).toFixed(1)} GB
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
             </div>
 
             {/* Modal Footer */}
@@ -320,4 +346,3 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
     </div>
   );
 }
-

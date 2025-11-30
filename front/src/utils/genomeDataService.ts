@@ -1,6 +1,5 @@
 // Genome data service - handles loading and managing genome data
 import type { Genome, Population, DataLayer } from './genomeTypes';
-import type { TracksProps } from './browserTypes';
 
 // In-memory genome data cache
 let genomeDataCache: Genome[] = [];
@@ -16,6 +15,137 @@ export interface TrackEntry {
 
 // In-memory track data cache as dictionary keyed by sample_id
 let trackDataCache: Record<string, TrackEntry[]> = {};
+
+// Data types we track
+export type DataType = 'assembly' | 'repeatmasker' | 'methylation' | 'expression' | 'chromatin_accessibility' | 'chromatin_conformation';
+export const DATA_TYPES: DataType[] = ['assembly', 'repeatmasker', 'methylation', 'expression', 'chromatin_accessibility', 'chromatin_conformation'];
+
+// Coordinate types
+export type Coordinate = 'hg38' | 'chm13' | 'DSA';
+
+/**
+ * Normalize coordinate string to standard format
+ * Following the same logic as trackSelection.ts
+ */
+export function normalizeCoordinate(coord: string): Coordinate {
+  if (coord === 'hg38') return 'hg38';
+  if (coord === 'chm13' || coord === 't2t-chm13-v2.0') return 'chm13';
+  return 'DSA'; // Diploid Donor-Specific Assembly
+}
+
+/**
+ * Check if a sample has data of a specific type available
+ */
+export function hasDataType(sampleId: string, dataType: DataType): boolean {
+  const tracks = trackDataCache[sampleId] || [];
+  return tracks.some(t => t.data_type === dataType);
+}
+
+/**
+ * Get coordinates available for a sample and data type
+ */
+export function getAvailableCoordinates(sampleId: string, dataType: DataType): Set<Coordinate> {
+  const tracks = trackDataCache[sampleId] || [];
+  const coords = new Set<Coordinate>();
+  
+  for (const track of tracks) {
+    if (track.data_type !== dataType) continue;
+    const coord = track.browser_attributes?.coordinate;
+    if (coord) {
+      coords.add(normalizeCoordinate(coord));
+    }
+  }
+  
+  return coords;
+}
+
+/**
+ * Get all data availability for a sample
+ */
+export function getSampleDataAvailability(sampleId: string): Record<DataType, Set<Coordinate>> {
+  const availability: Record<DataType, Set<Coordinate>> = {
+    assembly: new Set(),
+    repeatmasker: new Set(),
+    methylation: new Set(),
+    expression: new Set(),
+    chromatin_accessibility: new Set(),
+    chromatin_conformation: new Set(),
+  };
+  
+  const tracks = trackDataCache[sampleId] || [];
+  
+  for (const track of tracks) {
+    const dataType = track.data_type as DataType;
+    if (!DATA_TYPES.includes(dataType)) continue;
+    
+    const coord = track.browser_attributes?.coordinate;
+    if (coord) {
+      availability[dataType].add(normalizeCoordinate(coord));
+    }
+  }
+  
+  return availability;
+}
+
+/**
+ * Calculate total data size for a sample from track data
+ */
+export function getSampleDataSize(sampleId: string, dataTypes?: DataType[]): number {
+  const tracks = trackDataCache[sampleId] || [];
+  const typesToInclude = dataTypes || DATA_TYPES;
+  
+  let totalBytes = 0;
+  for (const track of tracks) {
+    if (typesToInclude.includes(track.data_type as DataType)) {
+      totalBytes += parseInt(track.size_bytes, 10) || 0;
+    }
+  }
+  
+  return totalBytes / (1024 ** 3); // Convert to GB
+}
+
+/**
+ * Get statistics across all samples
+ */
+export function getDataStatistics(): {
+  totalSamples: number;
+  withMethylation: number;
+  withExpression: number;
+  withChromatinAccessibility: number;
+  withChromatinConformation: number;
+  totalDataSizeGB: number;
+} {
+  const sampleIds = Object.keys(trackDataCache);
+  
+  let withMethylation = 0;
+  let withExpression = 0;
+  let withChromatinAccessibility = 0;
+  let withChromatinConformation = 0;
+  let totalBytes = 0;
+  
+  for (const sampleId of sampleIds) {
+    const tracks = trackDataCache[sampleId] || [];
+    const dataTypes = new Set(tracks.map(t => t.data_type));
+    
+    if (dataTypes.has('methylation')) withMethylation++;
+    if (dataTypes.has('expression')) withExpression++;
+    if (dataTypes.has('chromatin_accessibility')) withChromatinAccessibility++;
+    if (dataTypes.has('chromatin_conformation')) withChromatinConformation++;
+    
+    for (const track of tracks) {
+      totalBytes += parseInt(track.size_bytes, 10) || 0;
+    }
+  }
+  
+  return {
+    totalSamples: genomeDataCache.length,
+    withMethylation,
+    withExpression,
+    withChromatinAccessibility,
+    withChromatinConformation,
+    totalDataSizeGB: totalBytes / (1024 ** 3),
+  };
+}
 
 /**
  * Load genome data from external JSON file
@@ -67,17 +197,17 @@ export function getFilteredGenomes(searchTerm: string, population: Population): 
  */
 export function calculateTotalSize(selectedGenomes: string[], selectedLayers: DataLayer[]): number {
   let totalSize = 0;
-  selectedGenomes.forEach((genomeId) => {
-    const genome = genomeDataCache.find((g) => g.id === genomeId);
-    if (genome) {
-      totalSize += genome.assemblySize;
-      selectedLayers.forEach((layer) => {
-        const layerSizeKey = `${layer}Size` as keyof Genome;
-        const layerSize = genome[layerSizeKey];
-        totalSize += (typeof layerSize === 'number' ? layerSize : 0);
-      });
+  
+  for (const genomeId of selectedGenomes) {
+    // Always include assembly size
+    totalSize += getSampleDataSize(genomeId, ['assembly']);
+    
+    // Add selected layer sizes
+    for (const layer of selectedLayers) {
+      totalSize += getSampleDataSize(genomeId, [layer as DataType]);
     }
-  });
+  }
+  
   return totalSize;
 }
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import type { Track } from '../utils/trackSelection';
 
 interface TracksComponentProps {
@@ -17,6 +17,21 @@ const isReferenceTrack = (track: Track, referenceGenome: string): boolean => {
          track.sampleId === 't2t-chm13-v2.0';
 };
 
+// Check if a track is a genome alignment track
+const isGenomeAlignTrack = (track: Track): boolean => {
+  return track.displayAttributes?.type === 'genomealign';
+};
+
+// Get the query genome from a genome alignment track
+const getQueryGenome = (track: Track): string | undefined => {
+  return track.displayAttributes?.querygenome;
+};
+
+// Get the coordinate (which genome this track relies on) from a track
+const getTrackCoordinate = (track: Track): string | undefined => {
+  return track.metadata?.coordinate as string | undefined;
+};
+
 export default function Tracks({ 
   tracks,
   selectedGenomes, 
@@ -33,6 +48,44 @@ export default function Tracks({
     const ids = new Set(tracks.map(t => t.sampleId));
     return ['all', ...Array.from(ids)];
   }, [tracks]);
+
+  // Map from query genome to genome align track index (for all genome align tracks, not just selected)
+  const queryGenomeToAlignTrackIndex = useMemo(() => {
+    const mapping = new Map<string, number>();
+    tracks.forEach((track, index) => {
+      if (isGenomeAlignTrack(track)) {
+        const queryGenome = getQueryGenome(track);
+        if (queryGenome) {
+          mapping.set(queryGenome, index);
+        }
+      }
+    });
+    return mapping;
+  }, [tracks]);
+
+  // Compute which genome align tracks cannot be disabled
+  // A genome align track cannot be disabled if there are other selected+enabled tracks
+  // whose coordinate relies on its query genome
+  const lockedGenomeAlignIndices = useMemo(() => {
+    const locked = new Set<number>();
+    
+    // Now check all selected non-genome-align tracks to see which query genomes they depend on
+    tracks.forEach((track, index) => {
+      if (!isGenomeAlignTrack(track) && track.isSelected) {
+        const coordinate = getTrackCoordinate(track);
+        // Check if this coordinate matches a query genome from a genome align track
+        if (coordinate && queryGenomeToAlignTrackIndex.has(coordinate)) {
+          const alignTrackIndex = queryGenomeToAlignTrackIndex.get(coordinate)!;
+          // Only lock if the genome align track is also selected
+          if (tracks[alignTrackIndex].isSelected) {
+            locked.add(alignTrackIndex);
+          }
+        }
+      }
+    });
+
+    return locked;
+  }, [tracks, queryGenomeToAlignTrackIndex]);
 
   // Get all unique metadata keys across all tracks
   const metadataKeys = React.useMemo(() => {
@@ -61,42 +114,110 @@ export default function Tracks({
     });
   }, [tracks, searchTerm, filterSample]);
 
+  // Check if a track can be toggled (disabled)
+  const canToggleTrack = (index: number): boolean => {
+    const track = tracks[index];
+    // If track is not selected, it can always be enabled
+    if (!track.isSelected) return true;
+    // If it's not a genome align track, it can be disabled
+    if (!isGenomeAlignTrack(track)) return true;
+    // If it's a genome align track, check if it's locked
+    return !lockedGenomeAlignIndices.has(index);
+  };
+
   // Toggle a single track's isSelected
   const toggleTrack = (index: number) => {
-    const newTracks = tracks.map((track, i) => 
-      i === index ? { ...track, isSelected: !track.isSelected } : track
+    // Check if this track can be toggled
+    if (!canToggleTrack(index)) {
+      console.log("Tracks: cannot disable track at index", index, "- other tracks depend on its query genome");
+      return;
+    }
+    
+    const track = tracks[index];
+    const isEnabling = !track.isSelected;
+    
+    // Start with the basic toggle
+    let newTracks = tracks.map((t, i) => 
+      i === index ? { ...t, isSelected: !t.isSelected } : t
     );
+    
+    // If enabling a non-genome-align track that depends on a query genome,
+    // automatically enable the corresponding genome align track
+    if (isEnabling && !isGenomeAlignTrack(track)) {
+      const coordinate = getTrackCoordinate(track);
+      if (coordinate && queryGenomeToAlignTrackIndex.has(coordinate)) {
+        const alignTrackIndex = queryGenomeToAlignTrackIndex.get(coordinate)!;
+        // Enable the genome align track if it's not already selected
+        if (!tracks[alignTrackIndex].isSelected) {
+          console.log("Tracks: auto-enabling genome align track at index", alignTrackIndex, "for coordinate", coordinate);
+          newTracks = newTracks.map((t, i) => 
+            i === alignTrackIndex ? { ...t, isSelected: true } : t
+          );
+        }
+      }
+    }
+    
     console.log("Tracks: toggling index", index, "new selected count:", newTracks.filter(t => t.isSelected).length);
     onTracksChange(newTracks);
   };
 
-  // Enable all tracks
+  // Enable all tracks (genome align dependencies are automatically satisfied since all are enabled)
   const enableAll = () => {
     const newTracks = tracks.map(track => ({ ...track, isSelected: true }));
     onTracksChange(newTracks);
   };
 
-  // Disable all tracks
+  // Disable all tracks (respects locked genome align tracks)
   const disableAll = () => {
-    const newTracks = tracks.map(track => ({ ...track, isSelected: false }));
+    const newTracks = tracks.map((track, i) => {
+      // Keep locked genome align tracks selected
+      if (lockedGenomeAlignIndices.has(i)) {
+        return track;
+      }
+      return { ...track, isSelected: false };
+    });
     onTracksChange(newTracks);
   };
 
-  // Enable filtered tracks
+  // Enable filtered tracks (also enables required genome align tracks)
   const enableFiltered = () => {
     const filteredIndices = new Set(filteredTracks.map(t => tracks.indexOf(t)));
-    const newTracks = tracks.map((track, i) => 
+    
+    // First, enable the filtered tracks
+    let newTracks = tracks.map((track, i) => 
       filteredIndices.has(i) ? { ...track, isSelected: true } : track
     );
+    
+    // Then, find and enable any genome align tracks required by newly enabled tracks
+    const requiredAlignIndices = new Set<number>();
+    filteredTracks.forEach(track => {
+      if (!isGenomeAlignTrack(track)) {
+        const coordinate = getTrackCoordinate(track);
+        if (coordinate && queryGenomeToAlignTrackIndex.has(coordinate)) {
+          requiredAlignIndices.add(queryGenomeToAlignTrackIndex.get(coordinate)!);
+        }
+      }
+    });
+    
+    // Enable required genome align tracks
+    newTracks = newTracks.map((track, i) => 
+      requiredAlignIndices.has(i) ? { ...track, isSelected: true } : track
+    );
+    
     onTracksChange(newTracks);
   };
 
-  // Disable filtered tracks
+  // Disable filtered tracks (respects locked genome align tracks)
   const disableFiltered = () => {
     const filteredIndices = new Set(filteredTracks.map(t => tracks.indexOf(t)));
-    const newTracks = tracks.map((track, i) => 
-      filteredIndices.has(i) ? { ...track, isSelected: false } : track
-    );
+    const newTracks = tracks.map((track, i) => {
+      if (!filteredIndices.has(i)) return track;
+      // Keep locked genome align tracks selected
+      if (lockedGenomeAlignIndices.has(i)) {
+        return track;
+      }
+      return { ...track, isSelected: false };
+    });
     onTracksChange(newTracks);
   };
 
@@ -284,16 +405,33 @@ export default function Tracks({
                         {originalIndex + 1}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <input
-                          type="checkbox"
-                          checked={track.isSelected}
-                          onChange={() => toggleTrack(originalIndex)}
-                          className={`w-5 h-5 rounded focus:ring-2 focus:ring-primary-500 ${
-                            nightMode 
-                              ? 'bg-gray-700 border-gray-600 checked:bg-primary-600 checked:border-primary-600' 
-                              : 'bg-white border-gray-300 checked:bg-primary-600'
-                          }`}
-                        />
+                        {(() => {
+                          const isLocked = lockedGenomeAlignIndices.has(originalIndex);
+                          return (
+                            <div className="relative group">
+                              <input
+                                type="checkbox"
+                                checked={track.isSelected}
+                                onChange={() => toggleTrack(originalIndex)}
+                                disabled={isLocked}
+                                className={`w-5 h-5 rounded focus:ring-2 focus:ring-primary-500 ${
+                                  isLocked
+                                    ? 'bg-gray-400 border-gray-400 cursor-not-allowed opacity-60'
+                                    : nightMode 
+                                      ? 'bg-gray-700 border-gray-600 checked:bg-primary-600 checked:border-primary-600' 
+                                      : 'bg-white border-gray-300 checked:bg-primary-600'
+                                }`}
+                              />
+                              {isLocked && (
+                                <div className={`absolute left-8 top-1/2 -translate-y-1/2 hidden group-hover:block z-20 
+                                  px-2 py-1 text-xs rounded shadow-lg whitespace-nowrap
+                                  ${nightMode ? 'bg-gray-900 text-gray-200' : 'bg-gray-800 text-white'}`}>
+                                  Cannot disable: other tracks depend on this genome alignment
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </td>
                       <td className={`px-4 py-3 whitespace-nowrap`}>
                         <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${

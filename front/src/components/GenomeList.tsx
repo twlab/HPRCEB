@@ -1,4 +1,5 @@
 import type { Genome } from '../utils/genomeTypes';
+import { hasDataType } from '../utils/genomeDataService';
 import { POPULATION_EMOJI, POPULATION_MAP } from '../utils/constants';
 
 interface GenomeListProps {
@@ -31,6 +32,12 @@ export default function GenomeList({ genomes, selectedGenomes, onGenomeToggle, n
         // Check if parent IDs exist and are not N/A
         const hasParents = (genome.paternal_id && genome.paternal_id !== 'N/A') || 
                           (genome.maternal_id && genome.maternal_id !== 'N/A');
+
+        // Check data availability from track data
+        const hasMethylation = hasDataType(genome.id, 'methylation');
+        const hasExpression = hasDataType(genome.id, 'expression');
+        const hasChromatinAccessibility = hasDataType(genome.id, 'chromatin_accessibility');
+        const hasChromatinConformation = hasDataType(genome.id, 'chromatin_conformation');
 
         return (
           <div
@@ -83,27 +90,27 @@ export default function GenomeList({ genomes, selectedGenomes, onGenomeToggle, n
                   </span>
                 </div>
                 <div className="mt-2 ml-8 flex gap-1.5">
-                  {genome.methylation && (
+                  {hasMethylation && (
                     <span 
                       className="w-2.5 h-2.5 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full shadow-sm animate-pulse-slow" 
                       title="Methylation"
                     />
                   )}
-                  {genome.expression && (
+                  {hasExpression && (
                     <span 
                       className="w-2.5 h-2.5 bg-gradient-to-br from-green-400 to-green-600 rounded-full shadow-sm animate-pulse-slow" 
                       title="Expression"
                       style={{ animationDelay: '0.5s' }}
                     />
                   )}
-                  {genome.chromatinAccessibility && (
+                  {hasChromatinAccessibility && (
                     <span 
                       className="w-2.5 h-2.5 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full shadow-sm animate-pulse-slow" 
                       title="Chromatin Accessibility"
                       style={{ animationDelay: '1s' }}
                     />
                   )}
-                  {genome.chromatinConformation && (
+                  {hasChromatinConformation && (
                     <span 
                       className="w-2.5 h-2.5 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full shadow-sm animate-pulse-slow" 
                       title="Chromatin Conformation"
@@ -119,4 +126,3 @@ export default function GenomeList({ genomes, selectedGenomes, onGenomeToggle, n
     </div>
   );
 }
-

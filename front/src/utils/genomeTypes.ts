@@ -20,84 +20,12 @@ export interface GenomeMetadata {
   [key: string]: any;
 }
 
-export interface DataAttributes {
-  platform: string;
-  processing_tool: string;
-  file_format: string;
-  release_date: string;
-  description?: string;
-  coverage?: string;
-  [key: string]: any;
-}
-
-export interface BrowserAttributes {
-  reference_genome: string;
-  haplotype?: string;
-  track_type: string;
-  track_name: string;
-  url: string;
-  [key: string]: any;
-}
-
-export interface Track {
-  trackName?: string;
-  genome?: string;
-  trackType?: string;
-  sizeBytes?: number;
-  sizeGb: number;
-  platform: string;
-  processingTool: string;
-  fileFormat: string;
-  releaseDate: string;
-  downloadUrl?: string;
-  description?: string;
-  coverage?: string;
-  referenceGenome?: string;
-  haplotype?: string;
-  dataAttributes?: DataAttributes;
-  browserAttributes?: BrowserAttributes;
-  browser?: {
-    name?: string;
-    genome?: string;
-    trackType?: string;
-    url?: string;
-  };
-}
-
-export interface DownloadUrls {
-  assembly?: string;
-  assemblies?: Record<string, string>;
-  methylation?: string;
-  expression?: string;
-  fiberseq?: string;
-  [key: string]: string | Record<string, string> | undefined;
-}
-
 export interface Genome {
   id: string;
   name: string;
   population: string;  // Legacy field for backward compatibility
   quality: string;
   contigN50: number;
-  assemblySize: number;
-  methylation: boolean;
-  methylationSize?: number;
-  expression: boolean;
-  expressionSize?: number;
-  fiberseq: boolean;  // Legacy field for backward compatibility
-  fiberseqSize?: number;
-  chromatinAccessibility?: boolean;
-  chromatinAccessibilitySize?: number;
-  chromatinConformation?: boolean;
-  chromatinConformationSize?: number;
-  assemblyTrack?: Track;
-  assemblyTracks?: Track[];
-  methylationTracks?: Track[];
-  expressionTracks?: Track[];
-  fiberseqTracks?: Track[];  // Legacy field
-  chromatinAccessibilityTracks?: Track[];
-  chromatinConformationTracks?: Track[];
-  downloadUrls?: DownloadUrls;
   metadata?: GenomeMetadata;
   // New fields from updated samples.tsv
   biosample_id?: string;
@@ -122,4 +50,3 @@ export interface DataLayerInfo {
   description: string;
   color: string;
 }
-
