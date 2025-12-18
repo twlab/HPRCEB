@@ -59,11 +59,8 @@ const chm13_default_tracks = [{
 },
 {
     type: "geneAnnotation",
-    name: "genes",
-    label: "genes from CAT and Liftoff",
-    options: {
-        maxRows: 10,
-    },
+    name: "gencodeV35",
+    label: "gencodeV35"
 },
 {
     type: "rmskv2",

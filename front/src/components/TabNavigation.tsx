@@ -1,4 +1,4 @@
-export type TabType = 'availability-matrix' | 'sample' | 'tracks' | 'browser' | 'tutorials' | 'sessions';
+export type TabType = 'availability-matrix' | 'sample' | 'tracks' | 'browser' | 'tutorials' | 'sessions' | 'about';
 
 interface TabNavigationProps {
   currentTab: TabType;
@@ -14,6 +14,7 @@ export default function TabNavigation({ currentTab, onTabChange, nightMode = fal
     { id: 'sessions' as TabType, label: 'Sessions' },
     { id: 'availability-matrix' as TabType, label: 'Data Availability Matrix' },
     { id: 'tutorials' as TabType, label: 'Tutorials' },
+    { id: 'about' as TabType, label: 'About' },
   ];
 
   return (

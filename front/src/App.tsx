@@ -7,6 +7,7 @@ import Tracks from './components/Tracks';
 import Browser from './components/Browser';
 import Tutorials from './components/Tutorials';
 import Sessions from './components/Sessions';
+import About from './components/About';
 import Footer from './components/Footer';
 import LandingPage from './components/LandingPage';
 import InteractiveTutorial from './components/InteractiveTutorial';
@@ -26,7 +27,7 @@ function App() {
   const getInitialTab = (): TabType => {
     const params = new URLSearchParams(window.location.search);
     const tabParam = params.get('tab');
-    const validTabs: TabType[] = ['availability-matrix', 'sample', 'tracks', 'browser', 'tutorials', 'sessions'];
+    const validTabs: TabType[] = ['availability-matrix', 'sample', 'tracks', 'browser', 'tutorials', 'sessions', 'about'];
     if (tabParam && validTabs.includes(tabParam as TabType)) {
       return tabParam as TabType;
     }
@@ -274,6 +275,7 @@ function App() {
               nightMode={nightMode}
             />
           )}
+          {currentTab === 'about' && <About nightMode={nightMode} />}
         </main>
       )}
 
