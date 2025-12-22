@@ -1,2 +1,2 @@
-# HPRCEN
-HPRC Epigenome Navigator
+# HPRCEB
+HPRC Epigenome Browser
