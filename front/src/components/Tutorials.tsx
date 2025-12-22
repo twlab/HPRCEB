@@ -10,17 +10,98 @@ export default function Tutorials({ nightMode = false, onStartInteractiveGuide }
 
   const exampleSession = `[
   {
-    "id": "session_1761255625847_1d1eewse3",
-    "name": "HG02257",
-    "timestamp": 1761255625847,
+    "id": "session_1766443539930_cdgeqam1l",
+    "name": "Test",
+    "timestamp": 1766443539930,
     "dataSelectorState": {
-      "selectedGenomes": ["HG02257"],
-      "selectedLayers": ["expression", "methylation", "chromatin_accessibility", "chromatin_conformation"],
-      "searchTerm": "HG02257",
+      "selectedGenomes": [
+        "HG00097"
+      ],
+      "selectedLayers": [
+        "methylation"
+      ],
+      "searchTerm": "",
       "populationFilter": "all",
       "referenceGenome": "hg38"
     },
-    "currentTab": "sessions"
+    "tracks": [
+      {
+        "id": "hg38__ruler__Ruler",
+        "isSelected": true
+      },
+      {
+        "id": "hg38__geneAnnotation__refGene",
+        "isSelected": true
+      },
+      {
+        "id": "hg38__geneAnnotation__gencodeV47",
+        "isSelected": false
+      },
+      {
+        "id": "hg38__geneAnnotation__MANE_select_1.4",
+        "isSelected": false
+      },
+      {
+        "id": "hg38__repeatmasker__rmsk_all",
+        "isSelected": true
+      },
+      {
+        "id": "HG00097__genomealign__hg38 vs HG00097 hap1",
+        "isSelected": true
+      },
+      {
+        "id": "HG00097__repeatmasker__hap1 RepeatMasker",
+        "isSelected": true
+      },
+      {
+        "id": "HG00097__categorical__hap1 CpG islands",
+        "isSelected": true
+      },
+      {
+        "id": "HG00097__categorical__hap1 HMM Flagger (PacBio)",
+        "isSelected": false
+      },
+      {
+        "id": "HG00097__categorical__hap1 HMM Flagger (ONT)",
+        "isSelected": false
+      },
+      {
+        "id": "HG00097__modbed__hap1 ONT methylation",
+        "isSelected": false
+      },
+      {
+        "id": "HG00097__methylc__hap1 PacBio methylation",
+        "isSelected": true
+      },
+      {
+        "id": "HG00097__genomealign__hg38 vs HG00097 hap2",
+        "isSelected": true
+      },
+      {
+        "id": "HG00097__repeatmasker__hap2 RepeatMasker",
+        "isSelected": true
+      },
+      {
+        "id": "HG00097__categorical__hap2 CpG islands",
+        "isSelected": true
+      },
+      {
+        "id": "HG00097__categorical__hap2 HMM Flagger (PacBio)",
+        "isSelected": false
+      },
+      {
+        "id": "HG00097__categorical__hap2 HMM Flagger (ONT)",
+        "isSelected": false
+      },
+      {
+        "id": "HG00097__modbed__hap2 ONT methylation",
+        "isSelected": false
+      },
+      {
+        "id": "HG00097__methylc__hap2 PacBio methylation",
+        "isSelected": true
+      }
+    ]
   }
 ]`;
 

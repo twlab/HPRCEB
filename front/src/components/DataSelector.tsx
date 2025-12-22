@@ -57,10 +57,11 @@ export default function DataSelector({ state, onStateChange, nightMode = false }
 
   const genomeData = getGenomeData();
 
-  // Calculate population counts
+  // Calculate super_population counts
   const populationCounts = genomeData.reduce((acc, genome) => {
-    const pop = genome.population;
-    acc[pop] = (acc[pop] || 0) + 1;
+    if (genome.super_population) {
+      acc[genome.super_population] = (acc[genome.super_population] || 0) + 1;
+    }
     return acc;
   }, {} as Record<string, number>);
 

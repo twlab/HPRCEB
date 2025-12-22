@@ -110,11 +110,11 @@ export default function WorldMap({ selectedPopulation, populationCounts, selecte
       counts[region.id] = 0;
     });
     
-    // Count selected genomes by population
+    // Count selected genomes by super_population
     selectedGenomes.forEach(genomeId => {
       const genome = genomeData.find(g => g.id === genomeId);
-      if (genome && counts.hasOwnProperty(genome.population)) {
-        counts[genome.population]++;
+      if (genome && genome.super_population && counts.hasOwnProperty(genome.super_population)) {
+        counts[genome.super_population]++;
       }
     });
     
@@ -135,10 +135,9 @@ export default function WorldMap({ selectedPopulation, populationCounts, selecte
       
       if (!hasCoords) return false;
       
-      // If zoomed in, only show samples from the selected population
+      // If zoomed in, only show samples from the selected super_population
       if (isZoomedIn) {
-        const genomePopulation = genome.super_population || genome.population;
-        return genomePopulation === selectedPopulation;
+        return genome.super_population === selectedPopulation;
       }
       
       return true;
@@ -352,11 +351,10 @@ export default function WorldMap({ selectedPopulation, populationCounts, selecte
             const adjustedLat = latitude + offsetLat;
             
             const isSelected = selectedGenomes.includes(genome.id);
-            const populationCode = genome.population_abbreviation || genome.super_population || genome.population;
+            const populationCode = genome.population_abbreviation || genome.super_population || '';
             
-            // Get region color for this sample
-            const genomePopulation = genome.super_population || genome.population;
-            const region = populationRegions.find(r => r.id === genomePopulation);
+            // Get region color for this sample based on super_population
+            const region = populationRegions.find(r => r.id === genome.super_population);
             const markerColor = region ? region.color : '#6b7280';
             
             return (

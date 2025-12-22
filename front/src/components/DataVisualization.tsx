@@ -17,7 +17,7 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
   const chartCanvasRef = useRef<HTMLCanvasElement>(null);
 
   const genomeData = getGenomeData();
-  const isEmpty = selectedGenomes.length === 0 || selectedLayers.length === 0;
+  const isEmpty = selectedGenomes.length === 0;
 
   useEffect(() => {
     if (!isEmpty && currentView === 'chart' && chartCanvasRef.current) {
@@ -49,10 +49,16 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
       return (
         <tr key={genomeId}>
           <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>{genome.id}</td>
-          <td className={`px-6 py-4 whitespace-nowrap text-sm ${nightMode ? 'text-gray-300' : 'text-gray-500'}`}>{POPULATION_MAP[genome.population]}</td>
+          <td className={`px-6 py-4 whitespace-nowrap text-sm ${nightMode ? 'text-gray-300' : 'text-gray-500'}`}>
+            {genome.population_abbreviation && genome.super_population 
+              ? `${genome.population_abbreviation} / ${genome.super_population}`
+              : genome.population_abbreviation || genome.super_population || 'N/A'}
+          </td>
           <td className={`px-6 py-4 whitespace-nowrap text-sm ${nightMode ? 'text-gray-300' : 'text-gray-500'}`}>{assemblySize.toFixed(1)} GB</td>
           <td className={`px-6 py-4 whitespace-nowrap text-sm ${nightMode ? 'text-gray-300' : 'text-gray-500'}`}>
-            <div className="flex gap-1 flex-wrap">{layers}</div>
+            <div className="flex gap-1 flex-wrap">
+              {layers.length > 0 ? layers : <span className={`text-xs italic ${nightMode ? 'text-gray-400' : 'text-gray-400'}`}>No layers selected</span>}
+            </div>
           </td>
           <td className={`px-6 py-4 whitespace-nowrap text-sm ${nightMode ? 'text-gray-300' : 'text-gray-500'}`}>
             <button 
@@ -116,8 +122,8 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
           <svg className={`mx-auto h-10 w-10 ${nightMode ? 'text-gray-500' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
           </svg>
-          <h3 className={`mt-2 text-sm font-medium ${nightMode ? 'text-gray-200' : 'text-gray-900'}`}>No data selected</h3>
-          <p className={`mt-1 text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'}`}>Select genomes and data layers to view information</p>
+          <h3 className={`mt-2 text-sm font-medium ${nightMode ? 'text-gray-200' : 'text-gray-900'}`}>No samples selected</h3>
+          <p className={`mt-1 text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'}`}>Select samples to view information</p>
         </div>
       )}
 
@@ -182,21 +188,21 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
                     <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>{selectedGenomeForDetails.id}</p>
                   </div>
                   <div>
-                    <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>Population</p>
-                    <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>{POPULATION_MAP[selectedGenomeForDetails.population]}</p>
-                  </div>
-                  <div>
                     <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>Assembly Size</p>
                     <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>{getSampleDataSize(selectedGenomeForDetails.id, ['assembly']).toFixed(1)} GB</p>
                   </div>
-                  <div>
-                    <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>Quality</p>
-                    <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>{selectedGenomeForDetails.quality}</p>
-                  </div>
-                  <div>
-                    <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>Contig N50</p>
-                    <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>{selectedGenomeForDetails.contigN50.toLocaleString()}</p>
-                  </div>
+                  {selectedGenomeForDetails.quality && (
+                    <div>
+                      <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>Quality</p>
+                      <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>{selectedGenomeForDetails.quality}</p>
+                    </div>
+                  )}
+                  {selectedGenomeForDetails.contigN50 && (
+                    <div>
+                      <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>Contig N50</p>
+                      <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>{selectedGenomeForDetails.contigN50.toLocaleString()}</p>
+                    </div>
+                  )}
                   {selectedGenomeForDetails.biosample_id && (
                     <div>
                       <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>Biosample ID</p>
@@ -233,11 +239,12 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
                       <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>{selectedGenomeForDetails.latitude}</p>
                     </div>
                   )}
-                  {/* Additional metadata fields (excluding family info) */}
+                  {/* Additional metadata fields (excluding family info and already displayed fields) */}
                   {selectedGenomeForDetails.metadata && Object.entries(selectedGenomeForDetails.metadata).map(([key, value]) => {
-                    // Skip family-related fields and empty values
+                    // Skip family-related fields, already displayed fields, and empty values
                     const familyFields = ['family_id', 'paternal_id', 'maternal_id', 'trio_available'];
-                    if (familyFields.includes(key) || !value || value === '' || value === 'NA' || value === 'N/A') {
+                    const alreadyDisplayedFields = ['biosample_id', 'population_descriptor', 'population_abbreviation', 'super_population', 'longitude', 'latitude', 'quality', 'contig_n50'];
+                    if (familyFields.includes(key) || alreadyDisplayedFields.includes(key) || !value || value === '' || value === 'NA' || value === 'N/A') {
                       return null;
                     }
                     return (

@@ -50,7 +50,18 @@ const hg38_default_tracks = [{
     name: "rmsk_all",
     options: { label: "RepeatMasker" },
     url: "https://vizhub.wustl.edu/public/hg38/rmsk16.bb",
-  }]
+  },
+
+  ]
+
+/*
+
+  {
+    type: "vcf",
+    url: "https://wangcluster.wustl.edu/~wzhang/projects/HPRCEN/data/graph_vcf/hprc-sep8-mc-grch38.wave.vcf.gz",
+    label: "HPRC Y2 vcf",
+  },
+  */
 
 
 const chm13_default_tracks = [{

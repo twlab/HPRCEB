@@ -22,12 +22,12 @@ export default function GenomeList({ genomes, selectedGenomes, onGenomeToggle, n
     <div className="space-y-2">
       {genomes.map((genome) => {
         const isSelected = selectedGenomes.includes(genome.id);
-        const sex = genome.metadata?.sex || 'unknown';
+        const sex = genome.sex || 'unknown';
         const sexIcon = sex === 'male' ? '♂' : sex === 'female' ? '♀' : '?';
         
         // Use population_abbreviation if available, otherwise fall back to super_population
-        const populationCode = genome.population_abbreviation || genome.super_population || genome.population;
-        const populationEmoji = POPULATION_EMOJI[genome.super_population || genome.population] || '🌍';
+        const populationCode = genome.population_abbreviation || genome.super_population || '';
+        const populationEmoji = POPULATION_EMOJI[genome.super_population || ''] || '🌍';
         
         // Check if parent IDs exist and are not N/A
         const hasParents = (genome.paternal_id && genome.paternal_id !== 'N/A') || 

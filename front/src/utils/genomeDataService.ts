@@ -174,9 +174,7 @@ export function getGenomeData(): Genome[] {
   return genomeDataCache;
 }
 
-/**
- * Get filtered genomes based on search term and population
- */
+
 export function getFilteredGenomes(searchTerm: string, population: Population): Genome[] {
   return genomeDataCache.filter((genome) => {
     const matchesSearch = genome.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -184,9 +182,8 @@ export function getFilteredGenomes(searchTerm: string, population: Population): 
                          (genome.population_abbreviation || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (genome.population_descriptor || '').toLowerCase().includes(searchTerm.toLowerCase());
     
-    // Use super_population for filtering if available, otherwise fall back to population
-    const genomePopulation = genome.super_population || genome.population;
-    const matchesPopulation = population === "all" || genomePopulation === population;
+    // Use super_population for filtering
+    const matchesPopulation = population === "all" || genome.super_population === population;
     
     return matchesSearch && matchesPopulation;
   });
