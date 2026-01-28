@@ -27,7 +27,7 @@ echo "Dist output: ${SCRIPT_DIR}/front/dist"
 cd "${SCRIPT_DIR}"
 rm -rf ./docs
 mv ${SCRIPT_DIR}/front/dist ./docs
-ECHO "epigenome.humanpangenome.org/" > docs/CNAME
+ECHO "epigenome.humanpangenome.org" > docs/CNAME
 
 git add docs
 
