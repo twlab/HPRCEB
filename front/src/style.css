@@ -2,7 +2,7 @@
 
 /* Prevent overscroll/rubber banding */
 html, body {
-  overscroll-behavior: none;
+  overscroll-behavior-x: none;
   overflow-x: hidden;
 }
 

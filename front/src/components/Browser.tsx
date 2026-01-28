@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { GenomeHub } from "wuepgg";
 import type { TracksProps } from '../utils/browserTypes';
 import type { Track } from '../utils/trackSelection';
@@ -87,15 +87,20 @@ export default function Browser({ tracks: tracksProp, selectedGenomes, reference
     setTracks(allTracks);
   }, [allTracks]);
 
+  // Generate a random storeId for GenomeHub
+  const storeId = useMemo(() => {
+    return `store-${Math.random().toString(36).substring(2, 15)}-${Date.now()}`;
+  }, []);
+
   // Fallback tracks for demonstration (can be removed once assembly loading is working)
 
   return (
     <div 
       ref={browserContainerRef}
-      className={`${nightMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-2xl shadow-fancy border p-6 hover-lift flex flex-col transition-colors duration-300 ${isFullscreen ? 'fullscreen-browser' : ''}`}
+      className={`${nightMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-2xl shadow-fancy border py-6 hover-lift flex flex-col transition-colors duration-300 ${isFullscreen ? 'fullscreen-browser' : ''}`}
     >
       {/* Header with Icon and Fullscreen Button */}
-      <div className="flex items-center gap-3 mb-4 flex-shrink-0">
+      <div className="flex items-center gap-3 mb-4 flex-shrink-0 px-6">
         <div className={`w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden ${nightMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-200'} border`}>
           <img 
             src="https://epgg.github.io/assets/images/eg-51ea8bd8d2ca299ede6ceb5f1c987ff7.png" 
@@ -134,7 +139,7 @@ export default function Browser({ tracks: tracksProp, selectedGenomes, reference
       </div>
 
       {/* Statistics Cards - always show with placeholder data */}
-      <div className="grid grid-cols-2 gap-3 mb-5">
+      <div className="grid grid-cols-2 gap-3 mb-5 px-6">
         <div className={`${nightMode ? 'bg-gradient-to-br from-amber-900/50 to-amber-800/50 border-amber-700' : 'bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200'} rounded-lg p-3 border`}>
           <div className="flex items-center gap-2">
             <svg className={`w-5 h-5 ${nightMode ? 'text-amber-400' : 'text-amber-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -162,15 +167,16 @@ export default function Browser({ tracks: tracksProp, selectedGenomes, reference
       
       {/* Browser Container - always show with placeholder tracks */}
       <div className="flex-1">
-        <div className={`rounded-xl overflow-y-auto border-2 ${nightMode ? 'border-gray-700' : 'border-gray-200'} max-h-[800px]`}>
+        <div className="overflow-y-auto max-h-[800px]">
           <div className="relative bg-white w-full">
             <GenomeHub
                 genomeName={referenceGenome}
                 tracks={tracks}
-                viewRegion={"chr7:27053397-27373765"}
+                viewRegion={"chr7:27053397-27153397"}
                 showGenomeNavigator={true}
                 showNavBar={false}
                 showToolBar={true}
+                storeConfig={{storeId}}
               />
           </div>
         </div>
@@ -178,7 +184,7 @@ export default function Browser({ tracks: tracksProp, selectedGenomes, reference
 
       {/* Browser Documentation Hint */}
       {(
-        <div className={`mt-4 space-y-2`}>
+        <div className={`mt-4 space-y-2 px-6`}>
           <div className={`p-3 rounded-lg ${nightMode ? 'bg-gray-800/50 border-gray-700' : 'bg-primary-50 border-primary-200'} border flex items-center justify-between`}>
             <div className="flex items-center gap-2">
               <svg className={`w-5 h-5 ${nightMode ? 'text-primary-400' : 'text-primary-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
