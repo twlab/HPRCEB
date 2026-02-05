@@ -27,6 +27,9 @@ export default function Browser({ tracks: tracksProp, selectedGenomes, reference
   const [isFullscreen, setIsFullscreen] = useState(false);
   const browserContainerRef = useRef<HTMLDivElement>(null);
   
+  // NavBar visibility state
+  const [showNavBar, setShowNavBar] = useState(false);
+  
   // Toggle fullscreen function
   const toggleFullscreen = async () => {
     if (!browserContainerRef.current) return;
@@ -114,6 +117,29 @@ export default function Browser({ tracks: tracksProp, selectedGenomes, reference
             Interactive genomic data visualization
           </p>
         </div>
+        {/* NavBar Toggle Button */}
+        <button
+          onClick={() => setShowNavBar(!showNavBar)}
+          className={`p-2.5 rounded-lg transition-all ${
+            nightMode
+              ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
+              : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+          } hover:shadow-md`}
+          title={showNavBar ? 'Hide Navigation Bar' : 'Show Navigation Bar'}
+        >
+          {showNavBar ? (
+            // X Icon (Close)
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          ) : (
+            // Hamburger Menu Icon (3 horizontal lines)
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          )}
+        </button>
+        
         {/* Fullscreen Button */}
         <button
           onClick={toggleFullscreen}
@@ -174,7 +200,7 @@ export default function Browser({ tracks: tracksProp, selectedGenomes, reference
                 tracks={tracks}
                 viewRegion={"chr7:27053397-27153397"}
                 showGenomeNavigator={true}
-                showNavBar={false}
+                showNavBar={showNavBar}
                 showToolBar={true}
                 storeConfig={{storeId}}
               />
