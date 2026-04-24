@@ -39,6 +39,7 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [nightMode, setNightMode] = useState(false);
   const [showCookieSettings, setShowCookieSettings] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   
   // Tutorial state
   const tutorialCompleted = localStorage.getItem('hprc_tutorial_completed') === 'true';
@@ -169,6 +170,19 @@ function App() {
     setShowTutorial(true);
   };
 
+  const handleResetConfirm = () => {
+    setDataSelectorState({
+      selectedGenomes: [],
+      selectedLayers: [],
+      searchTerm: '',
+      populationFilter: 'all',
+      referenceGenome: 'hg38',
+    });
+    setSelectedTracks([]);
+    setCurrentTab('sample');
+    setShowResetConfirm(false);
+  };
+
   // Early returns after all hooks
   if (isLoading) {
     return (
@@ -218,7 +232,7 @@ function App() {
         />
       )}
 
-      <Header nightMode={nightMode} onToggleNightMode={() => setNightMode(!nightMode)} />
+      <Header nightMode={nightMode} onToggleNightMode={() => setNightMode(!nightMode)} onReset={() => setShowResetConfirm(true)} />
       <TabNavigation currentTab={currentTab} onTabChange={setCurrentTab} nightMode={nightMode} />
       
       {/* Browser tab: no padding so GenomeHub doesn't double-render; use flex to fill viewport */}
@@ -251,6 +265,7 @@ function App() {
             nightMode={nightMode}
             onTracksChange={setSelectedTracks}
             onNavigateToDataSelector={handleNavigateToDataSelector}
+            onNextTab={() => setCurrentTab('browser')}
           />
         </main>
       ) : (
@@ -261,6 +276,7 @@ function App() {
               state={dataSelectorState} 
               onStateChange={setDataSelectorState}
               nightMode={nightMode}
+              onNextTab={() => setCurrentTab('tracks')}
             />
           )}
           {currentTab === 'tutorials' && (
@@ -308,6 +324,88 @@ function App() {
         onClose={() => setShowCookieSettings(false)}
         nightMode={nightMode}
       />
+
+      {/* Reset confirmation modal */}
+      {showResetConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowResetConfirm(false)} />
+          <div className={`relative ${nightMode ? 'bg-gray-800 text-gray-100' : 'bg-white text-gray-800'} rounded-2xl shadow-2xl p-6 max-w-md w-full mx-4`}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className={`p-2 rounded-xl ${nightMode ? 'bg-red-900/40 text-red-400' : 'bg-red-100 text-red-600'}`}>
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </div>
+              <h2 className="text-lg font-bold">Reset All Selections?</h2>
+            </div>
+
+            <p className={`text-sm mb-4 ${nightMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              You currently have the following selected:
+            </p>
+
+            <div className={`rounded-xl p-4 mb-5 text-sm space-y-2 ${nightMode ? 'bg-gray-700/60' : 'bg-gray-50'}`}>
+              <div className="flex justify-between">
+                <span className={nightMode ? 'text-gray-400' : 'text-gray-500'}>Reference genome</span>
+                <span className="font-semibold">{dataSelectorState.referenceGenome}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className={nightMode ? 'text-gray-400' : 'text-gray-500'}>Samples selected</span>
+                <span className="font-semibold">
+                  {dataSelectorState.selectedGenomes.length > 0
+                    ? `${dataSelectorState.selectedGenomes.length} sample${dataSelectorState.selectedGenomes.length > 1 ? 's' : ''}`
+                    : <span className={nightMode ? 'text-gray-500' : 'text-gray-400'}>None</span>}
+                </span>
+              </div>
+              {dataSelectorState.selectedGenomes.length > 0 && (
+                <div className={`text-xs pl-1 ${nightMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  {dataSelectorState.selectedGenomes.slice(0, 5).join(', ')}
+                  {dataSelectorState.selectedGenomes.length > 5 && ` +${dataSelectorState.selectedGenomes.length - 5} more`}
+                </div>
+              )}
+              <div className="flex justify-between">
+                <span className={nightMode ? 'text-gray-400' : 'text-gray-500'}>Data layers</span>
+                <span className="font-semibold">
+                  {dataSelectorState.selectedLayers.length > 0
+                    ? `${dataSelectorState.selectedLayers.length} layer${dataSelectorState.selectedLayers.length > 1 ? 's' : ''}`
+                    : <span className={nightMode ? 'text-gray-500' : 'text-gray-400'}>None</span>}
+                </span>
+              </div>
+              {dataSelectorState.selectedLayers.length > 0 && (
+                <div className={`text-xs pl-1 ${nightMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  {dataSelectorState.selectedLayers.join(', ')}
+                </div>
+              )}
+              <div className="flex justify-between">
+                <span className={nightMode ? 'text-gray-400' : 'text-gray-500'}>Tracks loaded</span>
+                <span className="font-semibold">
+                  {selectedTracks.length > 0
+                    ? `${selectedTracks.length} track${selectedTracks.length > 1 ? 's' : ''}`
+                    : <span className={nightMode ? 'text-gray-500' : 'text-gray-400'}>None</span>}
+                </span>
+              </div>
+            </div>
+
+            <p className={`text-sm mb-5 ${nightMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              This will clear all selections and return you to the Sample tab. This action cannot be undone.
+            </p>
+
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowResetConfirm(false)}
+                className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${nightMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleResetConfirm}
+                className="px-4 py-2 rounded-xl text-sm font-medium bg-red-600 hover:bg-red-700 text-white transition-colors"
+              >
+                Yes, reset everything
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

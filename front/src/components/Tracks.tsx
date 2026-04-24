@@ -8,6 +8,7 @@ interface TracksComponentProps {
   nightMode?: boolean;
   onTracksChange: (tracks: Track[]) => void;
   onNavigateToDataSelector?: () => void;
+  onNextTab?: () => void;
 }
 
 // Check if track is a reference track (not a sample track)
@@ -38,7 +39,8 @@ export default function Tracks({
   referenceGenome, 
   nightMode = false,
   onTracksChange,
-  onNavigateToDataSelector 
+  onNavigateToDataSelector,
+  onNextTab
 }: TracksComponentProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterSample, setFilterSample] = useState<string>('all');
@@ -479,14 +481,31 @@ export default function Tracks({
           </div>
         )}
 
-        {/* Footer hints */}
+        {/* Footer hints + Next button */}
         {tracks.length > 0 && (
-          <div className={`mt-4 space-y-2`}>
+          <div className={`mt-4 space-y-4`}>
             <div className={`p-3 rounded-lg ${nightMode ? 'bg-primary-900/20 border-primary-700' : 'bg-primary-50 border-primary-200'} border`}>
               <p className={`text-sm ${nightMode ? 'text-primary-300' : 'text-primary-700'}`}>
                 💡 <strong>Tip:</strong> After selecting your tracks, navigate to the Browser tab to visualize them.
               </p>
             </div>
+            {onNextTab && (
+              <div className="flex justify-end">
+                <button
+                  onClick={onNextTab}
+                  className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold shadow-lg transition-all ${
+                    nightMode
+                      ? 'bg-primary-600 hover:bg-primary-500 text-white'
+                      : 'bg-primary-600 hover:bg-primary-700 text-white'
+                  }`}
+                >
+                  Next: Browser
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            )}
           </div>
         )}
       </>

@@ -21,9 +21,10 @@ interface DataSelectorProps {
   state: DataSelectorState;
   onStateChange: (state: DataSelectorState) => void;
   nightMode?: boolean;
+  onNextTab?: () => void;
 }
 
-export default function DataSelector({ state, onStateChange, nightMode = false }: DataSelectorProps) {
+export default function DataSelector({ state, onStateChange, nightMode = false, onNextTab }: DataSelectorProps) {
   const setState = (updater: (prev: DataSelectorState) => DataSelectorState) => {
     onStateChange(updater(state));
   };
@@ -130,6 +131,25 @@ export default function DataSelector({ state, onStateChange, nightMode = false }
       <div className="mt-8">
         <PCAPlot selectedGenomes={state.selectedGenomes} nightMode={nightMode} />
       </div>
+
+      {/* Next Tab Button */}
+      {onNextTab && (
+        <div className="mt-8 flex justify-end">
+          <button
+            onClick={onNextTab}
+            className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold shadow-lg transition-all ${
+              nightMode
+                ? 'bg-primary-600 hover:bg-primary-500 text-white'
+                : 'bg-primary-600 hover:bg-primary-700 text-white'
+            }`}
+          >
+            Next: Track Configuration
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      )}
     </>
   );
 }
