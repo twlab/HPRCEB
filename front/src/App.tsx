@@ -204,7 +204,10 @@ function App() {
 
   // Show main application
   return (
-    <div className={`${nightMode ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900' : 'bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50'} min-h-screen flex flex-col transition-colors duration-300`}>
+    <div
+      className={`${nightMode ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900' : 'bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50'} transition-colors duration-300`}
+      style={currentTab === 'browser' ? { height: '100vh', display: 'flex', flexDirection: 'column' } : { minHeight: '100vh', display: 'flex', flexDirection: 'column' }}
+    >
       {/* Interactive Tutorial Overlay */}
       {showTutorial && (
         <InteractiveTutorial
@@ -218,28 +221,37 @@ function App() {
       <Header nightMode={nightMode} onToggleNightMode={() => setNightMode(!nightMode)} />
       <TabNavigation currentTab={currentTab} onTabChange={setCurrentTab} nightMode={nightMode} />
       
-      {/* Browser and Tracks tabs use full width, other tabs use max-width constraint */}
-      {currentTab === 'browser' || currentTab === 'tracks' ? (
-        <main className="px-4 sm:px-6 lg:px-8 py-8">
-          {currentTab === 'tracks' && (
-            <Tracks
-              tracks={selectedTracks}
-              selectedGenomes={dataSelectorState.selectedGenomes}
-              referenceGenome={dataSelectorState.referenceGenome}
-              nightMode={nightMode}
-              onTracksChange={setSelectedTracks}
-              onNavigateToDataSelector={handleNavigateToDataSelector}
-            />
-          )}
-          {currentTab === 'browser' && (
+      {/* Browser tab: no padding so GenomeHub doesn't double-render; use flex to fill viewport */}
+      {currentTab === 'browser' ? (
+        // NOTE: padding here causes GenomeHub to rerender twice — keep this wrapper padding-free
+        <main className="flex flex-col flex-1" style={{ minHeight: 0, overflow: 'hidden' }}>
+          <section className="flex-1 flex flex-col" style={{ minHeight: 0, overflow: 'hidden' }}>
             <Browser 
               tracks={selectedTracks}
               selectedGenomes={dataSelectorState.selectedGenomes}
               referenceGenome={dataSelectorState.referenceGenome}
               nightMode={nightMode}
               onNavigateToDataSelector={handleNavigateToDataSelector}
+              viewRegion={dataSelectorState.userViewRegion}
+              onViewRegionChange={(region) => {
+                setDataSelectorState(prev => {
+                  if (prev.userViewRegion === region) return prev;
+                  return { ...prev, userViewRegion: region };
+                });
+              }}
             />
-          )}
+          </section>
+        </main>
+      ) : currentTab === 'tracks' ? (
+        <main className="px-4 sm:px-6 lg:px-8 py-8">
+          <Tracks
+            tracks={selectedTracks}
+            selectedGenomes={dataSelectorState.selectedGenomes}
+            referenceGenome={dataSelectorState.referenceGenome}
+            nightMode={nightMode}
+            onTracksChange={setSelectedTracks}
+            onNavigateToDataSelector={handleNavigateToDataSelector}
+          />
         </main>
       ) : (
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
@@ -268,7 +280,7 @@ function App() {
                 setTimeout(() => {
                   skipTrackRegenerationRef.current = false;
                 }, 100);
-                // Restore both states
+                // Restore both states (dataSelectorState includes userViewRegion)
                 setSelectedTracks(tracks);
                 setDataSelectorState(state);
               }}

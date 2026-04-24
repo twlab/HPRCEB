@@ -15,7 +15,7 @@ export interface SessionData {
   id: string;
   name: string;
   timestamp: number;
-  // Data selector state (reference genome, selected samples, layers, etc.)
+  // Data selector state (reference genome, selected samples, layers, view region, etc.)
   dataSelectorState: DataSelectorState;
   // Track selection: array of tracks with their isSelected state
   tracks: SerializedTrack[];

@@ -94,7 +94,7 @@ export default function Sessions({
       // Apply saved track selection state
       const tracksWithSelection = applyTrackSelection(result.tracks, session.tracks);
       
-      // Call the parent handler with restored state
+      // Call the parent handler with restored state (dataSelectorState includes userViewRegion)
       onLoadSession(session.dataSelectorState, tracksWithSelection);
       
       setSuccessMessage(`Session "${session.name}" loaded successfully!`);
@@ -137,7 +137,8 @@ export default function Sessions({
     return new Date(timestamp).toLocaleString();
   };
 
-  const formatSelection = (state: DataSelectorState) => {
+  const formatSelection = (session: SessionData) => {
+    const state = session.dataSelectorState;
     const parts = [];
     parts.push(`Reference: ${state.referenceGenome}`);
     if (state.selectedGenomes.length > 0) {
@@ -145,6 +146,9 @@ export default function Sessions({
     }
     if (state.selectedLayers.length > 0) {
       parts.push(`${state.selectedLayers.length} layer${state.selectedLayers.length > 1 ? 's' : ''}`);
+    }
+    if (state.userViewRegion) {
+      parts.push(`Location: ${state.userViewRegion}`);
     }
     return parts.join(' • ');
   };
@@ -335,7 +339,7 @@ export default function Sessions({
                       </h3>
                     )}
                     <p className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-600'} mt-1`}>
-                      {formatSelection(session.dataSelectorState)}
+                      {formatSelection(session)}
                     </p>
                     <p className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-600'} mt-1`}>
                       🎯 {formatTrackSelection(session)}

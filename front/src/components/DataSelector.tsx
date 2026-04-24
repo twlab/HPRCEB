@@ -14,6 +14,7 @@ export interface DataSelectorState {
   searchTerm: string;
   populationFilter: Population;
   referenceGenome: string;
+  userViewRegion?: string;
 }
 
 interface DataSelectorProps {

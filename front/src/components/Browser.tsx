@@ -10,30 +10,40 @@ interface BrowserProps {
   referenceGenome: string;
   nightMode?: boolean;
   onNavigateToDataSelector?: () => void;
+  viewRegion?: string;
+  onViewRegionChange?: (viewRegion: string) => void;
 }
 
-export default function Browser({ tracks: tracksProp, selectedGenomes, referenceGenome, nightMode = false, onNavigateToDataSelector }: BrowserProps) {
-  // Filter to selected tracks only, and extract displayAttributes
+/**
+ * Parse userViewRegion string and convert float coordinates to integers.
+ * Format: chrXXX:start-end where start and end might be floats.
+ */
+function normalizeViewRegion(viewRegion: string): string {
+  const match = viewRegion.match(/^(chr[^:]+):([0-9.]+)-([0-9.]+)$/);
+  if (!match) return viewRegion;
+
+  const [, chr, startStr, endStr] = match;
+  const start = Math.floor(parseFloat(startStr));
+  const end = Math.floor(parseFloat(endStr));
+
+  return `${chr}:${start}-${end}`;
+}
+
+export default function Browser({ tracks: tracksProp, selectedGenomes, referenceGenome, nightMode = false, onNavigateToDataSelector, viewRegion = "chr7:27053397-27153397", onViewRegionChange }: BrowserProps) {
   const browserTracks = tracksProp
     .filter(t => t.isSelected)
     .map(t => ({ ...t.displayAttributes }));  // Create new object without isSelected
   
   const [tracks, setTracks] = useState<TracksProps[]>(browserTracks);
   const [allTracks, setAllTracks] = useState<TracksProps[]>(browserTracks);
-  console.log("tracks", tracks);
   const [isLoadingTracks, setIsLoadingTracks] = useState(false);
-  
-  // Fullscreen state and ref
+
   const [isFullscreen, setIsFullscreen] = useState(false);
   const browserContainerRef = useRef<HTMLDivElement>(null);
-  
-  // NavBar visibility state
-  const [showNavBar, setShowNavBar] = useState(false);
-  
-  // Toggle fullscreen function
+
   const toggleFullscreen = async () => {
     if (!browserContainerRef.current) return;
-    
+
     try {
       if (!document.fullscreenElement) {
         await browserContainerRef.current.requestFullscreen();
@@ -44,21 +54,18 @@ export default function Browser({ tracks: tracksProp, selectedGenomes, reference
       console.error('Error toggling fullscreen:', err);
     }
   };
-  
-  // Handle fullscreen changes
+
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
     };
-    
+
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
-  
-  // Keyboard shortcut: F to toggle fullscreen
+
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      // Only trigger if F key is pressed (not in input/textarea)
       if (e.key === 'f' || e.key === 'F') {
         const target = e.target as HTMLElement;
         if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') {
@@ -67,47 +74,68 @@ export default function Browser({ tracks: tracksProp, selectedGenomes, reference
         }
       }
     };
-    
+
     document.addEventListener('keydown', handleKeyPress);
     return () => document.removeEventListener('keydown', handleKeyPress);
   }, []);
-  
-  // Update browser tracks when Track[] prop changes
+
   useEffect(() => {
-    // Filter to selected tracks only, create new objects with just displayAttributes
     const selectedTracks = tracksProp
       .filter(t => t.isSelected)
       .map(t => ({ ...t.displayAttributes }));
-    console.log("Browser: selected count:", selectedTracks.length, "total:", tracksProp.length);
-    console.log("Browser: selected tracks:", selectedTracks.map(t => t.name));
+    // console.log("Browser: selected count:", selectedTracks.length, "total:", tracksProp.length);
+    // console.log("Browser: selected tracks:", selectedTracks.map(t => t.name));
     setAllTracks(selectedTracks);
     setTracks(selectedTracks);
     setIsLoadingTracks(false);
   }, [tracksProp]);
 
-  // Sync tracks state with allTracks
   useEffect(() => {
     setTracks(allTracks);
   }, [allTracks]);
 
-  // Generate a random storeId for GenomeHub
-  const storeId = useMemo(() => {
-    return `store-${Math.random().toString(36).substring(2, 15)}-${Date.now()}`;
-  }, []);
+  const storeId = useMemo(() => 'hprc-browser', []);
 
-  // Fallback tracks for demonstration (can be removed once assembly loading is working)
+  const storeConfig = useMemo(() => ({ storeId }), [storeId]);
+
+  // Capture viewRegion once on mount so switching tabs restores the last position
+  const viewRegionMemo = useMemo(
+    () => (viewRegion ? { genomeCoordinate: viewRegion } : undefined),
+    [],
+  );
+
+  const onSessionUpdate = React.useCallback(
+    (currentViewRegion: any) => {
+      if (currentViewRegion === null) return;
+      if (!Object.keys(currentViewRegion).includes('userViewRegion')) return;
+      if (currentViewRegion.userViewRegion !== null) {
+        onViewRegionChange?.(currentViewRegion.userViewRegion);
+      }
+    },
+    [onViewRegionChange],
+  );
+
+  console.log(storeConfig)
+  console.log(viewRegionMemo)
+  console.log(tracks)
+  console.log()
 
   return (
-    <div 
-      ref={browserContainerRef}
-      className={`${nightMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-2xl shadow-fancy border py-6 hover-lift flex flex-col transition-colors duration-300 ${isFullscreen ? 'fullscreen-browser' : ''}`}
+    <div
+      className={`${isFullscreen ? 'h-screen' : 'h-full flex flex-col'} ${nightMode ? 'text-gray-200' : 'text-gray-800'}`}
+      style={{ minHeight: 0 }}
     >
+      <div
+        ref={browserContainerRef}
+        className={`${isFullscreen ? 'h-full rounded-none' : 'rounded-2xl flex-1'} shadow-xl overflow-hidden flex flex-col ${nightMode ? 'border-gray-700' : 'border-gray-100'} border ${isFullscreen ? 'fullscreen-browser' : ''}`}
+        style={!isFullscreen ? { minHeight: 0 } : {}}
+      >
       {/* Header with Icon and Fullscreen Button */}
-      <div className="flex items-center gap-3 mb-4 flex-shrink-0 px-6">
+      <div className={`flex items-center gap-3 flex-shrink-0 px-6 py-3 border-b ${nightMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-gray-50'}`}>
         <div className={`w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden ${nightMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-200'} border`}>
-          <img 
-            src="https://epgg.github.io/assets/images/eg-51ea8bd8d2ca299ede6ceb5f1c987ff7.png" 
-            alt="HPRC Epigenome Browser" 
+          <img
+            src="https://epgg.github.io/assets/images/eg-51ea8bd8d2ca299ede6ceb5f1c987ff7.png"
+            alt="HPRC Epigenome Browser"
             className="w-full h-full object-contain"
           />
         </div>
@@ -117,29 +145,7 @@ export default function Browser({ tracks: tracksProp, selectedGenomes, reference
             Interactive genomic data visualization
           </p>
         </div>
-        {/* NavBar Toggle Button */}
-        <button
-          onClick={() => setShowNavBar(!showNavBar)}
-          className={`p-2.5 rounded-lg transition-all ${
-            nightMode
-              ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
-              : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-          } hover:shadow-md`}
-          title={showNavBar ? 'Hide Navigation Bar' : 'Show Navigation Bar'}
-        >
-          {showNavBar ? (
-            // X Icon (Close)
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          ) : (
-            // Hamburger Menu Icon (3 horizontal lines)
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          )}
-        </button>
-        
+
         {/* Fullscreen Button */}
         <button
           onClick={toggleFullscreen}
@@ -148,7 +154,7 @@ export default function Browser({ tracks: tracksProp, selectedGenomes, reference
               ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
               : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
           } hover:shadow-md`}
-          title={isFullscreen ? 'Exit Fullscreen (ESC)' : 'Enter Fullscreen'}
+          title={isFullscreen ? 'Exit Fullscreen (ESC)' : 'Enter Fullscreen (F)'}
         >
           {isFullscreen ? (
             // Compress/Exit Fullscreen Icon
@@ -164,63 +170,47 @@ export default function Browser({ tracks: tracksProp, selectedGenomes, reference
         </button>
       </div>
 
-      {/* Statistics Cards - always show with placeholder data */}
-      <div className="grid grid-cols-2 gap-3 mb-5 px-6">
-        <div className={`${nightMode ? 'bg-gradient-to-br from-amber-900/50 to-amber-800/50 border-amber-700' : 'bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200'} rounded-lg p-3 border`}>
-          <div className="flex items-center gap-2">
-            <svg className={`w-5 h-5 ${nightMode ? 'text-amber-400' : 'text-amber-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
-            <div>
-              <p className={`text-xs ${nightMode ? 'text-amber-300' : 'text-amber-600'} font-medium`}>Reference</p>
-              <p className={`text-sm font-bold ${nightMode ? 'text-amber-100' : 'text-amber-900'}`}>{referenceGenome}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className={`${nightMode ? 'bg-gradient-to-br from-green-900/50 to-green-800/50 border-green-700' : 'bg-gradient-to-br from-green-50 to-green-100 border-green-200'} rounded-lg p-3 border`}>
-          <div className="flex items-center gap-2">
-            <svg className={`w-5 h-5 ${nightMode ? 'text-green-400' : 'text-green-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-            </svg>
-            <div>
-              <p className={`text-xs ${nightMode ? 'text-green-300' : 'text-green-600'} font-medium`}>Tracks</p>
-              <p className={`text-lg font-bold ${nightMode ? 'text-green-100' : 'text-green-900'}`}>{tracks.length}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      {/* Browser Container - always show with placeholder tracks */}
-      <div className="flex-1">
-        <div className="overflow-y-auto max-h-[800px]">
-          <div className="relative bg-white w-full">
+      {/* Browser Container */}
+      <div
+        className={`flex-1 flex flex-col ${isFullscreen ? 'min-h-0' : 'py-4'}`}
+        style={{ minHeight: 0 }}
+      >
+        <div
+          className="flex-1 overflow-y-auto"
+          style={{ minHeight: 0 }}
+        >
+          <div className="relative bg-white w-full h-full">
             <GenomeHub
-                genomeName={referenceGenome}
-                tracks={tracks}
-                viewRegion={"chr7:27053397-27153397"}
-                showGenomeNavigator={true}
-                showNavBar={showNavBar}
-                showToolBar={true}
-                storeConfig={{storeId}}
-              />
+              // storeConfig={storeConfig}
+              viewRegion={viewRegionMemo}
+              genomeName={referenceGenome}
+              tracks={tracks}
+              // onSessionUpdate={onSessionUpdate}
+
+              showGenomeNavigator={true}
+              showNavBar={true}
+              showToolBar={true}
+
+              showDisclosure={false}
+              darkMode={nightMode}
+            />
           </div>
         </div>
       </div>
 
-      {/* Browser Documentation Hint */}
-      {(
-        <div className={`mt-4 space-y-2 px-6`}>
+      {/* Documentation Hint - hidden in fullscreen */}
+      {!isFullscreen && (
+        <div className="p-6 pt-0 space-y-2">
           <div className={`p-3 rounded-lg ${nightMode ? 'bg-gray-800/50 border-gray-700' : 'bg-primary-50 border-primary-200'} border flex items-center justify-between`}>
             <div className="flex items-center gap-2">
               <svg className={`w-5 h-5 ${nightMode ? 'text-primary-400' : 'text-primary-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
               </svg>
               <p className={`text-sm ${nightMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                💡 <strong>Need help using the browser?</strong> Check out the{' '}
-                <a 
-                  href="https://epgg.github.io/" 
-                  target="_blank" 
+                <strong>Need help using the browser?</strong> Check out the{' '}
+                <a
+                  href="https://epgg.github.io/"
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="text-primary-600 hover:text-primary-800 underline font-semibold"
                 >
@@ -239,6 +229,7 @@ export default function Browser({ tracks: tracksProp, selectedGenomes, reference
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
