@@ -83,7 +83,7 @@ for s in genome_align_samples:
         for ref in ["hg38", "chm13"]:
             track_name = f"{ref} vs {s} hap{h}"
             url = f"https://hprc-epigenome.s3.us-east-2.amazonaws.com/samples/{s}/hap{h}_vs_{ref}.gz"
-            # url = f"https://wangcluster.wustl.edu/~wzhang/projects/HPRCEN/genome_align_tracks/{ref}/{s}/{h}/genome.gz"
+            # url = f"https://wangcluster.wustl.edu/~wzhang/projects/HPRCEN/data/genome_align_tracks/{ref}/{s}/{h}/genome.gz"
             
             data_attrs = json.dumps({"description": f"{ref} vs {s} hap{h}"})
             browser_attrs = json.dumps({"coordinate": ref, "querygenome": f"{s}_{h}", "type": "genomealign", "url": url, "name": track_name})
@@ -108,7 +108,7 @@ for s in genome_align_samples:
             url = f"https://wangcluster.wustl.edu/~wzhang/projects/HPRCEN/data/CGI/categorical/{s}.bed.gz"
             
             data_attrs = json.dumps({"description": f"CpG island annotation"})
-            browser_attrs = json.dumps({"coordinate": f"{s}_{h}", "type": "categorical", "url": url, "name": track_name, "metadata": {"genome": f"{s}_{h}",},"options": {"category": {"1": {"name": "CpG Island", "color": "#1F3A5F"},"2": {"name": "CpG Shore", "color": "#4A79A8"},"3": {"name": "CpG Shelf", "color": "#A9C7E8"},}, "height": 23,}})
+            browser_attrs = json.dumps({"coordinate": f"{s}_{h}", "type": "categorical", "url": url, "name": track_name, "metadata": {"genome": f"{s}_{h}",},"options": {"category": {"1": {"name": "CpG Island", "color": "#1F3A5F"},"2": {"name": "CpG Shore", "color": "#4A79A8"},"3": {"name": "CpG Shelf", "color": "#A9C7E8"},}, "height": 23, "alwaysDrawLabel": False}})
             l = [s, "annotation", 1300000, data_attrs, browser_attrs]
             line = "\t".join(list(map(str, l)))
             tracks_example += line + "\n"

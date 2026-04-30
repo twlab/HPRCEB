@@ -1,13 +1,11 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { getGenomeData, getTrackData } from '../utils/genomeDataService';
-import type { TrackEntry } from '../utils/genomeDataService';
+import { getGenomeData, getTrackData, getSampleDataAvailability, DATA_TYPES } from '../utils/genomeDataService';
+import type { TrackEntry, DataType, Coordinate } from '../utils/genomeDataService';
 
 interface DataAvailabilityMatrixProps {
   nightMode?: boolean;
 }
 
-type DataType = 'assembly' | 'repeatmasker' | 'methylation' | 'expression' | 'chromatin_accessibility' | 'chromatin_conformation';
-type Coordinate = 'hg38' | 'chm13' | 'DSA';
 type SortColumn = 'sample' | DataType;
 type SortDirection = 'asc' | 'desc';
 
@@ -15,8 +13,6 @@ interface SampleAvailability {
   sampleId: string;
   availability: Record<DataType, Set<Coordinate>>;
 }
-
-const DATA_TYPES: DataType[] = ['assembly', 'repeatmasker', 'methylation', 'expression', 'chromatin_accessibility', 'chromatin_conformation'];
 
 const DATA_TYPE_LABELS: Record<DataType, string> = {
   assembly: 'Genome Align',
@@ -33,41 +29,6 @@ const COORDINATE_COLORS: Record<Coordinate, { bg: string; text: string }> = {
   DSA: { bg: 'bg-amber-100', text: 'text-amber-800' },
 };
 
-function normalizeCoordinate(coord: string): Coordinate {
-  if (coord === 'hg38') return 'hg38';
-  if (coord === 'chm13' || coord === 't2t-chm13-v2.0') return 'chm13';
-  return 'DSA';
-}
-
-function computeSampleAvailability(
-  sampleIds: string[],
-  trackData: Record<string, TrackEntry[]>
-): SampleAvailability[] {
-  return sampleIds.map((sampleId) => {
-    const tracks = trackData[sampleId] || [];
-    const availability: Record<DataType, Set<Coordinate>> = {
-      assembly: new Set(),
-      repeatmasker: new Set(),
-      methylation: new Set(),
-      expression: new Set(),
-      chromatin_accessibility: new Set(),
-      chromatin_conformation: new Set(),
-    };
-
-    for (const track of tracks) {
-      const dataType = track.data_type as DataType;
-      if (!DATA_TYPES.includes(dataType)) continue;
-
-      const coord = track.browser_attributes?.coordinate;
-      if (!coord) continue;
-
-      const normalizedCoord = normalizeCoordinate(coord);
-      availability[dataType].add(normalizedCoord);
-    }
-
-    return { sampleId, availability };
-  });
-}
 
 const ALL_DATA_TYPE_KEYS = ['assembly', 'repeatmasker', 'methylation', 'expression', 'chromatin_accessibility', 'chromatin_conformation', 'annotation'] as const;
 
@@ -567,7 +528,10 @@ export default function DataAvailabilityMatrix({ nightMode = false }: DataAvaila
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
   const sampleAvailability = useMemo(
-    () => computeSampleAvailability(sampleIds, trackData),
+    () => sampleIds.map((sampleId) => ({
+      sampleId,
+      availability: getSampleDataAvailability(sampleId),
+    })),
     [sampleIds, trackData]
   );
 

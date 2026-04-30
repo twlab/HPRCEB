@@ -3,11 +3,11 @@ import type { DataLayerInfo, Population } from './genomeTypes';
 
 export const POPULATION_NAMES: Record<Population, string> = {
   all: "All Populations",
-  afr: "African",
-  amr: "American",
-  eas: "East Asian",
-  eur: "European",
-  sas: "South Asian",
+  afr: "Africa",
+  amr: "Americas",
+  eas: "East Asia",
+  eur: "Europe",
+  sas: "South Asia",
 };
 
 export const POPULATION_EMOJI: Record<string, string> = {

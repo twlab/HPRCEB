@@ -10,6 +10,7 @@ import {
   ScatterController,
 } from 'chart.js';
 import zoomPlugin from 'chartjs-plugin-zoom';
+import { POPULATION_NAMES } from '../utils/constants';
 
 ChartJS.register(ScatterController, LinearScale, PointElement, LineElement, Tooltip, Legend, zoomPlugin);
 
@@ -38,14 +39,6 @@ const POPULATION_COLORS: Record<string, string> = {
   'sas': '#8b5cf6',  // violet
   'eas': '#ec4899',  // pink
   'amr': '#10b981',  // emerald
-};
-
-const POPULATION_NAMES: Record<string, string> = {
-  'afr': 'Africa',
-  'eur': 'Europe',
-  'sas': 'South Asia',
-  'eas': 'East Asia',
-  'amr': 'Americas',
 };
 
 // Helper function to convert hex to RGB
@@ -152,7 +145,7 @@ export default function PCAPlot({ selectedGenomes = [], nightMode = false }: PCA
     });
 
     // Create datasets for each population
-    const populations = ['afr', 'eur', 'sas', 'eas', 'amr'];
+    const populations = ['afr', 'eur', 'sas', 'eas', 'amr'] as const;
     
     populations.forEach(pop => {
       // Selected samples for this population
