@@ -1,3 +1,5 @@
+import { ArrowDownTrayIcon, CheckIcon, CircleStackIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
+
 interface StatsCardsProps {
   totalGenomes: number;
   selectedGenomes: number;
@@ -16,9 +18,7 @@ export default function StatsCards({ totalGenomes, selectedGenomes, dataLayers, 
             <p className={`text-3xl font-extrabold ${nightMode ? 'text-sky-400' : 'text-sky-600'} mt-2`}>{totalGenomes}</p>
           </div>
           <div className="w-14 h-14 bg-gradient-to-br from-sky-400 to-sky-600 rounded-2xl flex items-center justify-center shadow-lg transform -rotate-3 hover:rotate-0 transition-transform">
-            <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
+            <DocumentTextIcon className="w-7 h-7 text-white" />
           </div>
         </div>
       </div>
@@ -30,9 +30,7 @@ export default function StatsCards({ totalGenomes, selectedGenomes, dataLayers, 
             <p className="text-3xl font-extrabold bg-gradient-to-r from-sky-600 to-sky-700 bg-clip-text text-transparent mt-2">{selectedGenomes}</p>
           </div>
           <div className="w-14 h-14 bg-gradient-to-br from-sky-400 to-sky-600 rounded-2xl flex items-center justify-center shadow-lg animate-pulse-slow transform rotate-3 hover:rotate-0 transition-transform">
-            <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-            </svg>
+            <CheckIcon className="w-7 h-7 text-white" />
           </div>
         </div>
       </div>
@@ -44,9 +42,7 @@ export default function StatsCards({ totalGenomes, selectedGenomes, dataLayers, 
             <p className={`text-3xl font-extrabold ${nightMode ? 'text-sky-400' : 'text-sky-600'} mt-2`}>{dataLayers}</p>
           </div>
           <div className="w-14 h-14 bg-gradient-to-br from-sky-400 to-sky-600 rounded-2xl flex items-center justify-center shadow-lg transform rotate-6 hover:rotate-0 transition-transform">
-            <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
-            </svg>
+            <CircleStackIcon className="w-7 h-7 text-white" />
           </div>
         </div>
       </div>
@@ -58,9 +54,7 @@ export default function StatsCards({ totalGenomes, selectedGenomes, dataLayers, 
             <p className={`text-3xl font-extrabold ${nightMode ? 'text-sky-400' : 'text-sky-600'} mt-2`}>{totalSize.toFixed(1)} GB</p>
           </div>
           <div className="w-14 h-14 bg-gradient-to-br from-sky-400 to-sky-600 rounded-2xl flex items-center justify-center shadow-lg transform -rotate-6 hover:rotate-0 transition-transform">
-            <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-            </svg>
+            <ArrowDownTrayIcon className="w-7 h-7 text-white" />
           </div>
         </div>
       </div>

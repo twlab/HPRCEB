@@ -1,4 +1,15 @@
 import { useState, useEffect } from 'react';
+import {
+  CheckCircleIcon,
+  InboxArrowDownIcon,
+  ArrowDownTrayIcon,
+  ArrowUpTrayIcon,
+  ArchiveBoxIcon,
+  CheckIcon,
+  XMarkIcon,
+  PencilSquareIcon,
+  TrashIcon,
+} from '@heroicons/react/24/outline';
 import { DataSelectorState } from './DataSelector';
 import {
   getSessions,
@@ -165,9 +176,7 @@ export default function Sessions({
       {successMessage && (
         <div className="fixed top-20 right-4 z-50 animate-slide-in-right">
           <div className="bg-green-600 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 min-w-[300px]">
-            <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
+            <CheckCircleIcon className="w-6 h-6 flex-shrink-0" />
             <span className="font-semibold">{successMessage}</span>
           </div>
         </div>
@@ -190,9 +199,7 @@ export default function Sessions({
             onClick={() => setShowSaveDialog(true)}
             className="px-6 py-3 bg-gradient-to-r from-primary-600 to-purple-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300 hover:scale-105 flex items-center gap-2"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
-            </svg>
+            <InboxArrowDownIcon className="w-5 h-5" />
             Save Current Session
           </button>
 
@@ -200,9 +207,7 @@ export default function Sessions({
             onClick={handleExport}
             className={`px-6 py-3 ${nightMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'} font-semibold rounded-xl transition-all duration-300 flex items-center gap-2`}
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-            </svg>
+            <ArrowDownTrayIcon className="w-5 h-5" />
             Export All
           </button>
 
@@ -210,9 +215,7 @@ export default function Sessions({
             onClick={() => setShowImportDialog(true)}
             className={`px-6 py-3 ${nightMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'} font-semibold rounded-xl transition-all duration-300 flex items-center gap-2`}
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-            </svg>
+            <ArrowUpTrayIcon className="w-5 h-5" />
             Import
           </button>
         </div>
@@ -301,9 +304,7 @@ export default function Sessions({
         
         {sessions.length === 0 ? (
           <div className={`text-center py-12 ${nightMode ? 'text-gray-400' : 'text-gray-500'}`}>
-            <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-            </svg>
+            <ArchiveBoxIcon className="w-16 h-16 mx-auto mb-4 opacity-50" />
             <p className="text-lg font-medium">No saved sessions yet</p>
             <p className="mt-2">Save your current selections to quickly restore them later</p>
           </div>
@@ -357,9 +358,7 @@ export default function Sessions({
                           className="p-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-200"
                           title="Save"
                         >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                          </svg>
+                          <CheckIcon className="w-5 h-5" />
                         </button>
                         <button
                           onClick={() => {
@@ -369,9 +368,7 @@ export default function Sessions({
                           className={`p-2 ${nightMode ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-300 hover:bg-gray-400'} rounded-lg transition-all duration-200`}
                           title="Cancel"
                         >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                          </svg>
+                          <XMarkIcon className="w-5 h-5" />
                         </button>
                       </>
                     ) : (
@@ -381,9 +378,7 @@ export default function Sessions({
                           className="p-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-all duration-200"
                           title="Load session"
                         >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-                          </svg>
+                          <ArrowUpTrayIcon className="w-5 h-5" />
                         </button>
                         <button
                           onClick={() => {
@@ -393,18 +388,14 @@ export default function Sessions({
                           className={`p-2 ${nightMode ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-300 hover:bg-gray-400'} rounded-lg transition-all duration-200`}
                           title="Rename"
                         >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                          </svg>
+                          <PencilSquareIcon className="w-5 h-5" />
                         </button>
                         <button
                           onClick={() => handleDeleteSession(session.id)}
                           className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all duration-200"
                           title="Delete"
                         >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                          </svg>
+                          <TrashIcon className="w-5 h-5" />
                         </button>
                       </>
                     )}

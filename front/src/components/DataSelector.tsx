@@ -1,3 +1,4 @@
+import { ChevronRightIcon } from '@heroicons/react/24/outline';
 import StatsCards from './StatsCards';
 import ReferenceGenomeSelection from './ReferenceGenomeSelection';
 import GenomeSelection from './GenomeSelection';
@@ -112,6 +113,7 @@ export default function DataSelector({ state, onStateChange, nightMode = false, 
             selectedGenomes={state.selectedGenomes}
             selectedLayers={state.selectedLayers}
             nightMode={nightMode}
+            onReorderGenomes={(newOrder) => setState(prev => ({ ...prev, selectedGenomes: newOrder }))}
           />
         </div>
       </div>
@@ -144,9 +146,7 @@ export default function DataSelector({ state, onStateChange, nightMode = false, 
             }`}
           >
             Next: Track Configuration
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
+            <ChevronRightIcon className="w-4 h-4" />
           </button>
         </div>
       )}

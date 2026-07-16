@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { ChartBarIcon, DocumentChartBarIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { getGenomeData, hasDataType, getSampleDataSize } from '../utils/genomeDataService';
 import { createDataChart } from '../utils/chartUtils';
 import type { DataLayer, Genome } from '../utils/genomeTypes';
@@ -9,12 +10,45 @@ interface DataVisualizationProps {
   selectedGenomes: string[];
   selectedLayers: DataLayer[];
   nightMode?: boolean;
+  onReorderGenomes?: (newOrder: string[]) => void;
 }
 
-export default function DataVisualization({ selectedGenomes, selectedLayers, nightMode = false }: DataVisualizationProps) {
+export default function DataVisualization({ selectedGenomes, selectedLayers, nightMode = false, onReorderGenomes }: DataVisualizationProps) {
   const [currentView, setCurrentView] = useState<'table' | 'chart'>('table');
   const [selectedGenomeForDetails, setSelectedGenomeForDetails] = useState<Genome | null>(null);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const chartCanvasRef = useRef<HTMLCanvasElement>(null);
+
+  const canReorder = !!onReorderGenomes;
+
+  const handleDragStart = (index: number) => {
+    setDragIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (dragOverIndex !== index) setDragOverIndex(index);
+  };
+
+  const handleDrop = (index: number) => {
+    if (dragIndex === null || dragIndex === index) {
+      setDragIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+    const newOrder = [...selectedGenomes];
+    const [moved] = newOrder.splice(dragIndex, 1);
+    newOrder.splice(index, 0, moved);
+    onReorderGenomes?.(newOrder);
+    setDragIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDragIndex(null);
+    setDragOverIndex(null);
+  };
 
   const genomeData = getGenomeData();
   const isEmpty = selectedGenomes.length === 0;
@@ -26,7 +60,7 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
   }, [selectedGenomes, selectedLayers, currentView, isEmpty]);
 
   const renderTableRows = () => {
-    return selectedGenomes.map((genomeId) => {
+    return selectedGenomes.map((genomeId, index) => {
       const genome = genomeData.find((g) => g.id === genomeId);
       if (!genome) return null;
 
@@ -47,7 +81,26 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
       const assemblySize = getSampleDataSize(genomeId, ['assembly']);
 
       return (
-        <tr key={genomeId}>
+        <tr
+          key={genomeId}
+          draggable={canReorder}
+          onDragStart={() => handleDragStart(index)}
+          onDragOver={(e) => handleDragOver(e, index)}
+          onDrop={() => handleDrop(index)}
+          onDragEnd={handleDragEnd}
+          className={`${canReorder ? 'cursor-move' : ''} transition-colors ${
+            dragIndex === index ? 'opacity-40' : ''
+          } ${
+            dragOverIndex === index && dragIndex !== index
+              ? nightMode ? 'bg-gray-700' : 'bg-gray-100'
+              : ''
+          }`}
+        >
+          {canReorder && (
+            <td className={`pl-4 pr-1 py-4 whitespace-nowrap text-center ${nightMode ? 'text-gray-500' : 'text-gray-400'}`}>
+              <span className="cursor-move select-none" title="Drag to reorder">⋮⋮</span>
+            </td>
+          )}
           <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>{genome.id}</td>
           <td className={`px-6 py-4 whitespace-nowrap text-sm ${nightMode ? 'text-gray-300' : 'text-gray-500'}`}>
             {genome.population_abbreviation && genome.super_population 
@@ -78,9 +131,7 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-lg flex items-center justify-center">
-            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0h2a2 2 0 012 2h2a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2z"></path>
-            </svg>
+            <ChartBarIcon className="w-4 h-4 text-white" />
           </div>
           <h2 className={`text-lg font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>Data Overview</h2>
         </div>
@@ -119,9 +170,7 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
       {/* Empty State */}
       {isEmpty && (
         <div className="py-8 text-center">
-          <svg className={`mx-auto h-10 w-10 ${nightMode ? 'text-gray-500' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-          </svg>
+          <DocumentChartBarIcon className={`mx-auto h-10 w-10 ${nightMode ? 'text-gray-500' : 'text-gray-400'}`} />
           <h3 className={`mt-2 text-sm font-medium ${nightMode ? 'text-gray-200' : 'text-gray-900'}`}>No samples selected</h3>
           <p className={`mt-1 text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'}`}>Select samples to view information</p>
         </div>
@@ -133,6 +182,7 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
           <table className={`min-w-full divide-y ${nightMode ? 'divide-gray-700' : 'divide-gray-200'}`}>
             <thead className={nightMode ? 'bg-gray-900' : 'bg-gray-50'}>
               <tr>
+                {canReorder && <th className={`pl-4 pr-1 py-3 w-8 ${nightMode ? 'bg-gray-900' : 'bg-gray-50'}`}><span className="sr-only">Reorder</span></th>}
                 <th className={`px-6 py-3 text-left text-xs font-medium ${nightMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>Genome ID</th>
                 <th className={`px-6 py-3 text-left text-xs font-medium ${nightMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>Population</th>
                 <th className={`px-6 py-3 text-left text-xs font-medium ${nightMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>Assembly Size</th>
@@ -171,9 +221,7 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
                 onClick={() => setSelectedGenomeForDetails(null)}
                 className={`${nightMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'} transition-colors`}
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
+                <XMarkIcon className="w-6 h-6" />
               </button>
             </div>
 

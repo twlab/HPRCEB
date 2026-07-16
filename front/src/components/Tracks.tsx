@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { ChartBarIcon, CheckIcon, FunnelIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import type { Track } from '../utils/trackSelection';
 
 interface TracksComponentProps {
@@ -242,9 +243,7 @@ export default function Tracks({
         <div className="grid grid-cols-3 gap-3 mb-5">
           <div className={`${nightMode ? 'bg-gradient-to-br from-primary-900/50 to-primary-800/50 border-primary-700' : 'bg-gradient-to-br from-primary-50 to-primary-100 border-primary-200'} rounded-lg p-3 border`}>
             <div className="flex items-center gap-2">
-              <svg className={`w-5 h-5 ${nightMode ? 'text-primary-400' : 'text-primary-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-              </svg>
+              <ChartBarIcon className={`w-5 h-5 ${nightMode ? 'text-primary-400' : 'text-primary-600'}`} />
               <div>
                 <p className={`text-xs ${nightMode ? 'text-primary-300' : 'text-primary-600'} font-medium`}>Total Tracks</p>
                 <p className={`text-lg font-bold ${nightMode ? 'text-primary-100' : 'text-primary-900'}`}>{tracks.length}</p>
@@ -254,9 +253,7 @@ export default function Tracks({
 
           <div className={`${nightMode ? 'bg-gradient-to-br from-green-900/50 to-green-800/50 border-green-700' : 'bg-gradient-to-br from-green-50 to-green-100 border-green-200'} rounded-lg p-3 border`}>
             <div className="flex items-center gap-2">
-              <svg className={`w-5 h-5 ${nightMode ? 'text-green-400' : 'text-green-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-              </svg>
+              <CheckIcon className={`w-5 h-5 ${nightMode ? 'text-green-400' : 'text-green-600'}`} />
               <div>
                 <p className={`text-xs ${nightMode ? 'text-green-300' : 'text-green-600'} font-medium`}>Selected</p>
                 <p className={`text-lg font-bold ${nightMode ? 'text-green-100' : 'text-green-900'}`}>{selectedCount}</p>
@@ -266,9 +263,7 @@ export default function Tracks({
 
           <div className={`${nightMode ? 'bg-gradient-to-br from-amber-900/50 to-amber-800/50 border-amber-700' : 'bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200'} rounded-lg p-3 border`}>
             <div className="flex items-center gap-2">
-              <svg className={`w-5 h-5 ${nightMode ? 'text-amber-400' : 'text-amber-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"></path>
-              </svg>
+              <FunnelIcon className={`w-5 h-5 ${nightMode ? 'text-amber-400' : 'text-amber-600'}`} />
               <div>
                 <p className={`text-xs ${nightMode ? 'text-amber-300' : 'text-amber-600'} font-medium`}>Filtered</p>
                 <p className={`text-lg font-bold ${nightMode ? 'text-amber-100' : 'text-amber-900'}`}>{filteredTracks.length}</p>
@@ -500,9 +495,7 @@ export default function Tracks({
                   }`}
                 >
                   Next: Browser
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
+                  <ChevronRightIcon className="w-4 h-4" />
                 </button>
               </div>
             )}

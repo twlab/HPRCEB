@@ -26,6 +26,19 @@ export const POPULATION_MAP: Record<string, string> = {
   sas: "SAS",
 };
 
+// Shared colorblind-friendly palette for super populations.
+// Kept in sync with WorldMap / PCAPlot so every population view reads the same.
+export const POPULATION_COLORS: Record<string, string> = {
+  afr: "#f59e0b", // amber
+  eur: "#3e5b95", // academic blue rgb(62, 91, 149)
+  sas: "#8b5cf6", // violet
+  eas: "#ec4899", // pink
+  amr: "#10b981", // emerald
+};
+
+// Display order used across population breakdowns
+export const SUPER_POPULATION_ORDER = ["afr", "eur", "sas", "eas", "amr"] as const;
+
 export const DATA_LAYER_INFO: Record<string, DataLayerInfo> = {
   methylation: {
     name: "DNA Methylation",

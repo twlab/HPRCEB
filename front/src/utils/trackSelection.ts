@@ -158,6 +158,11 @@ export function selectTracks(input: TrackSelectionInput): TrackSelectionOutput {
         }
 
 
+        if (track.browser_attributes.name.includes("gene")) {
+          isSelected = false;
+        }
+
+
         sample_tracks_result.push({
           sampleId: sample,
           metadata: {

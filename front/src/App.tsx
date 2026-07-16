@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { ExclamationCircleIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import Header from './components/Header';
 import TabNavigation, { TabType } from './components/TabNavigation';
 import DataAvailabilityMatrix from './components/DataAvailabilityMatrix';
@@ -199,9 +200,7 @@ function App() {
     return (
       <div className="fixed top-4 right-4 bg-red-600 text-white px-6 py-4 rounded-lg shadow-lg z-50 max-w-md">
         <div className="flex items-start">
-          <svg className="w-6 h-6 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
+          <ExclamationCircleIcon className="w-6 h-6 mr-3 flex-shrink-0" />
           <div>
             <p className="font-semibold">Error</p>
             <p className="text-sm mt-1">{error}</p>
@@ -332,9 +331,7 @@ function App() {
           <div className={`relative ${nightMode ? 'bg-gray-800 text-gray-100' : 'bg-white text-gray-800'} rounded-2xl shadow-2xl p-6 max-w-md w-full mx-4`}>
             <div className="flex items-center gap-3 mb-4">
               <div className={`p-2 rounded-xl ${nightMode ? 'bg-red-900/40 text-red-400' : 'bg-red-100 text-red-600'}`}>
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
+                <ArrowPathIcon className="w-6 h-6" />
               </div>
               <h2 className="text-lg font-bold">Reset All Selections?</h2>
             </div>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ArrowRightIcon, ChartBarIcon, DocumentTextIcon, GlobeAltIcon, SwatchIcon } from '@heroicons/react/24/outline';
 import { getGenomeData, getDataStatistics } from '../utils/genomeDataService';
 import { setCookie } from '../utils/cookieUtils';
 
@@ -29,9 +30,7 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
   const features = [
     {
       icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-        </svg>
+        <DocumentTextIcon className="w-8 h-8" />
       ),
       title: "Complete Genome Assemblies",
       description: "Access high-quality haplotype-resolved genome assemblies from diverse populations worldwide.",
@@ -39,9 +38,7 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
     },
     {
       icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path>
-        </svg>
+        <SwatchIcon className="w-8 h-8" />
       ),
       title: "Epigenomic Landscapes",
       description: "Explore DNA methylation, chromatin accessibility, chromatin conformation, and gene expression across the pangenome.",
@@ -49,9 +46,7 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
     },
     {
       icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-        </svg>
+        <ChartBarIcon className="w-8 h-8" />
       ),
       title: "Interactive Browser",
       description: "Visualize genomic and epigenomic data with an integrated genome browser interface.",
@@ -59,9 +54,7 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
     },
     {
       icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-        </svg>
+        <GlobeAltIcon className="w-8 h-8" />
       ),
       title: "Population Diversity",
       description: "Investigate genetic and epigenetic variation across African, American, Asian, European, and South Asian populations.",
@@ -127,9 +120,7 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
                 >
                   <span className="relative z-10 flex items-center gap-2">
                     Enter Portal
-                    <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
-                    </svg>
+                    <ArrowRightIcon className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </span>
                   <div className="absolute inset-0 bg-primary-700 rounded-2xl opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
                 </button>
@@ -216,9 +207,7 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
               >
                 <span className="relative z-10 flex items-center gap-3">
                   Get Started
-                  <svg className="w-6 h-6 group-hover:translate-x-2 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
-                  </svg>
+                  <ArrowRightIcon className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
                 </span>
                 <div className="absolute inset-0 bg-primary-700 rounded-2xl opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
               </button>

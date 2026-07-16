@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { ArrowsPointingInIcon, ArrowsPointingOutIcon } from '@heroicons/react/24/outline';
 import { GenomeHub } from "wuepgg";
 import type { TracksProps } from '../utils/browserTypes';
 import type { Track } from '../utils/trackSelection';
@@ -134,7 +135,7 @@ export default function Browser({ tracks: tracksProp, selectedGenomes, reference
       <div className={`flex items-center gap-2 flex-shrink-0 px-4 py-1.5 border-b ${nightMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-gray-50'}`}>
         <div className={`w-7 h-7 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0 ${nightMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-200'} border`}>
           <img
-            src="https://epgg.github.io/assets/images/eg-51ea8bd8d2ca299ede6ceb5f1c987ff7.png"
+            src="./washu_epgg_logo.png"
             alt="HPRC Epigenome Browser"
             className="w-full h-full object-contain"
           />
@@ -152,13 +153,9 @@ export default function Browser({ tracks: tracksProp, selectedGenomes, reference
           title={isFullscreen ? 'Exit Fullscreen (ESC)' : 'Enter Fullscreen (F)'}
         >
           {isFullscreen ? (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25" />
-            </svg>
+            <ArrowsPointingInIcon className="w-4 h-4" />
           ) : (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-            </svg>
+            <ArrowsPointingOutIcon className="w-4 h-4" />
           )}
         </button>
       </div>

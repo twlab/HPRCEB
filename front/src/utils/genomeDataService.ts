@@ -148,6 +148,31 @@ export function getDataStatistics(): {
 }
 
 /**
+ * Count how many samples have at least one track of each data type.
+ * @returns Record of DataType -> number of samples with that data type
+ */
+export function getDataTypeCoverage(): Record<DataType, number> {
+  const coverage = {
+    assembly: 0,
+    repeatmasker: 0,
+    methylation: 0,
+    expression: 0,
+    chromatin_accessibility: 0,
+    chromatin_conformation: 0,
+  } as Record<DataType, number>;
+
+  for (const genome of genomeDataCache) {
+    const tracks = trackDataCache[genome.id] || [];
+    const types = new Set(tracks.map((t) => t.data_type));
+    for (const type of DATA_TYPES) {
+      if (types.has(type)) coverage[type]++;
+    }
+  }
+
+  return coverage;
+}
+
+/**
  * Load genome data from external JSON file
  * @returns Array of genome objects
  */

@@ -10,6 +10,7 @@ import {
   ScatterController,
 } from 'chart.js';
 import zoomPlugin from 'chartjs-plugin-zoom';
+import { PresentationChartLineIcon, ExclamationCircleIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 import { POPULATION_NAMES } from '../utils/constants';
 
 ChartJS.register(ScatterController, LinearScale, PointElement, LineElement, Tooltip, Legend, zoomPlugin);
@@ -303,9 +304,7 @@ export default function PCAPlot({ selectedGenomes = [], nightMode = false }: PCA
     <div className={`${nightMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-2xl shadow-fancy border p-6 hover-lift transition-colors duration-300`}>
       <div className="flex items-center gap-3 mb-4">
         <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center">
-          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
-          </svg>
+          <PresentationChartLineIcon className="w-5 h-5 text-white" />
         </div>
         <div>
           <h2 className={`text-xl font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>
@@ -333,9 +332,7 @@ export default function PCAPlot({ selectedGenomes = [], nightMode = false }: PCA
       {error && (
         <div className={`rounded-lg p-4 ${nightMode ? 'bg-red-900/20 border-red-700' : 'bg-red-50 border-red-200'} border`}>
           <div className="flex items-center gap-2">
-            <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
+            <ExclamationCircleIcon className="w-5 h-5 text-red-500" />
             <p className={`text-sm font-medium ${nightMode ? 'text-red-300' : 'text-red-800'}`}>
               Error loading PCA data: {error}
             </p>
@@ -349,9 +346,7 @@ export default function PCAPlot({ selectedGenomes = [], nightMode = false }: PCA
           <div className={`flex items-center justify-between mb-3 pb-3 border-b ${nightMode ? 'border-gray-700' : 'border-gray-200'}`}>
             <div className="flex items-center gap-4">
               <div className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-600'} flex items-center gap-2`}>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
+                <InformationCircleIcon className="w-4 h-4" />
                 <span>🖱️ Scroll to zoom • Drag to pan</span>
               </div>
             </div>

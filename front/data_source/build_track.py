@@ -1,8 +1,6 @@
 import csv
 import json
-from datetime import datetime
-from pathlib import Path
-from collections import defaultdict
+
 
 
 
@@ -57,7 +55,7 @@ for s in rna_seq_samples:
             url = f"https://hprc-epigenome.s3.us-east-2.amazonaws.com/samples/{s}/expression.{strand}.{ref}.bw"
             
 
-            data_attrs = json.dumps({"platform": "PacBio Kinnex", "processing_tool": "minimap", "file_format": "bigWig", "description": ""})
+            data_attrs = json.dumps({"platform": "PacBio Kinnex", "processing_tool": "minimap", "file_format": "bigWig", "description": "PacBio Kinnex"})
             browser_attrs = json.dumps({"coordinate": ref, "type": "bigwig", "url": url, "name": track_name, 
             "options":{"color":rna_seq_color1, "color2": rna_seq_color2}})
             l = [s, "expression", 12000000, data_attrs, browser_attrs]
@@ -91,7 +89,18 @@ for s in genome_align_samples:
             line = "\t".join(list(map(str, l)))
 
             tracks_example += line + "\n"
-        
+
+        if s in genome_align_samples:
+            track_name = f"hap{h} gene"
+            url = f"https://hprc-epigenome.s3.amazonaws.com/samples/{s}/hap{h}.refbed.gz"
+
+            data_attrs = json.dumps({"description": f"Gene annotation by CAT2"})
+            browser_attrs = json.dumps({"coordinate": f"{s}_{h}", "type": "refbed", "url": url, "name": track_name, "metadata": {"genome": f"{s}_{h}", }})
+
+            l = [s, "annotation", 1300000, data_attrs, browser_attrs]
+            line = "\t".join(list(map(str, l)))
+            tracks_example += line + "\n"
+
         if s in repeat_masker_samples:
             track_name = f"hap{h} RepeatMasker"
             url = f"https://hprc-epigenome.s3.us-east-2.amazonaws.com/samples/{s}/RepeatMasker.hap{h}.bb"
@@ -105,7 +114,7 @@ for s in genome_align_samples:
 
         if s in genome_align_samples:
             track_name = f"hap{h} CpG islands"
-            url = f"https://wangcluster.wustl.edu/~wzhang/projects/HPRCEN/data/CGI/categorical/{s}.bed.gz"
+            url = f"https://hprc-epigenome.s3.amazonaws.com/samples/{s}/CGI.bed.gz"
             
             data_attrs = json.dumps({"description": f"CpG island annotation"})
             browser_attrs = json.dumps({"coordinate": f"{s}_{h}", "type": "categorical", "url": url, "name": track_name, "metadata": {"genome": f"{s}_{h}",},"options": {"category": {"1": {"name": "CpG Island", "color": "#1F3A5F"},"2": {"name": "CpG Shore", "color": "#4A79A8"},"3": {"name": "CpG Shelf", "color": "#A9C7E8"},}, "height": 23, "alwaysDrawLabel": False}})
@@ -115,7 +124,7 @@ for s in genome_align_samples:
         
         for platform in ["PacBio", "ONT"]:
             track_name = f"hap{h} HMM Flagger ({platform})"
-            url = f"https://wangcluster.wustl.edu/~wzhang/projects/HPRCEN/data/annotations/hmm_flagger/{s}_{platform}.bed.gz"
+            url = f"https://hprc-epigenome.s3.amazonaws.com/samples/{s}/HMMFlagger.{platform}.bed.gz"
             
             data_attrs = json.dumps({"description": f"HMM Flagger {platform}"})
             browser_attrs = json.dumps({"coordinate": f"{s}_{h}", "type": "categorical", "url": url, "name": track_name, "metadata": {"genome": f"{s}_{h}",},"options": {"category": {"Col": {"name": "Collapsed", "color": "rgb(170,0,255)"},"NNN": {"name": "NNN", "color": "rgb(0,0,0)"},"Err": {"name": "Erroneous", "color": "rgb(162,0,37)"},"Dup": {"name": "Duplicated", "color": "rgb(250,104,0)"},}}})
@@ -173,6 +182,50 @@ for s in genome_align_samples:
 
 
 
+
+
+# Fill in real file sizes from the S3 listing (file_size.tsv).
+# Each line looks like: "<date> <time> <size> <object_key>", e.g.
+#   2026-07-16 00:46:11    3105238 samples/HG00097/CGI.bed.gz
+file_sizes = {}
+with open("file_size.tsv") as f:
+    for line in f:
+        parts = line.split(maxsplit=3)
+        if len(parts) < 4:
+            continue
+        try:
+            file_sizes[parts[3].strip()] = int(parts[2])
+        except ValueError:
+            continue
+
+
+def url_to_key(url):
+    marker = ".amazonaws.com/"
+    idx = url.find(marker)
+    if idx == -1:
+        return None
+    return url[idx + len(marker):]
+
+
+lines = tracks_example.rstrip("\n").split("\n")
+new_lines = [lines[0]]  # header
+matched = 0
+missing = 0
+for line in lines[1:]:
+    if not line:
+        continue
+    cols = line.split("\t")
+    browser_attrs = json.loads(cols[4])
+    key = url_to_key(browser_attrs.get("url", ""))
+    if key in file_sizes:
+        cols[2] = str(file_sizes[key])
+        matched += 1
+    else:
+        missing += 1
+    new_lines.append("\t".join(cols))
+
+tracks_example = "\n".join(new_lines) + "\n"
+print(f"Filled real file sizes: {matched} matched, {missing} using placeholder size")
 
 
 with open("tracks.tsv", "w") as f:

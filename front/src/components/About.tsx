@@ -1,3 +1,5 @@
+import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
+
 interface AboutProps {
   nightMode: boolean;
 }
@@ -29,9 +31,7 @@ function About({ nightMode }: AboutProps) {
                 className={`inline-flex items-center ${nightMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'} text-lg font-medium transition-colors`}
               >
                 Wang Lab at Washington University in St. Louis
-                <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                </svg>
+                <ArrowTopRightOnSquareIcon className="w-5 h-5 ml-2" />
               </a>
               <p className={`${nightMode ? 'text-gray-400' : 'text-gray-600'} text-base leading-relaxed`}>
                 The HPRC Epigenome Browser is developed and maintained by the Wang Lab in the Department of Genetics 
@@ -53,9 +53,7 @@ function About({ nightMode }: AboutProps) {
                 className={`inline-flex items-center ${nightMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'} text-lg font-medium transition-colors`}
               >
                 GitHub: twlab/HPRCEB
-                <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                </svg>
+                <ArrowTopRightOnSquareIcon className="w-5 h-5 ml-2" />
               </a>
               <p className={`${nightMode ? 'text-gray-400' : 'text-gray-600'} text-base leading-relaxed`}>
                 For questions, bug reports, or feature requests, please visit our GitHub repository. 
@@ -77,9 +75,7 @@ function About({ nightMode }: AboutProps) {
                 className={`inline-flex items-center ${nightMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'} text-lg font-medium transition-colors`}
               >
                 Human Pangenome Reference Consortium
-                <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                </svg>
+                <ArrowTopRightOnSquareIcon className="w-5 h-5 ml-2" />
               </a>
               <p className={`${nightMode ? 'text-gray-400' : 'text-gray-600'} text-base leading-relaxed`}>
                 The Human Pangenome Reference Consortium (HPRC) is an NIH-funded project creating a human pangenome 
@@ -102,9 +98,7 @@ function About({ nightMode }: AboutProps) {
                 className={`inline-flex items-center ${nightMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'} text-lg font-medium transition-colors`}
               >
                 Registry of Open Data on AWS
-                <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                </svg>
+                <ArrowTopRightOnSquareIcon className="w-5 h-5 ml-2" />
               </a>
               <p className={`${nightMode ? 'text-gray-400' : 'text-gray-600'} text-base leading-relaxed`}>
                 Access comprehensive dataset information, documentation, and download instructions through the 

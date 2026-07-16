@@ -1,6 +1,28 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { getGenomeData, getTrackData, getSampleDataAvailability, DATA_TYPES } from '../utils/genomeDataService';
 import type { TrackEntry, DataType, Coordinate } from '../utils/genomeDataService';
+import CoverageSummary from './CoverageSummary';
+import PopulationComposition from './PopulationComposition';
+import {
+  MagnifyingGlassIcon,
+  DocumentArrowDownIcon,
+  XMarkIcon,
+  UserIcon,
+  ArrowDownTrayIcon,
+  ClipboardIcon,
+  ArrowsUpDownIcon,
+  ChevronUpIcon,
+  ChevronDownIcon,
+  InformationCircleIcon,
+  CubeIcon,
+  ArrowPathIcon,
+  ShieldCheckIcon,
+  ArrowTrendingUpIcon,
+  LockOpenIcon,
+  CubeTransparentIcon,
+  TagIcon,
+} from '@heroicons/react/24/outline';
+import type { ComponentType, SVGProps } from 'react';
 
 interface DataAvailabilityMatrixProps {
   nightMode?: boolean;
@@ -42,15 +64,25 @@ const DATA_TYPE_LABELS_FULL: Record<string, string> = {
   annotation: 'Annotation',
 };
 
-const DATA_TYPE_ICONS: Record<string, string> = {
-  assembly: 'M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z',
-  repeatmasker: 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15',
-  methylation: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z',
-  expression: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6',
-  chromatin_accessibility: 'M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z',
-  chromatin_conformation: 'M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5',
-  annotation: 'M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z',
+type IconComponent = ComponentType<SVGProps<SVGSVGElement>>;
+
+const DATA_TYPE_ICONS: Record<string, IconComponent> = {
+  assembly: CubeIcon,
+  repeatmasker: ArrowPathIcon,
+  methylation: ShieldCheckIcon,
+  expression: ArrowTrendingUpIcon,
+  chromatin_accessibility: LockOpenIcon,
+  chromatin_conformation: CubeTransparentIcon,
+  annotation: TagIcon,
 };
+
+// Data types whose logo should not be rendered in the Track Explorer
+const HIDDEN_ICON_DATA_TYPES = new Set(['methylation', 'expression', 'chromatin_accessibility']);
+function DataTypeIcon({ dataType, className }: { dataType: string; className?: string }) {
+  if (HIDDEN_ICON_DATA_TYPES.has(dataType)) return null;
+  const Icon = DATA_TYPE_ICONS[dataType] ?? DATA_TYPE_ICONS.annotation;
+  return <Icon className={className} />;
+}
 
 const DATA_TYPE_COLORS: Record<string, { chip: string; chipActive: string }> = {
   assembly:                 { chip: 'bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100',              chipActive: 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-200' },
@@ -79,6 +111,21 @@ function formatBytes(bytes: string): string {
   if (n >= 1024 ** 2) return `${(n / 1024 ** 2).toFixed(1)} MB`;
   if (n >= 1024) return `${(n / 1024).toFixed(1)} KB`;
   return `${n} B`;
+}
+
+// Map the browser track `type` to a human-readable format label
+const FORMAT_LABELS: Record<string, string> = {
+  bigwig: 'bigWig',
+  hic: 'Hi-C',
+  genomealign: 'Genome Align',
+  refbed: 'refBed',
+  repeatmasker: 'RepeatMasker',
+  categorical: 'Categorical',
+  modbed: 'modBED',
+  methylc: 'methylC',
+};
+function formatLabel(type: string): string {
+  return FORMAT_LABELS[type] ?? type;
 }
 
 function downloadTracksTSV(tracks: TrackEntry[], filename: string) {
@@ -224,9 +271,7 @@ function TrackExplorer({ nightMode, trackData, sampleIds }: TrackExplorerProps) 
       <div className="flex items-start sm:items-center justify-between gap-4 mb-5 flex-col sm:flex-row">
         <div className="flex items-center gap-3">
           <div className={`p-2.5 rounded-xl ${nm ? 'bg-gradient-to-br from-primary-800/60 to-primary-900/40 text-primary-300' : 'bg-gradient-to-br from-primary-50 to-primary-100 text-primary-600'} shadow-sm`}>
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z" />
-            </svg>
+            <MagnifyingGlassIcon className="w-5 h-5" />
           </div>
           <div>
             <h2 className={`text-base font-bold ${nm ? 'text-gray-100' : 'text-gray-900'}`}>Track Explorer</h2>
@@ -241,9 +286,7 @@ function TrackExplorer({ nightMode, trackData, sampleIds }: TrackExplorerProps) 
             ? 'bg-gray-700 hover:bg-gray-600 border-gray-600 text-gray-200'
             : 'bg-white hover:bg-gray-50 border-gray-200 text-gray-700 shadow-sm hover:shadow'}`}
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
+          <DocumentArrowDownIcon className="w-4 h-4" />
           Download Full Track List ({allTracks.length.toLocaleString()} tracks)
         </button>
       </div>
@@ -259,9 +302,7 @@ function TrackExplorer({ nightMode, trackData, sampleIds }: TrackExplorerProps) 
               onClick={() => active ? handleClear() : handleSelect({ kind: 'type', value: dt })}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 ${active ? colors.chipActive : colors.chip}`}
             >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={DATA_TYPE_ICONS[dt] ?? DATA_TYPE_ICONS.annotation} />
-              </svg>
+              <DataTypeIcon dataType={dt} className="w-3.5 h-3.5" />
               {DATA_TYPE_LABELS_FULL[dt] ?? dt}
             </button>
           );
@@ -271,9 +312,7 @@ function TrackExplorer({ nightMode, trackData, sampleIds }: TrackExplorerProps) 
       {/* Search bar */}
       <div className="relative mb-5" ref={dropdownRef}>
         <div className="relative">
-          <svg className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 ${nm ? 'text-gray-400' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z" />
-          </svg>
+          <MagnifyingGlassIcon className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 ${nm ? 'text-gray-400' : 'text-gray-400'}`} />
           <input
             type="text"
             value={query}
@@ -287,9 +326,7 @@ function TrackExplorer({ nightMode, trackData, sampleIds }: TrackExplorerProps) 
               onClick={handleClear}
               className={`absolute right-3.5 top-1/2 -translate-y-1/2 p-0.5 rounded-md transition-colors ${nm ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-600' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <XMarkIcon className="w-4 h-4" />
             </button>
           )}
         </div>
@@ -306,9 +343,7 @@ function TrackExplorer({ nightMode, trackData, sampleIds }: TrackExplorerProps) 
                     className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center gap-2.5 ${ddItem}`}
                     onMouseDown={() => handleSelect({ kind: 'type', value: dt })}
                   >
-                    <svg className="w-4 h-4 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={DATA_TYPE_ICONS[dt] ?? DATA_TYPE_ICONS.annotation} />
-                    </svg>
+                    <DataTypeIcon dataType={dt} className="w-4 h-4 opacity-60" />
                     <span className="font-medium">{DATA_TYPE_LABELS_FULL[dt] ?? dt}</span>
                     <span className={`text-xs ml-auto ${nm ? 'text-gray-400' : 'text-gray-400'}`}>{dt}</span>
                   </button>
@@ -324,9 +359,7 @@ function TrackExplorer({ nightMode, trackData, sampleIds }: TrackExplorerProps) 
                     className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center gap-2.5 ${ddItem}`}
                     onMouseDown={() => handleSelect({ kind: 'sample', value: id })}
                   >
-                    <svg className="w-4 h-4 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
+                    <UserIcon className="w-4 h-4 opacity-60" />
                     <span className="font-medium">{id}</span>
                   </button>
                 ))}
@@ -352,13 +385,9 @@ function TrackExplorer({ nightMode, trackData, sampleIds }: TrackExplorerProps) 
                   : nm ? 'bg-violet-800/50 text-violet-300' : 'bg-violet-100 text-violet-700'
               }`}>
                 {selection.kind === 'sample' ? (
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
+                  <UserIcon className="w-3.5 h-3.5" />
                 ) : (
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={DATA_TYPE_ICONS[selection.value] ?? DATA_TYPE_ICONS.annotation} />
-                  </svg>
+                  <DataTypeIcon dataType={selection.value} className="w-3.5 h-3.5" />
                 )}
                 {selection.kind}
               </span>
@@ -379,9 +408,7 @@ function TrackExplorer({ nightMode, trackData, sampleIds }: TrackExplorerProps) 
                   ? 'bg-primary-700/50 hover:bg-primary-600/60 text-primary-200'
                   : 'bg-primary-50 hover:bg-primary-100 text-primary-700'}`}
               >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
+                <ArrowDownTrayIcon className="w-3.5 h-3.5" />
                 Download TSV
               </button>
             )}
@@ -397,8 +424,8 @@ function TrackExplorer({ nightMode, trackData, sampleIds }: TrackExplorerProps) 
                   <thead className={thCls}>
                     <tr>
                       {(selection.kind === 'type'
-                        ? ['Sample', 'Track Name', 'Coordinate', 'Format', 'Platform', 'Tool', 'Size', 'URL']
-                        : ['Data Type', 'Track Name', 'Coordinate', 'Format', 'Platform', 'Tool', 'Size', 'URL']
+                        ? ['Sample', 'Track Name', 'Coordinate', 'Format', 'Description', 'Size', 'URL']
+                        : ['Data Type', 'Track Name', 'Coordinate', 'Format', 'Description', 'Size', 'URL']
                       ).map((h) => (
                         <th key={h} className="px-3 py-2.5 text-left text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">{h}</th>
                       ))}
@@ -414,9 +441,7 @@ function TrackExplorer({ nightMode, trackData, sampleIds }: TrackExplorerProps) 
                               <span className={`font-semibold ${nm ? 'text-gray-100' : 'text-gray-800'}`}>{t.sample_id}</span>
                             ) : (
                               <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border ${dtColors?.chip ?? ''}`}>
-                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={DATA_TYPE_ICONS[t.data_type] ?? DATA_TYPE_ICONS.annotation} />
-                                </svg>
+                                <DataTypeIcon dataType={t.data_type} className="w-3 h-3" />
                                 {DATA_TYPE_LABELS_FULL[t.data_type] ?? t.data_type}
                               </span>
                             )}
@@ -431,9 +456,14 @@ function TrackExplorer({ nightMode, trackData, sampleIds }: TrackExplorerProps) 
                               </span>
                             ) : '—'}
                           </td>
-                          <td className={`px-3 py-2.5 whitespace-nowrap ${nm ? 'text-gray-300' : 'text-gray-600'}`}>{t.data_attributes?.file_format ?? '—'}</td>
-                          <td className={`px-3 py-2.5 whitespace-nowrap ${nm ? 'text-gray-300' : 'text-gray-600'}`}>{t.data_attributes?.platform ?? '—'}</td>
-                          <td className={`px-3 py-2.5 whitespace-nowrap ${nm ? 'text-gray-300' : 'text-gray-600'}`}>{t.data_attributes?.processing_tool ?? '—'}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap">
+                            {t.browser_attributes?.type ? (
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${nm ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-700'}`}>
+                                {formatLabel(t.browser_attributes.type)}
+                              </span>
+                            ) : '—'}
+                          </td>
+                          <td className={`px-3 py-2.5 max-w-[220px] truncate ${nm ? 'text-gray-300' : 'text-gray-600'}`} title={t.data_attributes?.description ?? ''}>{t.data_attributes?.description || '—'}</td>
                           <td className={`px-3 py-2.5 whitespace-nowrap ${nm ? 'text-gray-300' : 'text-gray-600'}`}>{formatBytes(t.size_bytes)}</td>
                           <td className="px-3 py-2.5 whitespace-nowrap max-w-[200px] truncate">
                             {t.browser_attributes?.url ? (
@@ -507,9 +537,7 @@ function TrackExplorer({ nightMode, trackData, sampleIds }: TrackExplorerProps) 
       ) : (
         <div className={`flex flex-col items-center justify-center py-10 text-sm ${nm ? 'text-gray-500' : 'text-gray-400'}`}>
           <div className={`p-4 rounded-2xl mb-3 ${nm ? 'bg-gray-700/40' : 'bg-gray-50'}`}>
-            <svg className="w-10 h-10 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
+            <ClipboardIcon className="w-10 h-10 opacity-40" />
           </div>
           <p className="font-medium mb-1">Search or click a data type above</p>
           <p className={`text-xs ${nm ? 'text-gray-600' : 'text-gray-300'}`}>Browse tracks by sample ID or filter by data type</p>
@@ -568,29 +596,13 @@ export default function DataAvailabilityMatrix({ nightMode = false }: DataAvaila
   const renderSortIcon = (column: SortColumn) => {
     if (sortColumn !== column) {
       return (
-        <svg
-          className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
-          />
-        </svg>
+        <ArrowsUpDownIcon className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
       );
     }
     return sortDirection === 'asc' ? (
-      <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7" />
-      </svg>
+      <ChevronUpIcon className="w-4 h-4 text-primary-600" />
     ) : (
-      <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-      </svg>
+      <ChevronDownIcon className="w-4 h-4 text-primary-600" />
     );
   };
 
@@ -621,6 +633,12 @@ export default function DataAvailabilityMatrix({ nightMode = false }: DataAvaila
     <div>
       <TrackExplorer nightMode={nightMode} trackData={trackData} sampleIds={sampleIds} />
 
+      <CoverageSummary nightMode={nightMode} />
+
+      <div className="mb-6">
+        <PopulationComposition nightMode={nightMode} />
+      </div>
+
       <div
         className={`${
           nightMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
@@ -633,19 +651,9 @@ export default function DataAvailabilityMatrix({ nightMode = false }: DataAvaila
         } border-l-4 rounded-r-lg`}
       >
         <div className="flex items-start">
-          <svg
+          <InformationCircleIcon
             className={`w-5 h-5 ${nightMode ? 'text-primary-400' : 'text-primary-600'} mt-0.5 mr-2 flex-shrink-0`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
+          />
           <div>
             <p className={`text-sm ${nightMode ? 'text-primary-200' : 'text-primary-900'}`}>
               <strong>How to read this table:</strong> Each row shows a genome sample and its available data types by

@@ -16,6 +16,7 @@ if [ ! -f "samples.tsv" ] || [ ! -f "tracks.tsv" ]; then
 fi
 
 # Run the build script
+aws s3 ls s3://hprc-epigenome --recursive --summarize --no-sign-request > file_size.tsv
 python3 build_data.py
 python3 build_track.py
 cp pca_background.tsv pca_hprc.tsv samples.tsv tracks.tsv ../public/data/

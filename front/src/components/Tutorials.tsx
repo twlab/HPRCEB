@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { PlayCircleIcon, ArrowRightIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 
 interface TutorialsProps {
   nightMode?: boolean;
@@ -125,14 +126,9 @@ export default function Tutorials({ nightMode = false, onStartInteractiveGuide }
             onClick={onStartInteractiveGuide}
             className="group px-8 py-4 bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 text-white font-bold rounded-2xl hover:shadow-2xl transition-all duration-300 hover:scale-105 flex items-center gap-3 text-lg animate-pulse-slow"
           >
-            <svg className="w-6 h-6 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
+            <PlayCircleIcon className="w-6 h-6 group-hover:rotate-12 transition-transform" />
             <span>Start Interactive Guide</span>
-            <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
-            </svg>
+            <ArrowRightIcon className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
       )}
@@ -336,9 +332,7 @@ export default function Tutorials({ nightMode = false, onStartInteractiveGuide }
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-600 to-purple-600 text-white font-semibold rounded-xl hover:from-primary-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl hover:scale-105"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
+            <InformationCircleIcon className="w-5 h-5" />
             Learn More About HPRC
           </a>
         </div>
