@@ -77,7 +77,7 @@ const DATA_TYPE_ICONS: Record<string, IconComponent> = {
 };
 
 // Data types whose logo should not be rendered in the Track Explorer
-const HIDDEN_ICON_DATA_TYPES = new Set(['methylation', 'expression', 'chromatin_accessibility']);
+const HIDDEN_ICON_DATA_TYPES = new Set(['assembly', 'methylation', 'expression', 'chromatin_accessibility', 'chromatin_conformation']);
 function DataTypeIcon({ dataType, className }: { dataType: string; className?: string }) {
   if (HIDDEN_ICON_DATA_TYPES.has(dataType)) return null;
   const Icon = DATA_TYPE_ICONS[dataType] ?? DATA_TYPE_ICONS.annotation;

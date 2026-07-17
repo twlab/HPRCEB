@@ -114,6 +114,7 @@ export default function DataSelector({ state, onStateChange, nightMode = false, 
             selectedLayers={state.selectedLayers}
             nightMode={nightMode}
             onReorderGenomes={(newOrder) => setState(prev => ({ ...prev, selectedGenomes: newOrder }))}
+            onRemoveGenome={handleGenomeToggle}
           />
         </div>
       </div>

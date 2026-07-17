@@ -9,6 +9,8 @@ import {
   XMarkIcon,
   PencilSquareIcon,
   TrashIcon,
+  DocumentArrowUpIcon,
+  LinkIcon,
 } from '@heroicons/react/24/outline';
 import { DataSelectorState } from './DataSelector';
 import {
@@ -44,6 +46,8 @@ export default function Sessions({
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [importJson, setImportJson] = useState('');
+  const [importUrl, setImportUrl] = useState('');
+  const [fetchingUrl, setFetchingUrl] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -132,6 +136,7 @@ export default function Sessions({
       const success = importSessions(importJson);
       if (success) {
         setImportJson('');
+        setImportUrl('');
         setShowImportDialog(false);
         loadSessions();
         setSuccessMessage('Sessions imported successfully!');
@@ -141,6 +146,35 @@ export default function Sessions({
       }
     } catch (error) {
       alert('Error importing sessions: ' + error);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setImportJson(String(reader.result ?? ''));
+    reader.onerror = () => alert('Error reading file');
+    reader.readAsText(file);
+    // Reset so selecting the same file again still triggers onChange
+    e.target.value = '';
+  };
+
+  const handleFetchUrl = async () => {
+    const url = importUrl.trim();
+    if (!url) return;
+    setFetchingUrl(true);
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status} ${response.statusText}`);
+      }
+      const text = await response.text();
+      setImportJson(text);
+    } catch (error) {
+      alert('Error fetching from URL: ' + error);
+    } finally {
+      setFetchingUrl(false);
     }
   };
 
@@ -268,10 +302,48 @@ export default function Sessions({
             <h3 className={`text-xl font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'} mb-4`}>
               Import Sessions
             </h3>
+
+            {/* Load from file or URL */}
+            <div className="flex flex-col sm:flex-row gap-3 mb-3">
+              <label
+                className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl cursor-pointer font-medium text-sm transition-colors ${nightMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}
+              >
+                <DocumentArrowUpIcon className="w-5 h-5" />
+                Choose File
+                <input
+                  type="file"
+                  accept=".json,application/json"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+              </label>
+
+              <div className="flex flex-1 gap-2">
+                <div className={`flex items-center flex-1 gap-2 px-3 rounded-xl border ${nightMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-300'}`}>
+                  <LinkIcon className={`w-5 h-5 flex-shrink-0 ${nightMode ? 'text-gray-400' : 'text-gray-500'}`} />
+                  <input
+                    type="url"
+                    value={importUrl}
+                    onChange={(e) => setImportUrl(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleFetchUrl(); }}
+                    placeholder="https://example.com/sessions.json"
+                    className={`flex-1 bg-transparent py-2.5 text-sm focus:outline-none ${nightMode ? 'text-gray-100 placeholder-gray-500' : 'text-gray-900 placeholder-gray-400'}`}
+                  />
+                </div>
+                <button
+                  onClick={handleFetchUrl}
+                  disabled={fetchingUrl || !importUrl.trim()}
+                  className={`px-4 py-2.5 rounded-xl font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${nightMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}
+                >
+                  {fetchingUrl ? 'Fetching…' : 'Fetch'}
+                </button>
+              </div>
+            </div>
+
             <textarea
               value={importJson}
               onChange={(e) => setImportJson(e.target.value)}
-              placeholder="Paste exported JSON here..."
+              placeholder="Paste exported JSON here, or load from a file or URL above..."
               className={`w-full px-4 py-3 ${nightMode ? 'bg-gray-700 text-gray-100 border-gray-600' : 'bg-gray-50 text-gray-900 border-gray-300'} border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 font-mono text-sm`}
               rows={10}
             />
@@ -286,6 +358,7 @@ export default function Sessions({
                 onClick={() => {
                   setShowImportDialog(false);
                   setImportJson('');
+                  setImportUrl('');
                 }}
                 className={`flex-1 px-6 py-3 ${nightMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'} font-semibold rounded-xl transition-all duration-300`}
               >
@@ -343,7 +416,7 @@ export default function Sessions({
                       {formatSelection(session)}
                     </p>
                     <p className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-600'} mt-1`}>
-                      🎯 {formatTrackSelection(session)}
+                      {formatTrackSelection(session)}
                     </p>
                     <p className={`text-xs ${nightMode ? 'text-gray-500' : 'text-gray-500'} mt-1`}>
                       Saved: {formatDate(session.timestamp)}

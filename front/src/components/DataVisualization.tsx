@@ -11,9 +11,10 @@ interface DataVisualizationProps {
   selectedLayers: DataLayer[];
   nightMode?: boolean;
   onReorderGenomes?: (newOrder: string[]) => void;
+  onRemoveGenome?: (genomeId: string) => void;
 }
 
-export default function DataVisualization({ selectedGenomes, selectedLayers, nightMode = false, onReorderGenomes }: DataVisualizationProps) {
+export default function DataVisualization({ selectedGenomes, selectedLayers, nightMode = false, onReorderGenomes, onRemoveGenome }: DataVisualizationProps) {
   const [currentView, setCurrentView] = useState<'table' | 'chart'>('table');
   const [selectedGenomeForDetails, setSelectedGenomeForDetails] = useState<Genome | null>(null);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
@@ -114,13 +115,29 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
             </div>
           </td>
           <td className={`px-6 py-4 whitespace-nowrap text-sm ${nightMode ? 'text-gray-300' : 'text-gray-500'}`}>
-            <button 
+            <button
               onClick={() => setSelectedGenomeForDetails(genome)}
               className="text-primary-600 hover:text-primary-900 font-medium transition-colors"
             >
               View Details
             </button>
           </td>
+          {onRemoveGenome && (
+            <td className="px-4 py-4 whitespace-nowrap text-center">
+              <button
+                onClick={() => onRemoveGenome(genomeId)}
+                aria-label={`Remove ${genome.id}`}
+                title={`Remove ${genome.id}`}
+                className={`inline-flex items-center justify-center w-6 h-6 rounded-full transition-colors ${
+                  nightMode
+                    ? 'text-gray-400 hover:text-red-400 hover:bg-gray-700'
+                    : 'text-gray-400 hover:text-red-600 hover:bg-gray-100'
+                }`}
+              >
+                <XMarkIcon className="w-4 h-4" />
+              </button>
+            </td>
+          )}
         </tr>
       );
     });
@@ -188,6 +205,7 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
                 <th className={`px-6 py-3 text-left text-xs font-medium ${nightMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>Assembly Size</th>
                 <th className={`px-6 py-3 text-left text-xs font-medium ${nightMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>Data Layers</th>
                 <th className={`px-6 py-3 text-left text-xs font-medium ${nightMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>Actions</th>
+                {onRemoveGenome && <th className={`px-4 py-3 w-8 ${nightMode ? 'bg-gray-900' : 'bg-gray-50'}`}><span className="sr-only">Remove</span></th>}
               </tr>
             </thead>
             <tbody className={`${nightMode ? 'bg-gray-800 divide-gray-700' : 'bg-white divide-gray-200'} divide-y`}>
