@@ -361,6 +361,15 @@ input[type="checkbox"].peer:checked ~ label .check-icon {
   transform: rotate(180deg);
 }
 
+/* Constrain the embedded GenomeHub to its host container instead of the
+   viewport. The hub's root element ships with `h-screen` (100vh); when embedded
+   below the app header + tab nav that overflows the wrapper and produces a
+   second scrollbar on top of the hub's own internal track scroll. Forcing it to
+   fill the host lets the hub's internal scroll be the only scrollbar. */
+.genome-hub-host > * {
+  height: 100% !important;
+}
+
 /* Fullscreen browser styles */
 .fullscreen-browser:fullscreen {
   width: 100vw;

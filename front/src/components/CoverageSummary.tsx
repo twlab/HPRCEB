@@ -22,12 +22,6 @@ const DATA_TYPE_META: Record<DataType, { short: string; full: string; color: str
   chromatin_conformation: { short: 'Chrom Conf', full: 'Chromatin Conformation', color: '#8b5cf6' },
 };
 
-// Opacity ramp by number of coordinate systems available (0 = none)
-function cellOpacity(size: number): number {
-  if (size <= 0) return 0;
-  return Math.min(1, 0.4 + 0.3 * size); // 1 -> 0.7, 2 -> 1.0, 3 -> 1.0
-}
-
 type SortMode = 'name' | 'coverage';
 
 export default function CoverageSummary({ nightMode = false }: CoverageSummaryProps) {
@@ -168,13 +162,10 @@ export default function CoverageSummary({ nightMode = false }: CoverageSummaryPr
                       className="w-full h-5 rounded"
                       title={
                         size > 0
-                          ? `${row.id} · ${meta.full}: ${size} coordinate system${size > 1 ? 's' : ''}`
-                          : `${row.id} · ${meta.full}: no data`
+                          ? `${row.id} · ${meta.full}: available`
+                          : `${row.id} · ${meta.full}: not available`
                       }
-                      style={{
-                        backgroundColor: size > 0 ? meta.color : emptyCell,
-                        opacity: size > 0 ? cellOpacity(size) : 1,
-                      }}
+                      style={{ backgroundColor: size > 0 ? meta.color : emptyCell }}
                     />
                   </div>
                 );
@@ -186,15 +177,12 @@ export default function CoverageSummary({ nightMode = false }: CoverageSummaryPr
 
       {/* Legend */}
       <div className={`mt-3 flex flex-wrap items-center gap-4 text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'}`}>
-        <span className="font-semibold">Cell shade = coordinate systems:</span>
         <span className="flex items-center gap-1.5">
-          <span className="w-4 h-4 rounded" style={{ backgroundColor: emptyCell }} /> none
+          <span className="w-4 h-4 rounded" style={{ backgroundColor: '#6b7280' }} /> Available
         </span>
-        {[1, 2, 3].map((n) => (
-          <span key={n} className="flex items-center gap-1.5">
-            <span className="w-4 h-4 rounded bg-gray-500" style={{ backgroundColor: '#6b7280', opacity: cellOpacity(n) }} /> {n}
-          </span>
-        ))}
+        <span className="flex items-center gap-1.5">
+          <span className="w-4 h-4 rounded" style={{ backgroundColor: emptyCell }} /> Not available
+        </span>
       </div>
     </div>
   );

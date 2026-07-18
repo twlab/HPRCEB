@@ -98,32 +98,32 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
           }`}
         >
           {canReorder && (
-            <td className={`pl-4 pr-1 py-4 whitespace-nowrap text-center ${nightMode ? 'text-gray-500' : 'text-gray-400'}`}>
+            <td className={`pl-4 pr-1 py-2.5 whitespace-nowrap text-center ${nightMode ? 'text-gray-500' : 'text-gray-400'}`}>
               <span className="cursor-move select-none" title="Drag to reorder">⋮⋮</span>
             </td>
           )}
-          <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>{genome.id}</td>
-          <td className={`px-6 py-4 whitespace-nowrap text-sm ${nightMode ? 'text-gray-300' : 'text-gray-500'}`}>
+          <td className={`px-6 py-2.5 whitespace-nowrap text-sm font-medium ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>{genome.id}</td>
+          <td className={`px-6 py-2.5 whitespace-nowrap text-sm ${nightMode ? 'text-gray-300' : 'text-gray-500'}`}>
             {genome.population_abbreviation && genome.super_population 
               ? `${genome.population_abbreviation} / ${genome.super_population}`
               : genome.population_abbreviation || genome.super_population || 'N/A'}
           </td>
-          <td className={`px-6 py-4 whitespace-nowrap text-sm ${nightMode ? 'text-gray-300' : 'text-gray-500'}`}>{assemblySize.toFixed(1)} GB</td>
-          <td className={`px-6 py-4 whitespace-nowrap text-sm ${nightMode ? 'text-gray-300' : 'text-gray-500'}`}>
+          <td className={`px-6 py-2.5 whitespace-nowrap text-sm ${nightMode ? 'text-gray-300' : 'text-gray-500'}`}>{assemblySize.toFixed(1)} GB</td>
+          <td className={`px-6 py-2.5 whitespace-nowrap text-sm ${nightMode ? 'text-gray-300' : 'text-gray-500'}`}>
             <div className="flex gap-1 flex-wrap">
               {layers.length > 0 ? layers : <span className={`text-xs italic ${nightMode ? 'text-gray-400' : 'text-gray-400'}`}>No layers selected</span>}
             </div>
           </td>
-          <td className={`px-6 py-4 whitespace-nowrap text-sm ${nightMode ? 'text-gray-300' : 'text-gray-500'}`}>
+          <td className={`px-6 py-2.5 whitespace-nowrap text-sm ${nightMode ? 'text-gray-300' : 'text-gray-500'}`}>
             <button
               onClick={() => setSelectedGenomeForDetails(genome)}
               className="text-primary-600 hover:text-primary-900 font-medium transition-colors"
             >
-              View Details
+              Details
             </button>
           </td>
           {onRemoveGenome && (
-            <td className="px-4 py-4 whitespace-nowrap text-center">
+            <td className="px-4 py-2.5 whitespace-nowrap text-center">
               <button
                 onClick={() => onRemoveGenome(genomeId)}
                 aria-label={`Remove ${genome.id}`}
@@ -144,7 +144,7 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
   };
 
   return (
-    <div className={`${nightMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-2xl shadow-fancy border p-5 hover-lift transition-colors duration-300 min-h-[600px]`}>
+    <div className={`${nightMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-2xl shadow-fancy border p-5 hover-lift transition-colors duration-300 min-h-[360px]`}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-lg flex items-center justify-center">
@@ -199,13 +199,13 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
           <table className={`min-w-full divide-y ${nightMode ? 'divide-gray-700' : 'divide-gray-200'}`}>
             <thead className={nightMode ? 'bg-gray-900' : 'bg-gray-50'}>
               <tr>
-                {canReorder && <th className={`pl-4 pr-1 py-3 w-8 ${nightMode ? 'bg-gray-900' : 'bg-gray-50'}`}><span className="sr-only">Reorder</span></th>}
-                <th className={`px-6 py-3 text-left text-xs font-medium ${nightMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>Genome ID</th>
-                <th className={`px-6 py-3 text-left text-xs font-medium ${nightMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>Population</th>
-                <th className={`px-6 py-3 text-left text-xs font-medium ${nightMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>Assembly Size</th>
-                <th className={`px-6 py-3 text-left text-xs font-medium ${nightMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>Data Layers</th>
-                <th className={`px-6 py-3 text-left text-xs font-medium ${nightMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>Actions</th>
-                {onRemoveGenome && <th className={`px-4 py-3 w-8 ${nightMode ? 'bg-gray-900' : 'bg-gray-50'}`}><span className="sr-only">Remove</span></th>}
+                {canReorder && <th className={`pl-4 pr-1 py-2 w-8 ${nightMode ? 'bg-gray-900' : 'bg-gray-50'}`}><span className="sr-only">Reorder</span></th>}
+                <th className={`px-6 py-2 text-left text-xs font-medium ${nightMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>Genome ID</th>
+                <th className={`px-6 py-2 text-left text-xs font-medium ${nightMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>Population</th>
+                <th className={`px-6 py-2 text-left text-xs font-medium ${nightMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>Assembly Size</th>
+                <th className={`px-6 py-2 text-left text-xs font-medium ${nightMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>Data Layers</th>
+                <th className={`px-6 py-2 text-left text-xs font-medium ${nightMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>Actions</th>
+                {onRemoveGenome && <th className={`px-4 py-2 w-8 ${nightMode ? 'bg-gray-900' : 'bg-gray-50'}`}><span className="sr-only">Remove</span></th>}
               </tr>
             </thead>
             <tbody className={`${nightMode ? 'bg-gray-800 divide-gray-700' : 'bg-white divide-gray-200'} divide-y`}>

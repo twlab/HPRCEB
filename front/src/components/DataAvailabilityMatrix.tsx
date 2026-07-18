@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { getGenomeData, getTrackData, getSampleDataAvailability, DATA_TYPES } from '../utils/genomeDataService';
 import type { TrackEntry, DataType, Coordinate } from '../utils/genomeDataService';
+import type { Genome } from '../utils/genomeTypes';
 import CoverageSummary from './CoverageSummary';
 import PopulationComposition from './PopulationComposition';
 import {
@@ -27,8 +28,24 @@ interface DataAvailabilityMatrixProps {
   nightMode?: boolean;
 }
 
-type SortColumn = 'sample' | DataType;
+type MetaColumnKey = 'population' | 'super_population' | 'sex';
+type SortColumn = 'sample' | MetaColumnKey | DataType;
 type SortDirection = 'asc' | 'desc';
+
+// Sample metadata columns shown alongside the data-availability matrix
+const META_COLUMNS: { key: MetaColumnKey; label: string; get: (g?: Genome) => string }[] = [
+  { key: 'population', label: 'Population', get: (g) => g?.population_abbreviation || '' },
+  { key: 'super_population', label: 'Super Pop.', get: (g) => (g?.super_population || '').toUpperCase() },
+  { key: 'sex', label: 'Sex', get: (g) => g?.sex || '' },
+];
+
+const SUPER_POP_COLORS: Record<string, { bg: string; text: string }> = {
+  AFR: { bg: 'bg-orange-100', text: 'text-orange-800' },
+  AMR: { bg: 'bg-rose-100', text: 'text-rose-800' },
+  EAS: { bg: 'bg-green-100', text: 'text-green-800' },
+  EUR: { bg: 'bg-blue-100', text: 'text-blue-800' },
+  SAS: { bg: 'bg-purple-100', text: 'text-purple-800' },
+};
 
 interface SampleAvailability {
   sampleId: string;
@@ -551,6 +568,11 @@ export default function DataAvailabilityMatrix({ nightMode = false }: DataAvaila
   const trackData = getTrackData();
   const sampleIds = genomeData.map((g) => g.id);
 
+  const genomeById = useMemo(
+    () => new Map(genomeData.map((g) => [g.id, g])),
+    [genomeData]
+  );
+
   const [sortColumn, setSortColumn] = useState<SortColumn>('sample');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
@@ -575,12 +597,17 @@ export default function DataAvailabilityMatrix({ nightMode = false }: DataAvaila
     let aValue: string | number;
     let bValue: string | number;
 
+    const metaColumn = META_COLUMNS.find((m) => m.key === sortColumn);
+
     if (sortColumn === 'sample') {
       aValue = a.sampleId;
       bValue = b.sampleId;
+    } else if (metaColumn) {
+      aValue = metaColumn.get(genomeById.get(a.sampleId));
+      bValue = metaColumn.get(genomeById.get(b.sampleId));
     } else {
-      aValue = a.availability[sortColumn].size;
-      bValue = b.availability[sortColumn].size;
+      aValue = a.availability[sortColumn as DataType].size;
+      bValue = b.availability[sortColumn as DataType].size;
     }
 
     if (typeof aValue === 'string' && typeof bValue === 'string') {
@@ -706,6 +733,20 @@ export default function DataAvailabilityMatrix({ nightMode = false }: DataAvaila
                     {renderSortIcon('sample')}
                   </div>
                 </th>
+                {META_COLUMNS.map((meta) => (
+                  <th
+                    key={meta.key}
+                    className={`px-4 py-3 text-left text-xs font-medium ${
+                      nightMode ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-500 hover:bg-gray-100'
+                    } uppercase cursor-pointer transition-colors group`}
+                    onClick={() => handleSort(meta.key)}
+                  >
+                    <div className="flex items-center gap-2">
+                      {meta.label}
+                      {renderSortIcon(meta.key)}
+                    </div>
+                  </th>
+                ))}
                 {DATA_TYPES.map((dataType) => (
                   <th
                     key={dataType}
@@ -728,6 +769,24 @@ export default function DataAvailabilityMatrix({ nightMode = false }: DataAvaila
                   <td className={`px-4 py-3 font-medium ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>
                     {sampleId}
                   </td>
+                  {META_COLUMNS.map((meta) => {
+                    const value = meta.get(genomeById.get(sampleId));
+                    if (meta.key === 'super_population' && value) {
+                      const c = SUPER_POP_COLORS[value];
+                      return (
+                        <td key={meta.key} className="px-4 py-3">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${c ? `${c.bg} ${c.text}` : nightMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-700'}`}>
+                            {value}
+                          </span>
+                        </td>
+                      );
+                    }
+                    return (
+                      <td key={meta.key} className={`px-4 py-3 ${nightMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                        {value || <span className={nightMode ? 'text-gray-600' : 'text-gray-300'}>—</span>}
+                      </td>
+                    );
+                  })}
                   {DATA_TYPES.map((dataType) => (
                     <td key={dataType} className="px-4 py-3 text-center">
                       {renderAvailabilityCell(availability[dataType])}

@@ -145,17 +145,24 @@ export default function Browser({ tracks: tracksProp, selectedGenomes, reference
         {/* Fullscreen Button */}
         <button
           onClick={toggleFullscreen}
-          className={`p-1.5 rounded-lg transition-all ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white shadow-sm transition-all hover:shadow-md ${
             nightMode
-              ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
-              : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-          } hover:shadow-md`}
+              ? 'bg-primary-600 hover:bg-primary-500'
+              : 'bg-primary-600 hover:bg-primary-700'
+          }`}
           title={isFullscreen ? 'Exit Fullscreen (ESC)' : 'Enter Fullscreen (F)'}
+          aria-label={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
         >
           {isFullscreen ? (
-            <ArrowsPointingInIcon className="w-4 h-4" />
+            <>
+              <ArrowsPointingInIcon className="w-4 h-4" />
+              <span>Exit Fullscreen</span>
+            </>
           ) : (
-            <ArrowsPointingOutIcon className="w-4 h-4" />
+            <>
+              <ArrowsPointingOutIcon className="w-4 h-4" />
+              <span>Fullscreen</span>
+            </>
           )}
         </button>
       </div>
@@ -166,10 +173,10 @@ export default function Browser({ tracks: tracksProp, selectedGenomes, reference
         style={{ minHeight: 0 }}
       >
         <div
-          className="flex-1 overflow-y-auto"
+          className="flex-1 overflow-hidden"
           style={{ minHeight: 0 }}
         >
-          <div className="relative bg-white w-full h-full">
+          <div className="genome-hub-host relative bg-white w-full h-full">
             <GenomeHub
               storeConfig={storeConfig}
               viewRegion={viewRegionMemo}
