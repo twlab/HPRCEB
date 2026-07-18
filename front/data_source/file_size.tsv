@@ -234,10 +234,14 @@
 2026-07-16 00:46:57    3005706 samples/HG002/CGI.bed.gz
 2026-07-16 00:47:01     474249 samples/HG002/CGI.bed.gz.tbi
 2025-12-13 16:12:14 6552373052 samples/HG002/chm13.hic
-2025-12-17 13:24:04         28 samples/HG002/fiberseq.PacBio.hap1.modbed.gz
-2025-12-17 13:24:07         75 samples/HG002/fiberseq.PacBio.hap1.modbed.gz.tbi
-2025-12-17 13:24:10         28 samples/HG002/fiberseq.PacBio.hap2.modbed.gz
-2025-12-17 13:24:12         75 samples/HG002/fiberseq.PacBio.hap2.modbed.gz.tbi
+2026-07-18 17:50:37 7304607803 samples/HG002/fiberseq.ONT.hap1.modbed.gz
+2026-07-18 17:50:38    2307175 samples/HG002/fiberseq.ONT.hap1.modbed.gz.tbi
+2026-07-18 17:50:37 7815788475 samples/HG002/fiberseq.ONT.hap2.modbed.gz
+2026-07-18 17:50:38    2464135 samples/HG002/fiberseq.ONT.hap2.modbed.gz.tbi
+2026-07-18 17:46:07 5552055501 samples/HG002/fiberseq.PacBio.hap1.modbed.gz
+2026-07-18 17:46:07    1624435 samples/HG002/fiberseq.PacBio.hap1.modbed.gz.tbi
+2026-07-18 17:46:07 5759535453 samples/HG002/fiberseq.PacBio.hap2.modbed.gz
+2026-07-18 17:46:07    1678510 samples/HG002/fiberseq.PacBio.hap2.modbed.gz.tbi
 2026-04-29 19:23:10 1610938489 samples/HG002/hap1_vs_chm13.gz
 2026-04-29 19:23:36     104115 samples/HG002/hap1_vs_chm13.gz.tbi
 2026-04-29 19:23:02 1603540206 samples/HG002/hap1_vs_hg38.gz
@@ -7629,5 +7633,5 @@
 2026-01-20 13:38:28  290598458 samples/NA21309/methylation.PacBio.hap2.methylc.gz
 2026-01-20 13:38:32    1804186 samples/NA21309/methylation.PacBio.hap2.methylc.gz.tbi
 
-Total Objects: 7630
-   Total Size: 6325465593236
+Total Objects: 7634
+   Total Size: 6351905654517
