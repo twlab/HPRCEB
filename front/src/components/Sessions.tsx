@@ -16,8 +16,11 @@ import { DataSelectorState } from './DataSelector';
 import {
   getSessions,
   saveSession,
+  overwriteSession,
   deleteSession,
   updateSessionName,
+  updateSessionViewRegion,
+  reorderSessions,
   exportSessions,
   importSessions,
   applyTrackSelection,
@@ -41,8 +44,12 @@ export default function Sessions({
 }: SessionsProps) {
   const [sessions, setSessions] = useState<SessionData[]>([]);
   const [newSessionName, setNewSessionName] = useState('');
+  const [saveTargetId, setSaveTargetId] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
+  const [editingRegion, setEditingRegion] = useState('');
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [importJson, setImportJson] = useState('');
@@ -59,15 +66,29 @@ export default function Sessions({
   };
 
   const handleSaveSession = () => {
-    if (!newSessionName.trim()) {
-      alert('Please enter a session name');
-      return;
+    let sessionName: string;
+
+    if (saveTargetId) {
+      // Overwrite an existing session (keep its name)
+      const target = sessions.find(s => s.id === saveTargetId);
+      if (!target) {
+        alert('Selected session no longer exists');
+        return;
+      }
+      overwriteSession(saveTargetId, dataSelectorState, selectedTracks);
+      sessionName = target.name;
+    } else {
+      // Create a new session
+      if (!newSessionName.trim()) {
+        alert('Please enter a session name');
+        return;
+      }
+      sessionName = newSessionName.trim();
+      saveSession(sessionName, dataSelectorState, selectedTracks);
     }
 
-    const sessionName = newSessionName.trim();
-    saveSession(sessionName, dataSelectorState, selectedTracks);
-
     setNewSessionName('');
+    setSaveTargetId('');
     setShowSaveDialog(false);
     loadSessions();
     setSuccessMessage(`Session "${sessionName}" saved successfully!`);
@@ -81,16 +102,55 @@ export default function Sessions({
     }
   };
 
-  const handleUpdateSessionName = (sessionId: string) => {
+  const startEditing = (session: SessionData) => {
+    setEditingId(session.id);
+    setEditingName(session.name);
+    setEditingRegion(session.dataSelectorState.userViewRegion || '');
+  };
+
+  const cancelEditing = () => {
+    setEditingId(null);
+    setEditingName('');
+    setEditingRegion('');
+  };
+
+  const handleSaveEdit = (sessionId: string) => {
     if (!editingName.trim()) {
       alert('Please enter a session name');
       return;
     }
 
     updateSessionName(sessionId, editingName.trim());
-    setEditingId(null);
-    setEditingName('');
+    updateSessionViewRegion(sessionId, editingRegion.trim());
+    cancelEditing();
     loadSessions();
+  };
+
+  const handleDragStart = (index: number) => setDragIndex(index);
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (dragOverIndex !== index) setDragOverIndex(index);
+  };
+
+  const handleDrop = (index: number) => {
+    if (dragIndex === null || dragIndex === index) {
+      setDragIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+    const newOrder = [...sessions];
+    const [moved] = newOrder.splice(dragIndex, 1);
+    newOrder.splice(index, 0, moved);
+    setSessions(newOrder);
+    reorderSessions(newOrder);
+    setDragIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDragIndex(null);
+    setDragOverIndex(null);
   };
 
   const handleLoadSession = async (session: SessionData) => {
@@ -265,26 +325,49 @@ export default function Sessions({
             <p className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-600'} mb-4`}>
               This will save your current reference genome, selected samples, data layers, and track configurations.
             </p>
-            <input
-              type="text"
-              value={newSessionName}
-              onChange={(e) => setNewSessionName(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSaveSession()}
-              placeholder="Enter session name..."
-              className={`w-full px-4 py-3 ${nightMode ? 'bg-gray-700 text-gray-100 border-gray-600' : 'bg-gray-50 text-gray-900 border-gray-300'} border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200`}
-              autoFocus
-            />
+
+            {/* Save target: new or overwrite existing */}
+            <label className={`block text-sm font-medium mb-1 ${nightMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              Save to
+            </label>
+            <select
+              value={saveTargetId}
+              onChange={(e) => setSaveTargetId(e.target.value)}
+              className={`w-full px-4 py-3 mb-3 ${nightMode ? 'bg-gray-700 text-gray-100 border-gray-600' : 'bg-gray-50 text-gray-900 border-gray-300'} border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200`}
+            >
+              <option value="">Create new session</option>
+              {sessions.map((s) => (
+                <option key={s.id} value={s.id}>Overwrite: {s.name}</option>
+              ))}
+            </select>
+
+            {saveTargetId ? (
+              <p className={`text-sm ${nightMode ? 'text-amber-400' : 'text-amber-600'} mb-1`}>
+                This will overwrite &ldquo;{sessions.find(s => s.id === saveTargetId)?.name}&rdquo; with your current selections.
+              </p>
+            ) : (
+              <input
+                type="text"
+                value={newSessionName}
+                onChange={(e) => setNewSessionName(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSaveSession()}
+                placeholder="Enter session name..."
+                className={`w-full px-4 py-3 ${nightMode ? 'bg-gray-700 text-gray-100 border-gray-600' : 'bg-gray-50 text-gray-900 border-gray-300'} border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200`}
+                autoFocus
+              />
+            )}
             <div className="flex gap-3 mt-4">
               <button
                 onClick={handleSaveSession}
                 className="flex-1 px-6 py-3 bg-gradient-to-r from-primary-600 to-purple-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300"
               >
-                Save
+                {saveTargetId ? 'Overwrite' : 'Save'}
               </button>
               <button
                 onClick={() => {
                   setShowSaveDialog(false);
                   setNewSessionName('');
+                  setSaveTargetId('');
                 }}
                 className={`flex-1 px-6 py-3 ${nightMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'} font-semibold rounded-xl transition-all duration-300`}
               >
@@ -383,61 +466,100 @@ export default function Sessions({
           </div>
         ) : (
           <div className="space-y-3">
-            {sessions.map((session, index) => (
+            {sessions.map((session, index) => {
+              const isEditing = editingId === session.id;
+              return (
               <div
                 key={session.id}
-                className={`${nightMode ? 'bg-gray-700 hover:bg-gray-650' : 'bg-gray-50 hover:bg-gray-100'} rounded-xl p-4 transition-all duration-200 animate-slide-in-up`}
+                draggable={!isEditing}
+                onDragStart={() => handleDragStart(index)}
+                onDragOver={(e) => handleDragOver(e, index)}
+                onDrop={() => handleDrop(index)}
+                onDragEnd={handleDragEnd}
+                className={`${nightMode ? 'bg-gray-700 hover:bg-gray-650' : 'bg-gray-50 hover:bg-gray-100'} rounded-xl p-4 transition-all duration-200 animate-slide-in-up ${
+                  dragIndex === index ? 'opacity-40' : ''
+                } ${
+                  dragOverIndex === index && dragIndex !== index
+                    ? nightMode ? 'ring-2 ring-primary-500' : 'ring-2 ring-primary-400'
+                    : ''
+                }`}
                 style={{ animationDelay: `${index * 0.05}s` }}
               >
                 <div className="flex items-start justify-between gap-4">
+                  {/* Drag handle */}
+                  {!isEditing && (
+                    <span
+                      className={`cursor-move select-none pt-1 ${nightMode ? 'text-gray-500' : 'text-gray-400'}`}
+                      title="Drag to reorder"
+                    >
+                      ⋮⋮
+                    </span>
+                  )}
                   <div className="flex-1 min-w-0">
-                    {editingId === session.id ? (
-                      <input
-                        type="text"
-                        value={editingName}
-                        onChange={(e) => setEditingName(e.target.value)}
-                        onKeyPress={(e) => {
-                          if (e.key === 'Enter') {
-                            handleUpdateSessionName(session.id);
-                          } else if (e.key === 'Escape') {
-                            setEditingId(null);
-                            setEditingName('');
-                          }
-                        }}
-                        className={`w-full px-3 py-2 ${nightMode ? 'bg-gray-600 text-gray-100 border-gray-500' : 'bg-white text-gray-900 border-gray-300'} border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                        autoFocus
-                      />
+                    {isEditing ? (
+                      <div className="space-y-2">
+                        <div>
+                          <label className={`block text-xs font-medium mb-1 ${nightMode ? 'text-gray-400' : 'text-gray-500'}`}>Name</label>
+                          <input
+                            type="text"
+                            value={editingName}
+                            onChange={(e) => setEditingName(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleSaveEdit(session.id);
+                              else if (e.key === 'Escape') cancelEditing();
+                            }}
+                            placeholder="Session name"
+                            className={`w-full px-3 py-2 ${nightMode ? 'bg-gray-600 text-gray-100 border-gray-500' : 'bg-white text-gray-900 border-gray-300'} border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                            autoFocus
+                          />
+                        </div>
+                        <div>
+                          <label className={`block text-xs font-medium mb-1 ${nightMode ? 'text-gray-400' : 'text-gray-500'}`}>Browser location</label>
+                          <input
+                            type="text"
+                            value={editingRegion}
+                            onChange={(e) => setEditingRegion(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleSaveEdit(session.id);
+                              else if (e.key === 'Escape') cancelEditing();
+                            }}
+                            placeholder="e.g. chr1:1,000,000-2,000,000 (leave empty for default)"
+                            className={`w-full px-3 py-2 ${nightMode ? 'bg-gray-600 text-gray-100 border-gray-500' : 'bg-white text-gray-900 border-gray-300'} border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm`}
+                          />
+                        </div>
+                      </div>
                     ) : (
                       <h3 className={`text-lg font-semibold ${nightMode ? 'text-gray-100' : 'text-gray-900'} truncate`}>
                         {session.name}
                       </h3>
                     )}
-                    <p className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-600'} mt-1`}>
-                      {formatSelection(session)}
-                    </p>
-                    <p className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-600'} mt-1`}>
-                      {formatTrackSelection(session)}
-                    </p>
-                    <p className={`text-xs ${nightMode ? 'text-gray-500' : 'text-gray-500'} mt-1`}>
-                      Saved: {formatDate(session.timestamp)}
-                    </p>
+                    {!isEditing && (
+                      <>
+                        <p className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-600'} mt-1`}>
+                          {formatSelection(session)}
+                        </p>
+                        <p className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-600'} mt-1`}>
+                          {formatTrackSelection(session)}
+                        </p>
+                        <p className={`text-xs ${nightMode ? 'text-gray-500' : 'text-gray-500'} mt-1`}>
+                          Saved: {formatDate(session.timestamp)}
+                        </p>
+                      </>
+                    )}
                   </div>
 
                   <div className="flex gap-2 flex-shrink-0">
-                    {editingId === session.id ? (
+                    {isEditing ? (
                       <>
                         <button
-                          onClick={() => handleUpdateSessionName(session.id)}
+                          onClick={() => handleSaveEdit(session.id)}
                           className="p-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-200"
                           title="Save"
                         >
                           <CheckIcon className="w-5 h-5" />
                         </button>
                         <button
-                          onClick={() => {
-                            setEditingId(null);
-                            setEditingName('');
-                          }}
+                          onClick={cancelEditing}
                           className={`p-2 ${nightMode ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-300 hover:bg-gray-400'} rounded-lg transition-all duration-200`}
                           title="Cancel"
                         >
@@ -454,12 +576,9 @@ export default function Sessions({
                           <ArrowUpTrayIcon className="w-5 h-5" />
                         </button>
                         <button
-                          onClick={() => {
-                            setEditingId(session.id);
-                            setEditingName(session.name);
-                          }}
+                          onClick={() => startEditing(session)}
                           className={`p-2 ${nightMode ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-300 hover:bg-gray-400'} rounded-lg transition-all duration-200`}
-                          title="Rename"
+                          title="Edit name & location"
                         >
                           <PencilSquareIcon className="w-5 h-5" />
                         </button>
@@ -475,7 +594,8 @@ export default function Sessions({
                   </div>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

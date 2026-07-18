@@ -112,6 +112,52 @@ export function saveSession(
 }
 
 /**
+ * Overwrite an existing session's content (data selector state + tracks),
+ * keeping its id and name. Updates the timestamp.
+ */
+export function overwriteSession(
+  sessionId: string,
+  dataSelectorState: DataSelectorState,
+  tracks: Track[]
+): void {
+  const sessions = getSessions();
+  const sessionIndex = sessions.findIndex(s => s.id === sessionId);
+
+  if (sessionIndex !== -1) {
+    sessions[sessionIndex] = {
+      ...sessions[sessionIndex],
+      timestamp: Date.now(),
+      dataSelectorState,
+      tracks: serializeTracks(tracks),
+    };
+    localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
+  }
+}
+
+/**
+ * Update the saved browser view region (location) for a session
+ */
+export function updateSessionViewRegion(sessionId: string, region: string): void {
+  const sessions = getSessions();
+  const sessionIndex = sessions.findIndex(s => s.id === sessionId);
+
+  if (sessionIndex !== -1) {
+    sessions[sessionIndex].dataSelectorState = {
+      ...sessions[sessionIndex].dataSelectorState,
+      userViewRegion: region || undefined,
+    };
+    localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
+  }
+}
+
+/**
+ * Persist a new ordering of sessions
+ */
+export function reorderSessions(newOrder: SessionData[]): void {
+  localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(newOrder.slice(0, MAX_SESSIONS)));
+}
+
+/**
  * Delete a session by ID
  */
 export function deleteSession(sessionId: string): void {

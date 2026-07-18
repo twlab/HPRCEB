@@ -1,5 +1,15 @@
 import { useState } from 'react';
-import { ArrowRightIcon, ChartBarIcon, DocumentTextIcon, GlobeAltIcon, SwatchIcon } from '@heroicons/react/24/outline';
+import {
+  ArrowRightIcon,
+  Square3Stack3DIcon,
+  WindowIcon,
+  GlobeAmericasIcon,
+  ChartBarIcon,
+  LockOpenIcon,
+  CubeTransparentIcon,
+  CircleStackIcon,
+} from '@heroicons/react/24/outline';
+import { LuDna } from 'react-icons/lu';
 import { getGenomeData, getDataStatistics } from '../utils/genomeDataService';
 import { setCookie } from '../utils/cookieUtils';
 
@@ -30,7 +40,7 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
   const features = [
     {
       icon: (
-        <DocumentTextIcon className="w-8 h-8" />
+        <LuDna className="w-8 h-8" />
       ),
       title: "Complete Genome Assemblies",
       description: "Access high-quality haplotype-resolved genome assemblies from diverse populations worldwide.",
@@ -38,7 +48,7 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
     },
     {
       icon: (
-        <SwatchIcon className="w-8 h-8" />
+        <Square3Stack3DIcon className="w-8 h-8" />
       ),
       title: "Epigenomic Landscapes",
       description: "Explore DNA methylation, chromatin accessibility, chromatin conformation, and gene expression across the pangenome.",
@@ -46,7 +56,7 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
     },
     {
       icon: (
-        <ChartBarIcon className="w-8 h-8" />
+        <WindowIcon className="w-8 h-8" />
       ),
       title: "Interactive Browser",
       description: "Visualize genomic and epigenomic data with an integrated genome browser interface.",
@@ -54,7 +64,7 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
     },
     {
       icon: (
-        <GlobeAltIcon className="w-8 h-8" />
+        <GlobeAmericasIcon className="w-8 h-8" />
       ),
       title: "Population Diversity",
       description: "Investigate genetic and epigenetic variation across African, American, Asian, European, and South Asian populations.",
@@ -62,14 +72,15 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
     }
   ];
 
+  const statIconClass = "w-8 h-8 mx-auto text-primary-600";
   const stats = [
-    { label: "Genome Assemblies", value: totalGenomes, icon: "🧬" },
-    { label: "Methylation Samples", value: withMethylation, icon: "🔬" },
-    { label: "Expression Data", value: withExpression, icon: "📊" },
-    { label: "Chromatin Accessibility", value: withChromatinAccessibility, icon: "🧪" },
-    { label: "Chromatin Conformation", value: withChromatinConformation, icon: "🔗" },
-    { label: "Total Data Size", value: `${totalDataSize.toFixed(1)} TB`, icon: "💾" },
-    { label: "Global Populations", value: "5", icon: "🌍" }
+    { label: "Genome Assemblies", value: totalGenomes, icon: <LuDna className={statIconClass} /> },
+    { label: "Expression Data", value: withExpression, icon: <ChartBarIcon className={statIconClass} /> },
+    { label: "Chromatin Accessibility", value: withChromatinAccessibility, icon: <LockOpenIcon className={statIconClass} /> },
+    { label: "Chromatin Conformation", value: withChromatinConformation, icon: <CubeTransparentIcon className={statIconClass} /> },
+    { label: "Methylation Samples", value: withMethylation, icon: <LuDna className={statIconClass} /> },
+    { label: "Total Data Size", value: `${totalDataSize.toFixed(1)} TB`, icon: <CircleStackIcon className={statIconClass} /> },
+    { label: "Global Populations", value: "5", icon: <GlobeAmericasIcon className={statIconClass} /> }
   ];
 
   return (
@@ -156,7 +167,7 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
                   key={index}
                   className="bg-white/80 backdrop-blur-md border border-primary-200 rounded-xl p-4 hover:bg-white transition-all duration-300 hover:scale-105 shadow-lg"
                 >
-                  <div className="text-3xl mb-2">{stat.icon}</div>
+                  <div className="mb-2 flex justify-center">{stat.icon}</div>
                   <div className="text-2xl md:text-3xl font-bold text-gray-800 mb-1">{stat.value}</div>
                   <div className="text-xs text-gray-600 uppercase tracking-wide">{stat.label}</div>
                 </div>

@@ -14,15 +14,14 @@ import {
   ChevronUpIcon,
   ChevronDownIcon,
   InformationCircleIcon,
-  CubeIcon,
   ArrowPathIcon,
-  ShieldCheckIcon,
-  ArrowTrendingUpIcon,
+  ChartBarIcon,
   LockOpenIcon,
   CubeTransparentIcon,
   TagIcon,
 } from '@heroicons/react/24/outline';
-import type { ComponentType, SVGProps } from 'react';
+import { LuDna } from 'react-icons/lu';
+import type { ComponentType } from 'react';
 
 interface DataAvailabilityMatrixProps {
   nightMode?: boolean;
@@ -64,13 +63,13 @@ const DATA_TYPE_LABELS_FULL: Record<string, string> = {
   annotation: 'Annotation',
 };
 
-type IconComponent = ComponentType<SVGProps<SVGSVGElement>>;
+type IconComponent = ComponentType<{ className?: string }>;
 
 const DATA_TYPE_ICONS: Record<string, IconComponent> = {
-  assembly: CubeIcon,
+  assembly: LuDna,
   repeatmasker: ArrowPathIcon,
-  methylation: ShieldCheckIcon,
-  expression: ArrowTrendingUpIcon,
+  methylation: LuDna,
+  expression: ChartBarIcon,
   chromatin_accessibility: LockOpenIcon,
   chromatin_conformation: CubeTransparentIcon,
   annotation: TagIcon,
