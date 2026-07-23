@@ -100,7 +100,7 @@ export function selectTracks(input: TrackSelectionInput): TrackSelectionOutput {
   // console.log("reference", reference);
   // console.log("availableTracks", availableTracks);
   // console.log("selectedLayers", selectedLayers);
-
+  let chm13_adapter_i = 0;
 
   const default_tracks = reference === "t2t-chm13-v2.0" 
     ? chm13_default_tracks 
@@ -132,7 +132,7 @@ export function selectTracks(input: TrackSelectionInput): TrackSelectionOutput {
 
     let sample_tracks_result: Track[] = [];
     if (sample_tracks) {
-      for (const track of sample_tracks) {
+      for (let track of sample_tracks) {
         let coord = track.browser_attributes.coordinate;
         let isSelected = true;
         if (coord === "chm13") {
@@ -142,7 +142,7 @@ export function selectTracks(input: TrackSelectionInput): TrackSelectionOutput {
 
         if (coord !== reference) {
             if (["hg38", "t2t-chm13-v2.0"].includes(coord)) {
-                continue;
+              continue
             }
         }
 

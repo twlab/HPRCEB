@@ -65,13 +65,13 @@ for s in rna_seq_samples:
 
 
 for s in genome_align_samples:
-    for ref in ["chm13"]:
+    for ref in ["hg38", "chm13"]:
         if s in omnic_samples:
-            track_name = f"{s} Omni-c"
+            track_name = f"{s} Hi-C"
             url = f"https://wangcluster.wustl.edu/~wzhang/tmp/contact_map.hic"
             url = f"https://hprc-epigenome.s3.us-east-2.amazonaws.com/samples/{s}/chm13.hic"
 
-            data_attrs = json.dumps({"description": f"Omni-C"})
+            data_attrs = json.dumps({"description": f"Hi-C"})
             browser_attrs = json.dumps({"coordinate": f"chm13", "type": "hic", "url": url, "name": track_name, "options":{"displayMode": "heatmap", "normalization": "KR", "binSize": "10000"}})
             l = [s, "chromatin_conformation", 3800000000, data_attrs, browser_attrs]
             line = "\t".join(list(map(str, l)))
@@ -132,6 +132,22 @@ for s in genome_align_samples:
             line = "\t".join(list(map(str, l)))
             tracks_example += line + "\n"
 
+        if s in rna_seq_samples:
+            for split in ["specific", "combined"]:
+                for strand in ["plus", "minus"]:
+                    track_name = f"{s} Kinnex ({strand} strand) haplotype {split}"
+                    url = f"https://hprc-epigenome.s3.us-east-2.amazonaws.com/samples/{s}/expression.{strand}.hap{h}.{split}.bw"
+
+                    data_attrs = json.dumps(
+                        {"platform": "PacBio Kinnex", "processing_tool": "minimap", "file_format": "bigWig",
+                         "description": "PacBio Kinnex"})
+                    browser_attrs = json.dumps({"coordinate": f"{s}_{h}", "type": "bigwig", "url": url, "name": track_name, "metadata": {"genome": f"{s}_{h}",},
+                                                "options": {"color": rna_seq_color1, "color2": rna_seq_color2}})
+                    l = [s, "expression", 12000000, data_attrs, browser_attrs]
+                    line = "\t".join(list(map(str, l)))
+
+                    tracks_example += line + "\n"
+
         if s in ont_methylation_samples:
             track_name = f"hap{h} ONT methylation"
             # url = f"https://wangcluster.wustl.edu/~wzhang/projects/HPRCEN/data/methylation_modbed/{s}_ONT.{h}.modbed.gz"
@@ -159,21 +175,40 @@ for s in genome_align_samples:
             track_name = f"hap{h} ONT FiberSeq"
             url = f"https://hprc-epigenome.s3.us-east-2.amazonaws.com/samples/{s}/fiberseq.ONT.hap{h}.modbed.gz"
 
-            data_attrs = json.dumps({"description": f"ONT FiberSeq"})
+            data_attrs = json.dumps({"description": f"ONT Fiber-seq raw 6mA"})
             browser_attrs = json.dumps({"coordinate": f"{s}_{h}", "type": "modbed", "url": url, "name": track_name, "metadata": {"genome": f"{s}_{h}"}, "options":{"color":fiberseq_color1, "displayMode": "summary"}})
             l = [s, "chromatin_accessibility", 720000000, data_attrs, browser_attrs]
             line = "\t".join(list(map(str, l)))
             tracks_example += line + "\n"
 
+            for tn in ["fire.coverage", "percent.accessible", "linker.coverage", "nucleosome.coverage"]:
+                track_name = f"hap{h} ONT FiberSeq {tn}"
+                url = f"https://hprc-epigenome.s3.us-east-2.amazonaws.com/samples/{s}/fiberseq.ONT.all.{tn}.bw"
+                data_attrs = json.dumps({"description": f"ONT Fiber-seq {tn}"})
+                browser_attrs = json.dumps({"coordinate": f"{s}_{h}", "type": "bigwig", "url": url, "name": track_name, "metadata": {"genome": f"{s}_{h}"}, "options":{"color":fiberseq_color1}})
+                l = [s, "chromatin_accessibility", 720000000, data_attrs, browser_attrs]
+                line = "\t".join(list(map(str, l)))
+                tracks_example += line + "\n"
+
         if s in pacbio_fiberseq_samples:
             track_name = f"hap{h} PacBio FiberSeq"
             url = f"https://hprc-epigenome.s3.us-east-2.amazonaws.com/samples/{s}/fiberseq.PacBio.hap{h}.modbed.gz"
 
-            data_attrs = json.dumps({"description": f"PacBio FiberSeq"})
+            data_attrs = json.dumps({"description": f"PacBio Fiber-seq raw 6mA"})
             browser_attrs = json.dumps({"coordinate": f"{s}_{h}", "type": "modbed", "url": url, "name": track_name, "metadata": {"genome": f"{s}_{h}"}, "options":{"color":fiberseq_color2, "displayMode": "summary"}})
             l = [s, "chromatin_accessibility", 220000000, data_attrs, browser_attrs]
             line = "\t".join(list(map(str, l)))
             tracks_example += line + "\n"
+
+            for tn in ["fire.coverage", "percent.accessible", "linker.coverage", "nucleosome.coverage"]:
+                track_name = f"hap{h} PacBio FiberSeq {tn}"
+                url = f"https://hprc-epigenome.s3.us-east-2.amazonaws.com/samples/{s}/fiberseq.PacBio.all.{tn}.bw"
+                data_attrs = json.dumps({"description": f"PacBio Fiber-seq {tn}"})
+                browser_attrs = json.dumps({"coordinate": f"{s}_{h}", "type": "bigwig", "url": url, "name": track_name, "metadata": {"genome": f"{s}_{h}"}, "options":{"color":fiberseq_color2}})
+                l = [s, "chromatin_accessibility", 720000000, data_attrs, browser_attrs]
+                line = "\t".join(list(map(str, l)))
+                tracks_example += line + "\n"
+
         
 
 
