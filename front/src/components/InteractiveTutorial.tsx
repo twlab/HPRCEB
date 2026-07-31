@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import type { TabType } from './TabNavigation';
 
 interface TutorialStep {
   title: string;
@@ -14,7 +15,7 @@ interface InteractiveTutorialProps {
   nightMode: boolean;
   onComplete: () => void;
   onSkip: () => void;
-  onTabChange?: (tab: string) => void;
+  onTabChange?: (tab: TabType) => void;
 }
 
 export default function InteractiveTutorial({ 

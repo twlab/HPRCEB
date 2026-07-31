@@ -132,7 +132,6 @@ export default function Tracks({
   const toggleTrack = (index: number) => {
     // Check if this track can be toggled
     if (!canToggleTrack(index)) {
-      console.log("Tracks: cannot disable track at index", index, "- other tracks depend on its query genome");
       return;
     }
     
@@ -152,7 +151,6 @@ export default function Tracks({
         const alignTrackIndex = queryGenomeToAlignTrackIndex.get(coordinate)!;
         // Enable the genome align track if it's not already selected
         if (!tracks[alignTrackIndex].isSelected) {
-          console.log("Tracks: auto-enabling genome align track at index", alignTrackIndex, "for coordinate", coordinate);
           newTracks = newTracks.map((t, i) => 
             i === alignTrackIndex ? { ...t, isSelected: true } : t
           );
@@ -160,7 +158,6 @@ export default function Tracks({
       }
     }
     
-    console.log("Tracks: toggling index", index, "new selected count:", newTracks.filter(t => t.isSelected).length);
     onTracksChange(newTracks);
   };
 

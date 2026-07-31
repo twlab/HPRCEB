@@ -257,18 +257,6 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
                     <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>Assembly Size</p>
                     <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>{getSampleDataSize(selectedGenomeForDetails.id, ['assembly']).toFixed(1)} GB</p>
                   </div>
-                  {selectedGenomeForDetails.quality && (
-                    <div>
-                      <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>Quality</p>
-                      <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>{selectedGenomeForDetails.quality}</p>
-                    </div>
-                  )}
-                  {selectedGenomeForDetails.contigN50 && (
-                    <div>
-                      <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>Contig N50</p>
-                      <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>{selectedGenomeForDetails.contigN50.toLocaleString()}</p>
-                    </div>
-                  )}
                   {selectedGenomeForDetails.biosample_id && (
                     <div>
                       <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>Biosample ID</p>
@@ -305,25 +293,6 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
                       <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>{selectedGenomeForDetails.latitude}</p>
                     </div>
                   )}
-                  {/* Additional metadata fields (excluding family info and already displayed fields) */}
-                  {selectedGenomeForDetails.metadata && Object.entries(selectedGenomeForDetails.metadata).map(([key, value]) => {
-                    // Skip family-related fields, already displayed fields, and empty values
-                    const familyFields = ['family_id', 'paternal_id', 'maternal_id', 'trio_available'];
-                    const alreadyDisplayedFields = ['biosample_id', 'population_descriptor', 'population_abbreviation', 'super_population', 'longitude', 'latitude', 'quality', 'contig_n50'];
-                    if (familyFields.includes(key) || alreadyDisplayedFields.includes(key) || !value || value === '' || value === 'NA' || value === 'N/A') {
-                      return null;
-                    }
-                    return (
-                      <div key={key}>
-                        <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>
-                          {key.replace(/_/g, ' ')}
-                        </p>
-                        <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>
-                          {typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value)}
-                        </p>
-                      </div>
-                    );
-                  })}
                 </div>
               </div>
 

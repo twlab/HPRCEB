@@ -99,7 +99,7 @@ export function createDataChart(
         tooltip: {
           callbacks: {
             label: function (context) {
-              return context.dataset.label + ": " + context.parsed.y.toFixed(1) + " GB";
+              return context.dataset.label + ": " + (context.parsed.y ?? 0).toFixed(1) + " GB";
             },
           },
         },

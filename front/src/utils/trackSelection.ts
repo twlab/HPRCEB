@@ -153,12 +153,21 @@ export function selectTracks(input: TrackSelectionInput): TrackSelectionOutput {
           }
         }
 
+        if (track.browser_attributes.name.includes("CpG islands") && !selectedLayers.includes("methylation")) {
+          isSelected = false;
+        }
+
         if (track.browser_attributes.name.includes("HMM Flagger")) {
           isSelected = false;
         }
 
 
         if (track.browser_attributes.name.includes("gene")) {
+          isSelected = false;
+        }
+
+
+        if (track.browser_attributes.name.endsWith("Fiber-seq raw m6A")) {
           isSelected = false;
         }
 

@@ -17,7 +17,6 @@ export default function ReferenceGenomeSelection({
   nightMode = false 
 }: ReferenceGenomeSelectionProps) {
   const handleGenomeChange = (genome: string) => {
-    console.log(`[Reference Genome] Changed to: ${genome}`);
     onReferenceGenomeChange(genome);
   };
   

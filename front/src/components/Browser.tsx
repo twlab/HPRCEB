@@ -116,11 +116,6 @@ export default function Browser({ tracks: tracksProp, selectedGenomes, reference
     [onViewRegionChange],
   );
 
-  console.log(storeConfig)
-  console.log(viewRegionMemo)
-  console.log(tracks)
-  console.log()
-
   return (
     <div
       className={`${isFullscreen ? 'h-screen' : 'h-full flex flex-col'} ${nightMode ? 'text-gray-200' : 'text-gray-800'}`}
