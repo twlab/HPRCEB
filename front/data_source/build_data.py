@@ -6,7 +6,8 @@ Reads:
   - samples.tsv: Sample metadata (one line per sample)
 
 Generates:
-  - ../public/data/genomes.json: Sample metadata JSON for portal
+  - genomes.json: Sample metadata JSON for portal (build.sh symlinks it into
+    ../public/data/ alongside the other generated files)
 
 Note: Track data is loaded directly from tracks.tsv in the frontend.
 
@@ -128,8 +129,7 @@ if __name__ == '__main__':
     # Set up paths (resolve to absolute paths)
     script_dir = Path(__file__).parent.resolve()
     samples_file = script_dir / 'samples.tsv'
-    # Output goes to ../public/data/genomes.json (relative to data_source/)
-    output_file = script_dir.parent / 'public' / 'data' / 'genomes.json'
+    output_file = script_dir / 'genomes.json'
     
     print(f"Output will be written to: {output_file.resolve()}")
     print()

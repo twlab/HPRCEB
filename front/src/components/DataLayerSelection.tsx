@@ -66,7 +66,7 @@ const layers: Array<{
   {
     id: 'chromatin_conformation',
     title: 'Chromatin Conformation',
-    description: '3D genome organization and chromatin interactions (Only available in CHM13)',
+    description: '3D genome organization and chromatin interactions',
     technology: 'Omni-C',
     colorClass: 'purple',
     hoverColor: 'hover:border-purple-300',
