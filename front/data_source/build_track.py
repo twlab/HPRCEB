@@ -71,7 +71,7 @@ for s in genome_align_samples:
             url = f"https://hprc-epigenome.s3.us-east-2.amazonaws.com/samples/{s}/{ref}.hic"
 
             data_attrs = json.dumps({"description": f"Hi-C"})
-            browser_attrs = json.dumps({"coordinate": f"{ref}", "type": "hic", "url": url, "name": track_name, "options":{"displayMode": "heatmap", "normalization": "KR", "binSize": "10000"}})
+            browser_attrs = json.dumps({"coordinate": f"{ref}", "type": "hic", "url": url, "name": track_name, "options":{"displayMode": "heatmap", "normalization": "SCALE", "binSize": "10000"}})
             l = [s, "chromatin_conformation", 3800000000, data_attrs, browser_attrs]
             line = "\t".join(list(map(str, l)))
             tracks_example += line + "\n"
