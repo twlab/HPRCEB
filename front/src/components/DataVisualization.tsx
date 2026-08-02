@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ChartBarIcon, DocumentChartBarIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { DocumentChartBarIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import StepBadge, { stepBorder } from './StepBadge';
 import { getGenomeData, hasDataType, getSampleDataSize } from '../utils/genomeDataService';
-import { createDataChart } from '../utils/chartUtils';
 import type { DataLayer, Genome } from '../utils/genomeTypes';
 import { POPULATION_MAP } from '../utils/constants';
 
@@ -12,14 +12,13 @@ interface DataVisualizationProps {
   nightMode?: boolean;
   onReorderGenomes?: (newOrder: string[]) => void;
   onRemoveGenome?: (genomeId: string) => void;
+  needsAttention?: boolean;
 }
 
-export default function DataVisualization({ selectedGenomes, selectedLayers, nightMode = false, onReorderGenomes, onRemoveGenome }: DataVisualizationProps) {
-  const [currentView, setCurrentView] = useState<'table' | 'chart'>('table');
+export default function DataVisualization({ selectedGenomes, selectedLayers, nightMode = false, onReorderGenomes, onRemoveGenome, needsAttention = false }: DataVisualizationProps) {
   const [selectedGenomeForDetails, setSelectedGenomeForDetails] = useState<Genome | null>(null);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
-  const chartCanvasRef = useRef<HTMLCanvasElement>(null);
 
   const canReorder = !!onReorderGenomes;
 
@@ -54,12 +53,6 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
   const genomeData = getGenomeData();
   const isEmpty = selectedGenomes.length === 0;
 
-  useEffect(() => {
-    if (!isEmpty && currentView === 'chart' && chartCanvasRef.current) {
-      createDataChart(selectedGenomes, selectedLayers, chartCanvasRef.current);
-    }
-  }, [selectedGenomes, selectedLayers, currentView, isEmpty]);
-
   const renderTableRows = () => {
     return selectedGenomes.map((genomeId, index) => {
       const genome = genomeData.find((g) => g.id === genomeId);
@@ -78,8 +71,6 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
       if (selectedLayers.includes("chromatin_conformation") && hasDataType(genomeId, 'chromatin_conformation')) {
         layers.push(<span key="chromatin_conformation" className="px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded">Chromatin Conformation</span>);
       }
-
-      const assemblySize = getSampleDataSize(genomeId, ['assembly']);
 
       return (
         <tr
@@ -108,7 +99,6 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
               ? `${genome.population_abbreviation} / ${genome.super_population}`
               : genome.population_abbreviation || genome.super_population || 'N/A'}
           </td>
-          <td className={`px-6 py-2.5 whitespace-nowrap text-sm ${nightMode ? 'text-gray-300' : 'text-gray-500'}`}>{assemblySize.toFixed(1)} GB</td>
           <td className={`px-6 py-2.5 whitespace-nowrap text-sm ${nightMode ? 'text-gray-300' : 'text-gray-500'}`}>
             <div className="flex gap-1 flex-wrap">
               {layers.length > 0 ? layers : <span className={`text-xs italic ${nightMode ? 'text-gray-400' : 'text-gray-400'}`}>No layers selected</span>}
@@ -144,43 +134,11 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
   };
 
   return (
-    <div className={`${nightMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-2xl shadow-fancy border p-5 hover-lift transition-colors duration-300 min-h-[360px]`}>
+    <div className={`${nightMode ? 'bg-gray-800' : 'bg-white'} ${stepBorder(nightMode, needsAttention)} rounded-2xl shadow-fancy border p-5 hover-lift transition-all duration-300 min-h-[360px]`}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-lg flex items-center justify-center">
-            <ChartBarIcon className="w-4 h-4 text-white" />
-          </div>
+          <StepBadge step={4} needsAttention={needsAttention} nightMode={nightMode} />
           <h2 className={`text-lg font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>Data Overview</h2>
-        </div>
-        <div className="flex gap-2">
-          <button 
-            onClick={() => setCurrentView('table')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all shadow-sm ${
-              currentView === 'table'
-                ? nightMode 
-                  ? 'text-gray-100 bg-gradient-to-r from-gray-700 to-gray-600'
-                  : 'text-gray-700 bg-gradient-to-r from-gray-100 to-gray-50'
-                : nightMode
-                  ? 'text-gray-300 bg-gray-800 border border-gray-600 hover:border-gray-500'
-                  : 'text-gray-700 bg-white border border-gray-200 hover:border-gray-300'
-            }`}
-          >
-            📊 Table
-          </button>
-          <button 
-            onClick={() => setCurrentView('chart')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all shadow-sm ${
-              currentView === 'chart'
-                ? nightMode 
-                  ? 'text-gray-100 bg-gradient-to-r from-gray-700 to-gray-600'
-                  : 'text-gray-700 bg-gradient-to-r from-gray-100 to-gray-50'
-                : nightMode
-                  ? 'text-gray-300 bg-gray-800 border border-gray-600 hover:border-gray-500'
-                  : 'text-gray-700 bg-white border border-gray-200 hover:border-gray-300'
-            }`}
-          >
-            📈 Chart
-          </button>
         </div>
       </div>
 
@@ -194,7 +152,7 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
       )}
 
       {/* Table View */}
-      {!isEmpty && currentView === 'table' && (
+      {!isEmpty && (
         <div className="overflow-x-auto">
           <table className={`min-w-full divide-y ${nightMode ? 'divide-gray-700' : 'divide-gray-200'}`}>
             <thead className={nightMode ? 'bg-gray-900' : 'bg-gray-50'}>
@@ -202,7 +160,6 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
                 {canReorder && <th className={`pl-4 pr-1 py-2 w-8 ${nightMode ? 'bg-gray-900' : 'bg-gray-50'}`}><span className="sr-only">Reorder</span></th>}
                 <th className={`px-6 py-2 text-left text-xs font-medium ${nightMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>Genome ID</th>
                 <th className={`px-6 py-2 text-left text-xs font-medium ${nightMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>Population</th>
-                <th className={`px-6 py-2 text-left text-xs font-medium ${nightMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>Assembly Size</th>
                 <th className={`px-6 py-2 text-left text-xs font-medium ${nightMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>Data Layers</th>
                 <th className={`px-6 py-2 text-left text-xs font-medium ${nightMode ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>Actions</th>
                 {onRemoveGenome && <th className={`px-4 py-2 w-8 ${nightMode ? 'bg-gray-900' : 'bg-gray-50'}`}><span className="sr-only">Remove</span></th>}
@@ -213,11 +170,6 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
             </tbody>
           </table>
         </div>
-      )}
-
-      {/* Chart View */}
-      {!isEmpty && currentView === 'chart' && (
-        <canvas ref={chartCanvasRef} className="w-full" height="300"></canvas>
       )}
 
       {/* Details Modal - Rendered via Portal */}
@@ -253,10 +205,12 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
                     <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>Sample ID</p>
                     <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>{selectedGenomeForDetails.id}</p>
                   </div>
-                  <div>
-                    <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>Assembly Size</p>
-                    <p className={`text-sm ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>{getSampleDataSize(selectedGenomeForDetails.id, ['assembly']).toFixed(1)} GB</p>
-                  </div>
+                  {selectedGenomeForDetails.sex && (
+                    <div>
+                      <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>Sex</p>
+                      <p className={`text-sm capitalize ${nightMode ? 'text-gray-200' : 'text-gray-900'} mt-1`}>{selectedGenomeForDetails.sex}</p>
+                    </div>
+                  )}
                   {selectedGenomeForDetails.biosample_id && (
                     <div>
                       <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} font-semibold uppercase`}>Biosample ID</p>

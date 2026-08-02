@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { DocumentChartBarIcon } from '@heroicons/react/24/outline';
+import { ChevronRightIcon, DocumentChartBarIcon } from '@heroicons/react/24/outline';
 import {
   getGenomeData,
   getDataTypeCoverage,
@@ -10,6 +10,8 @@ import type { DataType, Coordinate } from '../utils/genomeDataService';
 
 interface CoverageSummaryProps {
   nightMode?: boolean;
+  /** Render as a section inside another card instead of a standalone panel. */
+  embedded?: boolean;
 }
 
 // Short + full labels and a base color per data type (matches the availability matrix hues)
@@ -18,14 +20,15 @@ const DATA_TYPE_META: Record<DataType, { short: string; full: string; color: str
   repeatmasker: { short: 'Repeats', full: 'RepeatMasker', color: '#64748b' },
   methylation: { short: 'Methyl', full: 'Methylation', color: '#06b6d4' },
   expression: { short: 'Expr', full: 'Expression', color: '#10b981' },
-  chromatin_accessibility: { short: 'Chrom Acc', full: 'Chromatin Accessibility', color: '#f59e0b' },
-  chromatin_conformation: { short: 'Chrom Conf', full: 'Chromatin Conformation', color: '#8b5cf6' },
+  chromatin_accessibility: { short: 'Acc.', full: 'Chromatin Accessibility', color: '#f59e0b' },
+  chromatin_conformation: { short: 'Conf.', full: 'Chromatin Conformation', color: '#8b5cf6' },
 };
 
 type SortMode = 'name' | 'coverage';
 
-export default function CoverageSummary({ nightMode = false }: CoverageSummaryProps) {
+export default function CoverageSummary({ nightMode = false, embedded = false }: CoverageSummaryProps) {
   const [sortMode, setSortMode] = useState<SortMode>('coverage');
+  const [showHeatmap, setShowHeatmap] = useState(!embedded);
 
   const genomes = getGenomeData();
   const total = genomes.length;
@@ -57,20 +60,34 @@ export default function CoverageSummary({ nightMode = false }: CoverageSummaryPr
   const card = nightMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100';
   const emptyCell = nightMode ? '#374151' : '#f1f5f9';
 
-  return (
-    <div className={`${card} rounded-2xl shadow-fancy border p-6 mb-6 transition-colors duration-300`}>
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-5">
-        <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-cyan-600 rounded-xl flex items-center justify-center">
-          <DocumentChartBarIcon className="w-5 h-5 text-white" />
-        </div>
-        <div>
-          <h2 className={`text-xl font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>Data Coverage</h2>
-          <p className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-500'}`}>
-            Assay completeness across {total.toLocaleString()} samples
-          </p>
-        </div>
+  const header = embedded ? (
+    <div className="mb-4">
+      <h3 className={`text-sm font-bold ${nightMode ? 'text-gray-200' : 'text-gray-800'}`}>Data Coverage</h3>
+      <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} mt-0.5`}>
+        Assay completeness across {total.toLocaleString()} samples
+      </p>
+    </div>
+  ) : (
+    <div className="flex items-center gap-3 mb-5">
+      <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-cyan-600 rounded-xl flex items-center justify-center">
+        <DocumentChartBarIcon className="w-5 h-5 text-white" />
       </div>
+      <div>
+        <h2 className={`text-xl font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>Data Coverage</h2>
+        <p className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-500'}`}>
+          Assay completeness across {total.toLocaleString()} samples
+        </p>
+      </div>
+    </div>
+  );
+
+  return (
+    <div
+      className={
+        embedded ? '' : `${card} rounded-2xl shadow-fancy border p-6 mb-6 transition-colors duration-300`
+      }
+    >
+      {header}
 
       {/* Completion bars */}
       <div className="space-y-2.5 mb-6">
@@ -80,7 +97,7 @@ export default function CoverageSummary({ nightMode = false }: CoverageSummaryPr
           const meta = DATA_TYPE_META[type];
           return (
             <div key={type} className="flex items-center gap-3">
-              <div className={`w-40 flex-shrink-0 text-sm font-medium ${nightMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              <div className={`${embedded ? 'w-32 text-xs' : 'w-40 text-sm'} flex-shrink-0 font-medium ${nightMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 {meta.full}
               </div>
               <div className={`flex-1 h-6 rounded-md overflow-hidden ${nightMode ? 'bg-gray-700/60' : 'bg-gray-100'}`}>
@@ -101,26 +118,44 @@ export default function CoverageSummary({ nightMode = false }: CoverageSummaryPr
         })}
       </div>
 
-      {/* Heatmap header + sort toggle */}
-      <div className="flex items-center justify-between mb-2">
-        <h3 className={`text-sm font-bold ${nightMode ? 'text-gray-200' : 'text-gray-800'}`}>Per-sample heatmap</h3>
-        <div className="flex items-center gap-1">
-          {(['coverage', 'name'] as SortMode[]).map((mode) => (
-            <button
-              key={mode}
-              onClick={() => setSortMode(mode)}
-              className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors ${
-                sortMode === mode
-                  ? nightMode ? 'bg-primary-700 text-white' : 'bg-primary-600 text-white'
-                  : nightMode ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-500 hover:bg-gray-100'
-              }`}
-            >
-              {mode === 'coverage' ? 'By coverage' : 'A–Z'}
-            </button>
-          ))}
-        </div>
+      {/* Heatmap header + sort toggle. Collapsed by default when embedded —
+          the availability matrix further down the page covers the same ground
+          in more detail, so the panel stays short unless asked. */}
+      <div className="flex items-center justify-between mb-2 gap-2">
+        {embedded ? (
+          <button
+            onClick={() => setShowHeatmap(!showHeatmap)}
+            className={`inline-flex items-center gap-1 text-xs font-bold transition-colors ${
+              nightMode ? 'text-gray-300 hover:text-gray-100' : 'text-gray-700 hover:text-gray-900'
+            }`}
+          >
+            <ChevronRightIcon className={`w-3.5 h-3.5 transition-transform ${showHeatmap ? 'rotate-90' : ''}`} />
+            Per-sample heatmap
+          </button>
+        ) : (
+          <h3 className={`text-sm font-bold ${nightMode ? 'text-gray-200' : 'text-gray-800'}`}>Per-sample heatmap</h3>
+        )}
+        {showHeatmap && (
+          <div className="flex items-center gap-1">
+            {(['coverage', 'name'] as SortMode[]).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setSortMode(mode)}
+                className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors ${
+                  sortMode === mode
+                    ? nightMode ? 'bg-primary-700 text-white' : 'bg-primary-600 text-white'
+                    : nightMode ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-500 hover:bg-gray-100'
+                }`}
+              >
+                {mode === 'coverage' ? 'By coverage' : 'A–Z'}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
+      {showHeatmap && (
+      <>
       {/* Heatmap */}
       <div className={`rounded-xl border overflow-hidden ${nightMode ? 'border-gray-700' : 'border-gray-200'}`}>
         {/* Column headers */}
@@ -184,6 +219,8 @@ export default function CoverageSummary({ nightMode = false }: CoverageSummaryPr
           <span className="w-4 h-4 rounded" style={{ backgroundColor: emptyCell }} /> Not available
         </span>
       </div>
+      </>
+      )}
     </div>
   );
 }

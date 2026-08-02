@@ -1,9 +1,11 @@
-import { DocumentTextIcon, CheckIcon } from '@heroicons/react/24/outline';
+import { CheckIcon } from '@heroicons/react/24/outline';
+import StepBadge, { stepBorder } from './StepBadge';
 
 interface ReferenceGenomeSelectionProps {
   referenceGenome: string;
   onReferenceGenomeChange: (genome: string) => void;
   nightMode?: boolean;
+  needsAttention?: boolean;
 }
 
 const AVAILABLE_GENOMES = [
@@ -11,21 +13,20 @@ const AVAILABLE_GENOMES = [
   { value: "t2t-chm13-v2.0", label: "CHM13 T2T (v2.0)" },
 ];
 
-export default function ReferenceGenomeSelection({ 
-  referenceGenome, 
-  onReferenceGenomeChange, 
-  nightMode = false 
+export default function ReferenceGenomeSelection({
+  referenceGenome,
+  onReferenceGenomeChange,
+  nightMode = false,
+  needsAttention = false,
 }: ReferenceGenomeSelectionProps) {
   const handleGenomeChange = (genome: string) => {
     onReferenceGenomeChange(genome);
   };
-  
+
   return (
-    <div className={`${nightMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-2xl shadow-fancy border p-6 hover-lift transition-colors duration-300`}>
+    <div className={`${nightMode ? 'bg-gray-800' : 'bg-white'} ${stepBorder(nightMode, needsAttention)} rounded-2xl shadow-fancy border p-6 hover-lift transition-all duration-300`}>
       <div className="flex items-center gap-3 mb-5">
-        <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center">
-          <DocumentTextIcon className="w-5 h-5 text-white" />
-        </div>
+        <StepBadge step={1} needsAttention={needsAttention} nightMode={nightMode} />
         <h2 className={`text-xl font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>Reference Genome</h2>
       </div>
       

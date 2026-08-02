@@ -124,7 +124,7 @@ export default function Tutorials({ nightMode = false, onStartInteractiveGuide }
     { name: 'Track', desc: 'Configure which tracks to display in the browser. Enable or disable individual tracks and filter by type. Reference tracks (ruler, genes) and sample tracks (methylation, expression, genome alignments) can be customized. Genome alignment tracks are always enabled.' },
     { name: 'Browser', desc: 'Visualize your configured tracks in the WashU Epigenome Browser. Navigate chromosomes, zoom, and explore data interactively. Supports fullscreen mode (press F or use the fullscreen button).' },
     { name: 'Sessions', desc: 'Save your complete configuration (genomes, data layers, and track selections) as sessions. Store up to 10 sessions, export or import as JSON, and quickly restore your work.' },
-    { name: 'Data Availability Matrix', desc: 'Overview of all genomes and their available data types. Useful for quickly seeing what data is available across samples.' },
+    { name: 'Data Availability', desc: 'Overview of all genomes and their available data types. Useful for quickly seeing what data is available across samples.' },
     { name: 'Tutorials', desc: 'Documentation and guides. You can also restart the interactive tutorial from here.' },
   ];
 

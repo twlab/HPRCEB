@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { RectangleStackIcon, CheckIcon, CpuChipIcon } from '@heroicons/react/24/outline';
+import { CheckIcon, CpuChipIcon } from '@heroicons/react/24/outline';
+import StepBadge, { stepBorder } from './StepBadge';
 import type { DataLayer } from '../utils/genomeTypes';
 
 interface DataLayerSelectionProps {
@@ -7,6 +8,7 @@ interface DataLayerSelectionProps {
   onLayerToggle: (layer: DataLayer) => void;
   onClearAll?: () => void;
   nightMode?: boolean;
+  needsAttention?: boolean;
 }
 
 const layers: Array<{
@@ -76,7 +78,7 @@ const layers: Array<{
   },
 ];
 
-export default function DataLayerSelection({ selectedLayers, onLayerToggle, onClearAll, nightMode = false }: DataLayerSelectionProps) {
+export default function DataLayerSelection({ selectedLayers, onLayerToggle, onClearAll, nightMode = false, needsAttention = false }: DataLayerSelectionProps) {
   useEffect(() => {
     // Update visual states when layers change
     layers.forEach(layer => {
@@ -114,12 +116,10 @@ export default function DataLayerSelection({ selectedLayers, onLayerToggle, onCl
   }, [selectedLayers]);
 
   return (
-    <div className={`${nightMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-2xl shadow-fancy border p-6 hover-lift transition-colors duration-300`}>
+    <div className={`${nightMode ? 'bg-gray-800' : 'bg-white'} ${stepBorder(nightMode, needsAttention)} rounded-2xl shadow-fancy border p-6 hover-lift transition-all duration-300`}>
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
-            <RectangleStackIcon className="w-5 h-5 text-white" />
-          </div>
+          <StepBadge step={3} needsAttention={needsAttention} nightMode={nightMode} />
           <div>
             <h2 className={`text-xl font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>Functional Data Layers</h2>
             <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} mt-0.5`}>

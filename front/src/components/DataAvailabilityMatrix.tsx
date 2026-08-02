@@ -2,8 +2,8 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { getGenomeData, getTrackData, getSampleDataAvailability, DATA_TYPES } from '../utils/genomeDataService';
 import type { TrackEntry, DataType, Coordinate } from '../utils/genomeDataService';
 import type { Genome } from '../utils/genomeTypes';
-import CoverageSummary from './CoverageSummary';
-import PopulationComposition from './PopulationComposition';
+import CohortOverview from './CohortOverview';
+import PopulationDataMap from './PopulationDataMap';
 import {
   MagnifyingGlassIcon,
   DocumentArrowDownIcon,
@@ -657,13 +657,13 @@ export default function DataAvailabilityMatrix({ nightMode = false }: DataAvaila
 
   return (
     <div>
+      <div className="mb-6">
+        <PopulationDataMap nightMode={nightMode} />
+      </div>
+
       <TrackExplorer nightMode={nightMode} trackData={trackData} sampleIds={sampleIds} />
 
-      <CoverageSummary nightMode={nightMode} />
-
-      <div className="mb-6">
-        <PopulationComposition nightMode={nightMode} />
-      </div>
+      <CohortOverview nightMode={nightMode} />
 
       <div
         className={`${

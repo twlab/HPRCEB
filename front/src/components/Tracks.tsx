@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { ChartBarIcon, CheckIcon, FunnelIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import type { Track } from '../utils/trackSelection';
 
@@ -159,6 +159,28 @@ export default function Tracks({
     }
     
     onTracksChange(newTracks);
+  };
+
+  // Where the mouse went down, so a click that was really a text drag can be
+  // told apart from a plain click on the row.
+  const pressOrigin = useRef<{ x: number; y: number } | null>(null);
+
+  const handleRowMouseDown = (e: React.MouseEvent) => {
+    pressOrigin.current = { x: e.clientX, y: e.clientY };
+  };
+
+  // Clicking anywhere on a row toggles it, unless the user is working with the
+  // row's text: a drag-select, a live selection, or the tail of a multi-click.
+  const handleRowClick = (e: React.MouseEvent, index: number) => {
+    if (e.detail > 1) return;
+
+    const selection = window.getSelection();
+    if (selection && !selection.isCollapsed) return;
+
+    const origin = pressOrigin.current;
+    if (origin && Math.hypot(e.clientX - origin.x, e.clientY - origin.y) > 4) return;
+
+    toggleTrack(index);
   };
 
   // Enable all tracks (genome align dependencies are automatically satisfied since all are enabled)
@@ -385,47 +407,47 @@ export default function Tracks({
                 {filteredTracks.map((track) => {
                   const originalIndex = tracks.indexOf(track);
                   const isRef = isReferenceTrack(track, referenceGenome);
-                  
+                  const isLocked = lockedGenomeAlignIndices.has(originalIndex);
+
                   return (
-                    <tr 
-                      key={originalIndex} 
+                    <tr
+                      key={originalIndex}
+                      onMouseDown={handleRowMouseDown}
+                      onClick={(e) => handleRowClick(e, originalIndex)}
                       className={`${
-                        track.isSelected 
-                          ? nightMode ? 'bg-primary-900/20' : 'bg-primary-50' 
+                        track.isSelected
+                          ? nightMode ? 'bg-primary-900/20' : 'bg-primary-50'
                           : nightMode ? 'bg-gray-800' : 'bg-white'
-                      } hover:${nightMode ? 'bg-gray-700' : 'bg-gray-50'} transition-colors`}
+                      } ${isLocked ? 'cursor-not-allowed' : 'cursor-pointer'} hover:${nightMode ? 'bg-gray-700' : 'bg-gray-50'} transition-colors`}
                     >
                       <td className={`px-4 py-3 whitespace-nowrap text-sm ${nightMode ? 'text-gray-400' : 'text-gray-500'}`}>
                         {originalIndex + 1}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        {(() => {
-                          const isLocked = lockedGenomeAlignIndices.has(originalIndex);
-                          return (
-                            <div className="relative group">
-                              <input
-                                type="checkbox"
-                                checked={track.isSelected}
-                                onChange={() => toggleTrack(originalIndex)}
-                                disabled={isLocked}
-                                className={`w-5 h-5 rounded focus:ring-2 focus:ring-primary-500 ${
-                                  isLocked
-                                    ? 'bg-gray-400 border-gray-400 cursor-not-allowed opacity-60'
-                                    : nightMode 
-                                      ? 'bg-gray-700 border-gray-600 checked:bg-primary-600 checked:border-primary-600' 
-                                      : 'bg-white border-gray-300 checked:bg-primary-600'
-                                }`}
-                              />
-                              {isLocked && (
-                                <div className={`absolute left-8 top-1/2 -translate-y-1/2 hidden group-hover:block z-20 
-                                  px-2 py-1 text-xs rounded shadow-lg whitespace-nowrap
-                                  ${nightMode ? 'bg-gray-900 text-gray-200' : 'bg-gray-800 text-white'}`}>
-                                  Cannot disable: other tracks depend on this genome alignment
-                                </div>
-                              )}
+                        <div className="relative group">
+                          <input
+                            type="checkbox"
+                            checked={track.isSelected}
+                            onChange={() => toggleTrack(originalIndex)}
+                            /* the row handles its own clicks; don't toggle twice */
+                            onClick={(e) => e.stopPropagation()}
+                            disabled={isLocked}
+                            className={`w-5 h-5 rounded focus:ring-2 focus:ring-primary-500 ${
+                              isLocked
+                                ? 'bg-gray-400 border-gray-400 cursor-not-allowed opacity-60'
+                                : nightMode
+                                  ? 'bg-gray-700 border-gray-600 checked:bg-primary-600 checked:border-primary-600'
+                                  : 'bg-white border-gray-300 checked:bg-primary-600'
+                            }`}
+                          />
+                          {isLocked && (
+                            <div className={`absolute left-8 top-1/2 -translate-y-1/2 hidden group-hover:block z-20
+                              px-2 py-1 text-xs rounded shadow-lg whitespace-nowrap
+                              ${nightMode ? 'bg-gray-900 text-gray-200' : 'bg-gray-800 text-white'}`}>
+                              Cannot disable: other tracks depend on this genome alignment
                             </div>
-                          );
-                        })()}
+                          )}
+                        </div>
                       </td>
                       <td className={`px-4 py-3 whitespace-nowrap`}>
                         <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${

@@ -1,6 +1,7 @@
-import { ClipboardDocumentIcon, ClipboardDocumentCheckIcon, MagnifyingGlassIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { ClipboardDocumentCheckIcon, MagnifyingGlassIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { getFilteredGenomes } from '../utils/genomeDataService';
 import GenomeList from './GenomeList';
+import StepBadge, { stepBorder } from './StepBadge';
 import type { Population } from '../utils/genomeTypes';
 
 interface GenomeSelectionProps {
@@ -12,6 +13,7 @@ interface GenomeSelectionProps {
   onDeselectAll: () => void;
   onGenomeToggle: (genomeId: string) => void;
   nightMode?: boolean;
+  needsAttention?: boolean;
 }
 
 export default function GenomeSelection({
@@ -23,17 +25,16 @@ export default function GenomeSelection({
   onDeselectAll,
   onGenomeToggle,
   nightMode = false,
+  needsAttention = false,
 }: GenomeSelectionProps) {
   const filteredGenomes = getFilteredGenomes(searchTerm, populationFilter as Population);
   const showWarning = selectedGenomes.length > 5;
 
   return (
     <div>
-      <div className={`${nightMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-2xl shadow-fancy border p-6 sticky top-8 hover-lift transition-colors duration-300`}>
+      <div className={`${nightMode ? 'bg-gray-800' : 'bg-white'} ${stepBorder(nightMode, needsAttention)} rounded-2xl shadow-fancy border p-6 sticky top-8 hover-lift transition-all duration-300`}>
         <div className="flex items-center gap-3 mb-5">
-          <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-purple-600 rounded-xl flex items-center justify-center">
-            <ClipboardDocumentIcon className="w-5 h-5 text-white" />
-          </div>
+          <StepBadge step={2} needsAttention={needsAttention} nightMode={nightMode} />
           <h2 className={`text-xl font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>Sample Selection</h2>
         </div>
         

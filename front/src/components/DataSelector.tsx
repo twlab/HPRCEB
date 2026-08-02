@@ -1,12 +1,11 @@
+import { useState } from 'react';
 import { ChevronRightIcon } from '@heroicons/react/24/outline';
-import StatsCards from './StatsCards';
 import ReferenceGenomeSelection from './ReferenceGenomeSelection';
 import GenomeSelection from './GenomeSelection';
 import DataLayerSelection from './DataLayerSelection';
 import DataVisualization from './DataVisualization';
-import WorldMap from './WorldMap';
+import PopulationDataMap from './PopulationDataMap';
 import PCAPlot from './PCAPlot';
-import { getGenomeData, calculateTotalSize } from '../utils/genomeDataService';
 import type { DataLayer, Population } from '../utils/genomeTypes';
 
 export interface DataSelectorState {
@@ -26,11 +25,11 @@ interface DataSelectorProps {
 }
 
 export default function DataSelector({ state, onStateChange, nightMode = false, onNextTab }: DataSelectorProps) {
+  const [referencePicked, setReferencePicked] = useState(false);
+
   const setState = (updater: (prev: DataSelectorState) => DataSelectorState) => {
     onStateChange(updater(state));
   };
-
-  const totalSize = calculateTotalSize(state.selectedGenomes, state.selectedLayers);
 
   const handleDeselectAllGenomes = () => {
     setState(prev => ({ ...prev, selectedGenomes: [] }));
@@ -58,36 +57,28 @@ export default function DataSelector({ state, onStateChange, nightMode = false, 
     setState(prev => ({ ...prev, selectedLayers: [] }));
   };
 
-  const genomeData = getGenomeData();
-
-  // Calculate super_population counts
-  const populationCounts = genomeData.reduce((acc, genome) => {
-    if (genome.super_population) {
-      acc[genome.super_population] = (acc[genome.super_population] || 0) + 1;
-    }
-    return acc;
-  }, {} as Record<string, number>);
+  // Each numbered step stays lit until it has a selection, so the highlight
+  // walks down the page as the user works through it. The reference genome
+  // ships with a default, so it dims on the first explicit pick rather than on
+  // "has a value".
+  const noSamples = state.selectedGenomes.length === 0;
+  const noLayers = state.selectedLayers.length === 0;
 
   return (
     <>
-      {/* Stats Summary */}
-      <StatsCards
-        totalGenomes={genomeData.length}
-        selectedGenomes={state.selectedGenomes.length}
-        dataLayers={state.selectedLayers.length}
-        totalSize={totalSize}
-        nightMode={nightMode}
-      />
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Panel: Reference Genome and Sample Selection */}
         <div className="lg:col-span-1 space-y-6 animate-slide-in-left">
           <ReferenceGenomeSelection
             referenceGenome={state.referenceGenome}
-            onReferenceGenomeChange={(genome) => setState(prev => ({ ...prev, referenceGenome: genome }))}
+            onReferenceGenomeChange={(genome) => {
+              setReferencePicked(true);
+              setState(prev => ({ ...prev, referenceGenome: genome }));
+            }}
             nightMode={nightMode}
+            needsAttention={!referencePicked}
           />
-          
+
           <GenomeSelection
             searchTerm={state.searchTerm}
             populationFilter={state.populationFilter}
@@ -97,6 +88,7 @@ export default function DataSelector({ state, onStateChange, nightMode = false, 
             onDeselectAll={handleDeselectAllGenomes}
             onGenomeToggle={handleGenomeToggle}
             nightMode={nightMode}
+            needsAttention={noSamples}
           />
         </div>
 
@@ -107,6 +99,7 @@ export default function DataSelector({ state, onStateChange, nightMode = false, 
             onLayerToggle={handleLayerToggle}
             onClearAll={handleClearAllLayers}
             nightMode={nightMode}
+            needsAttention={noLayers}
           />
 
           <DataVisualization
@@ -115,18 +108,18 @@ export default function DataSelector({ state, onStateChange, nightMode = false, 
             nightMode={nightMode}
             onReorderGenomes={(newOrder) => setState(prev => ({ ...prev, selectedGenomes: newOrder }))}
             onRemoveGenome={handleGenomeToggle}
+            needsAttention={noSamples}
           />
         </div>
       </div>
 
       {/* World Map - moved to bottom */}
       <div className="mt-8">
-        <WorldMap
+        <PopulationDataMap
           selectedPopulation={state.populationFilter}
-          populationCounts={populationCounts}
-          selectedGenomes={state.selectedGenomes}
           onPopulationClick={(population) => setState(prev => ({ ...prev, populationFilter: population }))}
           nightMode={nightMode}
+          showIcon={false}
         />
       </div>
 

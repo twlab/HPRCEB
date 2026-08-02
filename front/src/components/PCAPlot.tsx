@@ -10,7 +10,7 @@ import {
   ScatterController,
 } from 'chart.js';
 import zoomPlugin from 'chartjs-plugin-zoom';
-import { PresentationChartLineIcon, ExclamationCircleIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
+import { ExclamationCircleIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 import { POPULATION_NAMES } from '../utils/constants';
 
 ChartJS.register(ScatterController, LinearScale, PointElement, LineElement, Tooltip, Legend, zoomPlugin);
@@ -303,9 +303,6 @@ export default function PCAPlot({ selectedGenomes = [], nightMode = false }: PCA
   return (
     <div className={`${nightMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-2xl shadow-fancy border p-6 hover-lift transition-colors duration-300`}>
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center">
-          <PresentationChartLineIcon className="w-5 h-5 text-white" />
-        </div>
         <div>
           <h2 className={`text-xl font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>
             Principal Component Analysis

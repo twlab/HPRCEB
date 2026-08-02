@@ -8,6 +8,8 @@ interface PopulationCompositionProps {
   selectedPopulation?: Population;
   onPopulationClick?: (population: Population) => void;
   nightMode?: boolean;
+  /** Render as a section inside another card instead of a standalone panel. */
+  embedded?: boolean;
 }
 
 interface PopNode {
@@ -77,6 +79,7 @@ export default function PopulationComposition({
   selectedPopulation = 'all',
   onPopulationClick,
   nightMode = false,
+  embedded = false,
 }: PopulationCompositionProps) {
   const [hovered, setHovered] = useState<{ name: string; count: number } | null>(null);
 
@@ -152,26 +155,53 @@ export default function PopulationComposition({
 
   const card = nightMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100';
   const centerLabel = hovered ? hovered.name : 'Populations';
-  const centerPct = hovered && total > 0 ? `${((hovered.count / total) * 100).toFixed(0)}%` : '';
+  // Hovering a slice shows its sample count alongside its share of the cohort.
+  const centerValue = hovered
+    ? `${hovered.count} · ${total > 0 ? ((hovered.count / total) * 100).toFixed(0) : '0'}%`
+    : `${total}`;
+
+  const header = embedded ? (
+    <div className="mb-4">
+      <h3 className={`text-sm font-bold ${nightMode ? 'text-gray-200' : 'text-gray-800'}`}>Population Composition</h3>
+      <p className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'} mt-0.5`}>
+        Super population → sub-population breakdown
+      </p>
+    </div>
+  ) : (
+    <div className="flex items-center gap-3 mb-4">
+      <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
+        <ChartPieIcon className="w-5 h-5 text-white" />
+      </div>
+      <div>
+        <h2 className={`text-xl font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>Population Composition</h2>
+        <p className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-500'} mt-0.5`}>
+          Super population → sub-population breakdown
+        </p>
+      </div>
+    </div>
+  );
 
   return (
-    <div className={`${card} rounded-2xl shadow-fancy border p-6 hover-lift transition-colors duration-300`}>
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
-          <ChartPieIcon className="w-5 h-5 text-white" />
-        </div>
-        <div>
-          <h2 className={`text-xl font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>Population Composition</h2>
-          <p className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-500'} mt-0.5`}>
-            Super population → sub-population breakdown
-          </p>
-        </div>
-      </div>
+    <div
+      className={
+        embedded
+          ? ''
+          : `${card} rounded-2xl shadow-fancy border p-6 hover-lift transition-colors duration-300`
+      }
+    >
+      {header}
 
-      <div className="flex flex-col lg:flex-row items-center gap-6">
-        {/* Sunburst */}
+      {/* Sunburst on top, legend as a full-width row beneath it */}
+      <div className="flex flex-col items-center gap-4">
+        {/* Sunburst — viewBox stays at SIZE so `embedded` only scales it down */}
         <div className="relative flex-shrink-0">
-          <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`} role="img" aria-label="Population composition sunburst">
+          <svg
+            width={embedded ? 220 : SIZE}
+            height={embedded ? 220 : SIZE}
+            viewBox={`0 0 ${SIZE} ${SIZE}`}
+            role="img"
+            aria-label="Population composition sunburst"
+          >
             {/* outer ring: sub populations */}
             {segments.outer.map((seg, i) => (
               <path
@@ -203,21 +233,18 @@ export default function PopulationComposition({
               />
             ))}
             {/* center label */}
-            <text x={CX} y={centerPct ? CY - 4 : CY + 4} textAnchor="middle" style={{ fontSize: 13, fontWeight: 700, fill: nightMode ? '#e5e7eb' : '#374151' }}>
+            <text x={CX} y={CY - 4} textAnchor="middle" style={{ fontSize: 13, fontWeight: 700, fill: nightMode ? '#e5e7eb' : '#374151' }}>
               {centerLabel}
             </text>
-            {centerPct && (
-              <text x={CX} y={CY + 16} textAnchor="middle" style={{ fontSize: 18, fontWeight: 800, fill: nightMode ? '#a5b4fc' : '#4f46e5' }}>
-                {centerPct}
-              </text>
-            )}
+            <text x={CX} y={CY + 16} textAnchor="middle" style={{ fontSize: 16, fontWeight: 800, fill: nightMode ? '#a5b4fc' : '#4f46e5' }}>
+              {centerValue}
+            </text>
           </svg>
         </div>
 
-        {/* Legend */}
-        <div className="flex-1 w-full space-y-2">
+        {/* Legend — one row of swatch + name; counts live in the hover label */}
+        <div className="w-full flex flex-wrap items-center justify-center gap-1">
           {nodes.map((node) => {
-            const pct = total > 0 ? (node.count / total) * 100 : 0;
             const active = selectedPopulation === node.key;
             return (
               <button
@@ -225,24 +252,17 @@ export default function PopulationComposition({
                 onClick={() => handleClick(node.key)}
                 onMouseEnter={() => setHovered({ name: node.name, count: node.count })}
                 onMouseLeave={() => setHovered(null)}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg border transition-all text-left ${
+                className={`inline-flex items-center gap-1.5 rounded-lg border transition-all ${
+                  embedded ? 'px-2 py-1 text-xs' : 'px-2.5 py-1.5 text-sm'
+                } ${
                   active
                     ? nightMode ? 'border-primary-500 bg-gray-700/60' : 'border-primary-400 bg-primary-50'
                     : nightMode ? 'border-transparent hover:bg-gray-700/40' : 'border-transparent hover:bg-gray-50'
                 }`}
               >
-                <span className="w-3.5 h-3.5 rounded flex-shrink-0" style={{ backgroundColor: node.color }} />
-                <span className={`text-sm font-semibold flex-1 ${nightMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                <span className="w-3 h-3 rounded flex-shrink-0" style={{ backgroundColor: node.color }} />
+                <span className={`font-semibold whitespace-nowrap ${nightMode ? 'text-gray-200' : 'text-gray-800'}`}>
                   {node.name}
-                </span>
-                <span className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  {node.children.length} pop{node.children.length !== 1 ? 's' : ''}
-                </span>
-                <span className={`text-sm font-bold w-16 text-right ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>
-                  {node.count}
-                  <span className={`ml-1 text-xs font-medium ${nightMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                    {pct.toFixed(0)}%
-                  </span>
                 </span>
               </button>
             );
