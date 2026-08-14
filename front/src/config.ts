@@ -1,6 +1,8 @@
 // Portal Configuration
 // Customize these settings for your deployment
 
+import { DATA_TYPES } from './utils/theme';
+
 interface DataSourceConfig {
   type: 'static' | 'api' | 's3';
   jsonUrl?: string;
@@ -119,38 +121,39 @@ export const config: Config = {
     showQualityBadges: true,
   },
 
-  // Data layer configuration
+  // Data layer configuration. Labels and colours come from utils/theme so a
+  // deployment override cannot desynchronise this file from the UI.
   dataLayers: {
     methylation: {
       enabled: true,
       label: "DNA Methylation",
-      description: "Whole genome bisulfite sequencing data for CpG methylation profiling",
-      type: "WGBS",
-      color: "#06b6d4", // Vibrant cyan - colorblind-friendly
+      description: "CpG methylation profiles called from long reads",
+      type: "ONT / PacBio",
+      color: DATA_TYPES.methylation.hex,
       avgSize: 15,
     },
     expression: {
       enabled: true,
-      label: "Expression",
-      description: "RNA sequencing data for gene expression quantification",
-      type: "RNA-seq",
-      color: "#10b981", // Green - colorblind-friendly
+      label: DATA_TYPES.expression.label,
+      description: "Full-length transcript sequencing for gene expression quantification",
+      type: "Iso-Seq",
+      color: DATA_TYPES.expression.hex,
       avgSize: 8,
     },
     chromatin_accessibility: {
       enabled: true,
-      label: "Chromatin Accessibility",
+      label: DATA_TYPES.chromatin_accessibility.label,
       description: "Single-molecule chromatin accessibility and nucleosome positioning",
       type: "Fiber-seq",
-      color: "#f59e0b", // Amber/orange for chromatin accessibility
+      color: DATA_TYPES.chromatin_accessibility.hex,
       avgSize: 20,
     },
     chromatin_conformation: {
       enabled: true,
-      label: "Chromatin Conformation",
+      label: DATA_TYPES.chromatin_conformation.label,
       description: "3D genome organization and chromatin interactions measured by Omni-C",
       type: "Omni-C",
-      color: "#8b5cf6", // Violet for chromatin conformation
+      color: DATA_TYPES.chromatin_conformation.hex,
       avgSize: 25,
     },
   },

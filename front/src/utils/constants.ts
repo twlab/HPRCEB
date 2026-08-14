@@ -1,5 +1,6 @@
 // Application constants and configuration
 import type { DataLayerInfo, Population } from './genomeTypes';
+import { DATA_TYPES, SUPER_POP_HEX, SUPER_POP_ORDER } from './theme';
 
 export const POPULATION_NAMES: Record<Population, string> = {
   all: "All Populations",
@@ -26,47 +27,44 @@ export const POPULATION_MAP: Record<string, string> = {
   sas: "SAS",
 };
 
-// Shared colorblind-friendly palette for super populations.
-// Kept in sync with WorldMap / PCAPlot so every population view reads the same.
-export const POPULATION_COLORS: Record<string, string> = {
-  afr: "#f59e0b", // amber
-  eur: "#3e5b95", // academic blue rgb(62, 91, 149)
-  sas: "#8b5cf6", // violet
-  eas: "#ec4899", // pink
-  amr: "#10b981", // emerald
-};
+// Shared colorblind-friendly palette for super populations. Re-exported from
+// utils/theme so the map cores, the sunburst, the PCA scatter and the
+// availability-matrix badges cannot drift apart.
+export const POPULATION_COLORS: Record<string, string> = SUPER_POP_HEX;
 
 // Display order used across population breakdowns
-export const SUPER_POPULATION_ORDER = ["afr", "eur", "sas", "eas", "amr"] as const;
+export const SUPER_POPULATION_ORDER = SUPER_POP_ORDER;
 
+// Assay descriptions. Names and hues come from utils/theme; only the sequencing
+// platform and the typical per-sample footprint are specific to this table.
 export const DATA_LAYER_INFO: Record<string, DataLayerInfo> = {
   methylation: {
     name: "DNA Methylation",
-    type: "WGBS",
+    type: "ONT / PacBio",
     avgSize: 15,
-    description: "Whole genome bisulfite sequencing data for CpG methylation profiling",
-    color: "#3e5b95", // Academic blue rgb(62, 91, 149)
+    description: "CpG methylation profiles called from long reads",
+    color: DATA_TYPES.methylation.hex,
   },
   expression: {
-    name: "Expression",
-    type: "RNA-seq",
+    name: DATA_TYPES.expression.label,
+    type: "Iso-Seq",
     avgSize: 8,
-    description: "RNA sequencing data for gene expression quantification",
-    color: "#10b981", // Green - colorblind-friendly contrast
+    description: "Full-length transcript sequencing for gene expression quantification",
+    color: DATA_TYPES.expression.hex,
   },
   chromatin_accessibility: {
-    name: "Chromatin Accessibility",
+    name: DATA_TYPES.chromatin_accessibility.label,
     type: "Fiber-seq",
     avgSize: 20,
     description: "Single-molecule chromatin accessibility and nucleosome positioning",
-    color: "#f59e0b", // Amber/orange for chromatin accessibility
+    color: DATA_TYPES.chromatin_accessibility.hex,
   },
   chromatin_conformation: {
-    name: "Chromatin Conformation",
+    name: DATA_TYPES.chromatin_conformation.label,
     type: "Omni-C",
     avgSize: 25,
     description: "3D genome organization and chromatin interactions measured by Omni-C",
-    color: "#8b5cf6", // Violet for chromatin conformation
+    color: DATA_TYPES.chromatin_conformation.hex,
   },
 };
 

@@ -11,7 +11,8 @@ import {
 } from 'chart.js';
 import zoomPlugin from 'chartjs-plugin-zoom';
 import { ExclamationCircleIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
-import { POPULATION_NAMES } from '../utils/constants';
+import { POPULATION_COLORS, POPULATION_NAMES, SUPER_POPULATION_ORDER } from '../utils/constants';
+import { tsvRows } from '../utils/tsv';
 
 ChartJS.register(ScatterController, LinearScale, PointElement, LineElement, Tooltip, Legend, zoomPlugin);
 
@@ -27,20 +28,6 @@ interface PCAPoint {
   sample_id?: string;
   super_population?: string;
 }
-
-interface SampleMetadata {
-  sample_id: string;
-  super_population: string;
-}
-
-// Population colors matching WorldMap - colorblind-friendly palette
-const POPULATION_COLORS: Record<string, string> = {
-  'afr': '#f59e0b',  // amber
-  'eur': '#3e5b95',  // academic blue rgb(62, 91, 149)
-  'sas': '#8b5cf6',  // violet
-  'eas': '#ec4899',  // pink
-  'amr': '#10b981',  // emerald
-};
 
 // Helper function to convert hex to RGB
 function hexToRgb(hex: string): { r: number; g: number; b: number } {
@@ -75,42 +62,47 @@ export default function PCAPlot({ selectedGenomes = [], nightMode = false }: PCA
         // Load background data
         const bgResponse = await fetch('./data/pca_background.tsv');
         if (!bgResponse.ok) throw new Error('Failed to load background data');
-        const bgText = await bgResponse.text();
-        const bgLines = bgText.trim().split('\n');
-        const bgDataParsed: PCAPoint[] = bgLines.slice(1).map(line => {
-          const [id, x, y] = line.split('\t');
-          return { id, x: parseFloat(x), y: parseFloat(y) };
-        });
+        const bgDataParsed: PCAPoint[] = tsvRows(await bgResponse.text())
+          .slice(1)
+          .map(([id, x, y]) => ({ id, x: parseFloat(x), y: parseFloat(y) }))
+          .filter((p) => Number.isFinite(p.x) && Number.isFinite(p.y));
 
-        // Load sample metadata to get super populations
+        // Load sample metadata to get super populations. Columns are located by
+        // header name: the previous code read `parts[parts.length - 3]`, which
+        // happened to land on super_population only while the file had exactly
+        // two trailing columns. Adding one would have silently uncoloured every
+        // point on the plot.
         const samplesResponse = await fetch('./data/samples.tsv');
         if (!samplesResponse.ok) throw new Error('Failed to load sample metadata');
-        const samplesText = await samplesResponse.text();
-        const samplesLines = samplesText.trim().split('\n');
+        const sampleRows = tsvRows(await samplesResponse.text());
+        const header = sampleRows[0] ?? [];
+        const idCol = header.indexOf('sample_id');
+        const popCol = header.indexOf('super_population');
+        if (idCol === -1 || popCol === -1) {
+          throw new Error('samples.tsv is missing a sample_id or super_population column');
+        }
+
         const sampleMetadata: Record<string, string> = {};
-        samplesLines.slice(1).forEach(line => {
-          const parts = line.split('\t');
-          const sample_id = parts[0];
-          const super_population = parts[parts.length - 3]; // super_population is third from the end
-          if (super_population) {
-            sampleMetadata[sample_id] = super_population;
+        for (const parts of sampleRows.slice(1)) {
+          const sampleId = parts[idCol];
+          const superPopulation = parts[popCol];
+          if (sampleId && superPopulation) {
+            sampleMetadata[sampleId] = superPopulation;
           }
-        });
+        }
 
         // Load HPRC data
         const hprcResponse = await fetch('./data/pca_hprc.tsv');
         if (!hprcResponse.ok) throw new Error('Failed to load HPRC data');
-        const hprcText = await hprcResponse.text();
-        const hprcLines = hprcText.trim().split('\n');
-        const hprcDataParsed: PCAPoint[] = hprcLines.slice(1).map(line => {
-          const [sample_id, x, y] = line.split('\t');
-          return { 
-            sample_id, 
-            x: parseFloat(x), 
+        const hprcDataParsed: PCAPoint[] = tsvRows(await hprcResponse.text())
+          .slice(1)
+          .map(([sample_id, x, y]) => ({
+            sample_id,
+            x: parseFloat(x),
             y: parseFloat(y),
-            super_population: sampleMetadata[sample_id] || ''
-          };
-        });
+            super_population: sampleMetadata[sample_id] || '',
+          }))
+          .filter((p) => Number.isFinite(p.x) && Number.isFinite(p.y));
 
         setBackgroundData(bgDataParsed);
         setHprcData(hprcDataParsed);
@@ -146,9 +138,7 @@ export default function PCAPlot({ selectedGenomes = [], nightMode = false }: PCA
     });
 
     // Create datasets for each population
-    const populations = ['afr', 'eur', 'sas', 'eas', 'amr'] as const;
-    
-    populations.forEach(pop => {
+    SUPER_POPULATION_ORDER.forEach(pop => {
       // Selected samples for this population
       const selectedData = hprcData.filter(
         point => point.super_population === pop && selectedGenomes.includes(point.sample_id || '')

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { ChartPieIcon } from '@heroicons/react/24/outline';
 import { getGenomeData } from '../utils/genomeDataService';
 import { POPULATION_COLORS, POPULATION_NAMES, SUPER_POPULATION_ORDER } from '../utils/constants';
+import { BRAND } from '../utils/theme';
 import type { Population } from '../utils/genomeTypes';
 
 interface PopulationCompositionProps {
@@ -169,7 +170,7 @@ export default function PopulationComposition({
     </div>
   ) : (
     <div className="flex items-center gap-3 mb-4">
-      <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
+      <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center">
         <ChartPieIcon className="w-5 h-5 text-white" />
       </div>
       <div>
@@ -236,7 +237,7 @@ export default function PopulationComposition({
             <text x={CX} y={CY - 4} textAnchor="middle" style={{ fontSize: 13, fontWeight: 700, fill: nightMode ? '#e5e7eb' : '#374151' }}>
               {centerLabel}
             </text>
-            <text x={CX} y={CY + 16} textAnchor="middle" style={{ fontSize: 16, fontWeight: 800, fill: nightMode ? '#a5b4fc' : '#4f46e5' }}>
+            <text x={CX} y={CY + 16} textAnchor="middle" style={{ fontSize: 16, fontWeight: 800, fill: nightMode ? BRAND.tint : BRAND.hex }}>
               {centerValue}
             </text>
           </svg>

@@ -8,6 +8,7 @@ import {
 } from 'react-simple-maps';
 import type { Population } from '../utils/genomeTypes';
 import { getGenomeData } from '../utils/genomeDataService';
+import { POPULATION_COLORS } from '../utils/constants';
 
 interface WorldMapProps {
   selectedPopulation: Population;
@@ -20,13 +21,15 @@ interface WorldMapProps {
 // Using Natural Earth's world map data (110m resolution - lower detail, smaller file)
 const geoUrl = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
 
-// Population region definitions with approximate center coordinates and zoom settings
+// Population region definitions with approximate center coordinates and zoom
+// settings. Fills come from the shared palette in utils/theme; only the darker
+// hover step is local, since it has no meaning outside this map.
 const populationRegions = [
   {
     id: 'afr' as Population,
     name: 'Africa',
     abbr: 'AFR',
-    color: '#f59e0b', // amber
+    color: POPULATION_COLORS.afr,
     hoverColor: '#d97706',
     coordinates: [20, 0] as [number, number], // Longitude, Latitude for label
     zoom: { scale: 350, center: [20, 5] as [number, number] }, // Zoom settings
@@ -42,7 +45,7 @@ const populationRegions = [
     id: 'eur' as Population,
     name: 'Europe',
     abbr: 'EUR',
-    color: '#3e5b95', // academic blue rgb(62, 91, 149)
+    color: POPULATION_COLORS.eur,
     hoverColor: '#344c7a',
     coordinates: [15, 54] as [number, number],
     zoom: { scale: 450, center: [15, 54] as [number, number] },
@@ -56,7 +59,7 @@ const populationRegions = [
     id: 'sas' as Population,
     name: 'South Asia',
     abbr: 'SAS',
-    color: '#8b5cf6', // violet
+    color: POPULATION_COLORS.sas,
     hoverColor: '#7c3aed',
     coordinates: [78, 22] as [number, number],
     zoom: { scale: 500, center: [78, 22] as [number, number] },
@@ -66,7 +69,7 @@ const populationRegions = [
     id: 'eas' as Population,
     name: 'East Asia',
     abbr: 'EAS',
-    color: '#ec4899', // pink
+    color: POPULATION_COLORS.eas,
     hoverColor: '#db2777',
     coordinates: [110, 35] as [number, number],
     zoom: { scale: 400, center: [110, 35] as [number, number] },
@@ -76,7 +79,7 @@ const populationRegions = [
     id: 'amr' as Population,
     name: 'Americas',
     abbr: 'AMR',
-    color: '#10b981', // emerald
+    color: POPULATION_COLORS.amr,
     hoverColor: '#059669',
     coordinates: [-95, 20] as [number, number],
     zoom: { scale: 250, center: [-80, 5] as [number, number] },
@@ -191,14 +194,14 @@ export default function WorldMap({ selectedPopulation, populationCounts, selecte
   return (
     <div className={`${nightMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-2xl shadow-fancy border p-6 hover-lift transition-colors duration-300`}>
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-primary-600 rounded-xl flex items-center justify-center">
+        <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center">
           <GlobeAltIcon className="w-5 h-5 text-white" />
         </div>
         <h2 className={`text-xl font-bold ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>Geolocation Distribution</h2>
       </div>
 
       {/* Map */}
-      <div className={`relative ${nightMode ? 'bg-gradient-to-br from-primary-900/30 to-cyan-900/30 border-primary-700' : 'bg-gradient-to-br from-primary-50 to-cyan-50 border-primary-100'} rounded-xl overflow-hidden border`}>
+      <div className={`relative ${nightMode ? 'bg-gradient-to-br from-primary-900/30 to-gray-900/30 border-primary-700' : 'bg-gradient-to-br from-primary-50 to-gray-50 border-primary-100'} rounded-xl overflow-hidden border`}>
         <ComposableMap
           projection="geoEqualEarth"
           projectionConfig={{
@@ -439,7 +442,7 @@ export default function WorldMap({ selectedPopulation, populationCounts, selecte
                   : 'border-transparent bg-gray-50 opacity-60 hover:opacity-100'
             }`}
           >
-            <div className="w-4 h-4 rounded bg-gradient-to-r from-primary-500 via-purple-500 to-pink-500" />
+            <div className="w-4 h-4 rounded bg-gradient-to-r from-primary-400 to-primary-700" />
             <span className={`text-sm font-bold ${nightMode ? 'text-gray-200' : 'text-gray-700'}`}>
               All
             </span>

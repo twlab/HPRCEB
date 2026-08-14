@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { XMarkIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
-import { hasConsent, setConsent, CookieCategory, isCategoryAllowed } from '../utils/cookieUtils';
+import { setConsent, setCategoryPreferences, getCategoryPreferences } from '../utils/cookieUtils';
+import { BUTTON } from '../utils/theme';
 
 interface CookieSettingsProps {
   isOpen: boolean;
@@ -26,30 +27,22 @@ function CookieSettings({ isOpen, onClose, nightMode }: CookieSettingsProps) {
 
   useEffect(() => {
     if (isOpen) {
-      // Load current preferences
-      const consent = hasConsent();
-      const isAccepted = consent === 'accepted';
-      
+      const stored = getCategoryPreferences();
       setPreferences({
         strictlyNecessary: true, // Always enabled
-        functional: isAccepted || isCategoryAllowed(CookieCategory.FUNCTIONAL),
-        analytics: isAccepted || isCategoryAllowed(CookieCategory.ANALYTICS),
+        functional: stored.functional,
+        analytics: stored.analytics,
       });
     }
   }, [isOpen]);
 
   const handleSave = () => {
-    // If all optional cookies are enabled, set as accepted
-    // If all optional cookies are disabled, set as rejected
-    if (preferences.functional && preferences.analytics) {
-      setConsent('accepted');
-    } else if (!preferences.functional && !preferences.analytics) {
-      setConsent('rejected');
-    } else {
-      // For now, partial consent is treated as rejected
-      // In a more complex implementation, you could store granular preferences
-      setConsent('rejected');
-    }
+    // Saved as chosen. Mixed choices used to be collapsed into a flat reject,
+    // which turned "functional on, analytics off" into the opposite.
+    setCategoryPreferences({
+      functional: preferences.functional,
+      analytics: preferences.analytics,
+    });
     onClose();
   };
 
@@ -71,7 +64,7 @@ function CookieSettings({ isOpen, onClose, nightMode }: CookieSettingsProps) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       ></div>
 
@@ -113,14 +106,14 @@ function CookieSettings({ isOpen, onClose, nightMode }: CookieSettingsProps) {
 
           {/* Strictly Necessary Cookies */}
           <div className={`p-4 rounded-lg border ${
-            nightMode ? 'border-gray-700 bg-gray-750' : 'border-gray-200 bg-gray-50'
+            nightMode ? 'border-gray-700 bg-gray-700/40' : 'border-gray-200 bg-gray-50'
           }`}>
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   <h3 className="text-lg font-semibold">Strictly Necessary Cookies</h3>
                   <span className={`px-2 py-1 text-xs font-medium rounded ${
-                    nightMode ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-800'
+                    nightMode ? 'bg-primary-900/60 text-primary-200' : 'bg-primary-100 text-primary-800'
                   }`}>
                     Always Active
                   </span>
@@ -131,13 +124,11 @@ function CookieSettings({ isOpen, onClose, nightMode }: CookieSettingsProps) {
                   These cookies cannot be disabled.
                 </p>
                 <div className={`mt-3 text-xs ${nightMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                  <strong>Cookies used:</strong> hprc_cookie_consent
+                  <strong>Cookies used:</strong> hprc_cookie_consent, hprc_cookie_prefs
                 </div>
               </div>
               <div className="ml-4">
-                <div className={`w-12 h-6 rounded-full flex items-center px-1 ${
-                  nightMode ? 'bg-blue-600' : 'bg-blue-600'
-                }`}>
+                <div className="w-12 h-6 rounded-full flex items-center px-1 bg-primary-600">
                   <div className="w-4 h-4 bg-white rounded-full transform translate-x-6 transition-transform"></div>
                 </div>
               </div>
@@ -146,7 +137,7 @@ function CookieSettings({ isOpen, onClose, nightMode }: CookieSettingsProps) {
 
           {/* Functional Cookies */}
           <div className={`p-4 rounded-lg border ${
-            nightMode ? 'border-gray-700 bg-gray-750' : 'border-gray-200 bg-gray-50'
+            nightMode ? 'border-gray-700 bg-gray-700/40' : 'border-gray-200 bg-gray-50'
           }`}>
             <div className="flex items-start justify-between">
               <div className="flex-1">
@@ -157,7 +148,8 @@ function CookieSettings({ isOpen, onClose, nightMode }: CookieSettingsProps) {
                   third-party providers.
                 </p>
                 <div className={`mt-3 text-xs ${nightMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                  <strong>Cookies used:</strong> hprc_skip_landing, hprc_sessions
+                  <strong>Cookie used:</strong> hprc_skip_landing<br />
+                  <strong>Stored in this browser:</strong> hprc_sessions (saved sessions), hprc_tutorial_completed
                 </div>
               </div>
               <div className="ml-4">
@@ -165,7 +157,7 @@ function CookieSettings({ isOpen, onClose, nightMode }: CookieSettingsProps) {
                   onClick={() => setPreferences({ ...preferences, functional: !preferences.functional })}
                   className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
                     preferences.functional
-                      ? nightMode ? 'bg-blue-600' : 'bg-blue-600'
+                      ? 'bg-primary-600'
                       : nightMode ? 'bg-gray-600' : 'bg-gray-300'
                   }`}
                   aria-label="Toggle functional cookies"
@@ -180,7 +172,7 @@ function CookieSettings({ isOpen, onClose, nightMode }: CookieSettingsProps) {
 
           {/* Analytics Cookies */}
           <div className={`p-4 rounded-lg border ${
-            nightMode ? 'border-gray-700 bg-gray-750' : 'border-gray-200 bg-gray-50'
+            nightMode ? 'border-gray-700 bg-gray-700/40' : 'border-gray-200 bg-gray-50'
           }`}>
             <div className="flex items-start justify-between">
               <div className="flex-1">
@@ -198,7 +190,7 @@ function CookieSettings({ isOpen, onClose, nightMode }: CookieSettingsProps) {
                   onClick={() => setPreferences({ ...preferences, analytics: !preferences.analytics })}
                   className={`w-12 h-6 rounded-full flex items-center px-1 transition-colors ${
                     preferences.analytics
-                      ? nightMode ? 'bg-blue-600' : 'bg-blue-600'
+                      ? 'bg-primary-600'
                       : nightMode ? 'bg-gray-600' : 'bg-gray-300'
                   }`}
                   aria-label="Toggle analytics cookies"
@@ -213,11 +205,11 @@ function CookieSettings({ isOpen, onClose, nightMode }: CookieSettingsProps) {
 
           {/* More Information */}
           <div className={`p-4 rounded-lg ${
-            nightMode ? 'bg-blue-900 bg-opacity-20 border border-blue-800' : 'bg-blue-50 border border-blue-200'
+            nightMode ? 'bg-primary-900/20 border border-primary-800' : 'bg-primary-50 border border-primary-200'
           }`}>
             <div className="flex items-start gap-3">
               <InformationCircleIcon
-                className={`w-5 h-5 flex-shrink-0 mt-0.5 ${nightMode ? 'text-blue-400' : 'text-blue-600'}`}
+                className={`w-5 h-5 flex-shrink-0 mt-0.5 ${nightMode ? 'text-primary-300' : 'text-primary-600'}`}
               />
               <div>
                 <p className={`text-sm ${nightMode ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -227,7 +219,7 @@ function CookieSettings({ isOpen, onClose, nightMode }: CookieSettingsProps) {
                     target="_blank"
                     rel="noopener noreferrer"
                     className={`font-medium underline hover:no-underline ${
-                      nightMode ? 'text-blue-400' : 'text-blue-600'
+                      nightMode ? 'text-primary-300' : 'text-primary-600'
                     }`}
                   >
                     Privacy Policy
@@ -245,31 +237,25 @@ function CookieSettings({ isOpen, onClose, nightMode }: CookieSettingsProps) {
           <div className="flex flex-col sm:flex-row gap-3 justify-end">
             <button
               onClick={handleRejectAll}
-              className={`px-6 py-2.5 rounded-lg font-medium transition-all duration-200 ${
-                nightMode
-                  ? 'bg-gray-700 text-gray-200 hover:bg-gray-600 border border-gray-600'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
+              className={`px-6 py-2.5 rounded-lg font-medium transition-all duration-200 border ${
+                nightMode ? `${BUTTON.secondaryDark} border-gray-600` : `${BUTTON.secondary} border-gray-300`
               }`}
             >
               Reject All
             </button>
             <button
               onClick={handleSave}
-              className={`px-6 py-2.5 rounded-lg font-medium transition-all duration-200 ${
+              className={`px-6 py-2.5 rounded-lg font-medium transition-all duration-200 border ${
                 nightMode
-                  ? 'bg-blue-700 text-white hover:bg-blue-600 border border-blue-600'
-                  : 'bg-white text-blue-600 hover:bg-gray-50 border border-blue-300'
+                  ? 'bg-gray-700 text-primary-200 hover:bg-gray-600 border-primary-700'
+                  : 'bg-white text-primary-600 hover:bg-primary-50 border-primary-300'
               }`}
             >
               Save Preferences
             </button>
             <button
               onClick={handleAcceptAll}
-              className={`px-6 py-2.5 rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl ${
-                nightMode
-                  ? 'bg-blue-600 text-white hover:bg-blue-700'
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
-              }`}
+              className={`px-6 py-2.5 rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl ${BUTTON.primary}`}
             >
               Accept All
             </button>

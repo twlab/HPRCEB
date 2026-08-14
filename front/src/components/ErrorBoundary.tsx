@@ -9,7 +9,15 @@ interface State {
   hasError: boolean;
   error: Error | null;
   errorInfo: ErrorInfo | null;
+  confirmingReset: boolean;
 }
+
+/**
+ * Everything this app writes to localStorage. The recovery button clears these
+ * and nothing else — it used to call `localStorage.clear()`, which also wiped
+ * whatever any other tool on the same origin had stored.
+ */
+const APP_STORAGE_KEYS = ['hprc_sessions', 'hprc_tutorial_completed'];
 
 class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
@@ -18,16 +26,24 @@ class ErrorBoundary extends Component<Props, State> {
       hasError: false,
       error: null,
       errorInfo: null,
+      confirmingReset: false,
     };
   }
 
-  static getDerivedStateFromError(error: Error): State {
+  static getDerivedStateFromError(error: Error): Partial<State> {
     return {
       hasError: true,
       error,
       errorInfo: null,
     };
   }
+
+  private resetSavedData = () => {
+    for (const key of APP_STORAGE_KEYS) {
+      localStorage.removeItem(key);
+    }
+    window.location.reload();
+  };
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Error caught by boundary:', error, errorInfo);
@@ -72,22 +88,47 @@ class ErrorBoundary extends Component<Props, State> {
               </details>
             )}
 
-            <div className="flex gap-3 justify-center">
+            {/* Resetting throws away the user's saved sessions, so it says so
+                and asks twice. The old single click did it silently. */}
+            {this.state.confirmingReset && (
+              <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded mb-4">
+                <p className="text-sm text-amber-900">
+                  This deletes every saved session in this browser and cannot be undone. Try{' '}
+                  <strong>Refresh page</strong> first — most errors clear on their own.
+                </p>
+              </div>
+            )}
+
+            <div className="flex flex-wrap gap-3 justify-center">
               <button
                 onClick={() => window.location.reload()}
-                className="px-6 py-3 bg-gradient-to-r from-primary-600 to-purple-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300 hover:scale-105"
+                className="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl shadow-sm hover:shadow-lg transition-all duration-300"
               >
-                Refresh Page
+                Refresh page
               </button>
-              <button
-                onClick={() => {
-                  localStorage.clear();
-                  window.location.reload();
-                }}
-                className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-xl transition-all duration-300"
-              >
-                Clear Cache & Refresh
-              </button>
+              {this.state.confirmingReset ? (
+                <>
+                  <button
+                    onClick={() => this.setState({ confirmingReset: false })}
+                    className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-xl transition-all duration-300"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={this.resetSavedData}
+                    className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition-all duration-300"
+                  >
+                    Yes, delete saved data
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => this.setState({ confirmingReset: true })}
+                  className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-xl transition-all duration-300"
+                >
+                  Reset saved data &amp; refresh
+                </button>
+              )}
             </div>
           </div>
         </div>

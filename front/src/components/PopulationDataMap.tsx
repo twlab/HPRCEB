@@ -4,6 +4,7 @@ import { GlobeAmericasIcon } from '@heroicons/react/24/outline';
 import { getGenomeData, getTrackData } from '../utils/genomeDataService';
 import type { DataType } from '../utils/genomeDataService';
 import { POPULATION_COLORS, POPULATION_NAMES, SUPER_POPULATION_ORDER } from '../utils/constants';
+import { DATA_TYPES as DATA_TYPE_TOKENS, SEX_HEX } from '../utils/theme';
 import type { Population } from '../utils/genomeTypes';
 
 interface PopulationDataMapProps {
@@ -32,21 +33,31 @@ const MAP_CENTER: [number, number] = [10, 9];
 type RingKey = DataType | 'annotation';
 
 // Outer petal ring: one wedge per data type, radial length = fraction of the
-// sub-population that has that assay. Colors match the Track Explorer chips.
-const DATA_RING: { key: RingKey; label: string; color: string }[] = [
-  { key: 'assembly', label: 'Assembly', color: '#3b82f6' },
-  { key: 'annotation', label: 'Annotation', color: '#64748b' },
-  { key: 'methylation', label: 'Methylation', color: '#06b6d4' },
-  { key: 'expression', label: 'Expression', color: '#22c55e' },
-  { key: 'chromatin_accessibility', label: 'Chromatin Accessibility', color: '#f97316' },
-  { key: 'chromatin_conformation', label: 'Chromatin Conformation', color: '#a855f7' },
+// sub-population that has that assay. Labels and colours come from the shared
+// assay palette, so a petal matches its chip in the Track Explorer exactly.
+// `repeatmasker` is deliberately absent — six petals is already a busy dial and
+// repeats are present for essentially every assembly, so the wedge carries no
+// information.
+const RING_KEYS: RingKey[] = [
+  'assembly',
+  'annotation',
+  'methylation',
+  'expression',
+  'chromatin_accessibility',
+  'chromatin_conformation',
 ];
+
+const DATA_RING: { key: RingKey; label: string; color: string }[] = RING_KEYS.map((key) => ({
+  key,
+  label: DATA_TYPE_TOKENS[key].label,
+  color: DATA_TYPE_TOKENS[key].hex,
+}));
 
 // Keys follow the `sex` column in the genome metadata; surfaced as "Gender".
 const GENDER_SLICES: { key: 'female' | 'male' | 'unknown'; label: string; color: string }[] = [
-  { key: 'female', label: 'Female', color: '#f472b6' },
-  { key: 'male', label: 'Male', color: '#818cf8' },
-  { key: 'unknown', label: 'Unknown/Other', color: '#9ca3af' },
+  { key: 'female', label: 'Female', color: SEX_HEX.female },
+  { key: 'male', label: 'Male', color: SEX_HEX.male },
+  { key: 'unknown', label: 'Unknown/Other', color: SEX_HEX.unknown },
 ];
 
 // --- Equal Earth projection ---------------------------------------------
@@ -148,53 +159,145 @@ interface SubPopNode {
 }
 
 function radiusFor(count: number): number {
-  return 12 + Math.sqrt(count) * 2.6;
+  return 15 + Math.sqrt(count) * 3.2;
+}
+
+const LABEL_H = 12;
+
+function labelWidth(node: SubPopNode): number {
+  return `${node.abbr} ${node.count}`.length * 5.6 + 8;
+}
+
+/** True if this node's label pill (hanging below the dot) would sit on top of
+ *  an arrow tip, which would hide the thing the arrow is pointing at. */
+function labelCoversArrowTarget(node: SubPopNode, targets: { x: number; y: number }[]): boolean {
+  const halfW = labelWidth(node) / 2 + 2;
+  const top = node.y + node.r + 1;
+  const bottom = node.y + node.r + 3 + LABEL_H + 2;
+  return targets.some((t) => Math.abs(t.x - node.x) < halfW && t.y > top && t.y < bottom);
+}
+
+const ARROW_HEAD = 7; // length of the arrowhead pointing at a true location
+const DOT_PAD = 3; // clear space between two glyphs
+const LABEL_ROOM = 4; // extra room so a label pill mostly clears its neighbour
+
+function minSeparation(a: SubPopNode, b: SubPopNode): number {
+  return a.r + b.r + DOT_PAD + LABEL_ROOM;
+}
+
+function clampToMap(nodes: SubPopNode[]): void {
+  for (const n of nodes) {
+    n.x = Math.min(WIDTH - n.r - 2, Math.max(n.r + 2, n.x));
+    n.y = Math.min(HEIGHT - n.r - 10, Math.max(n.r + 2, n.y));
+  }
+}
+
+/** One separation sweep. Returns true if any pair still overlapped. */
+function separate(nodes: SubPopNode[]): boolean {
+  let moved = false;
+  for (let i = 0; i < nodes.length; i++) {
+    for (let j = i + 1; j < nodes.length; j++) {
+      const a = nodes[i];
+      const b = nodes[j];
+      const minDist = minSeparation(a, b);
+      let dx = b.x - a.x;
+      let dy = b.y - a.y;
+      let dist = Math.hypot(dx, dy);
+      if (dist >= minDist) continue;
+      if (dist < 1e-6) {
+        // Co-located populations (e.g. GBR/ITU/STU all sit on the same UK
+        // point): fan them out along a fixed angle so the result is stable.
+        const angle = ((i * 7 + j * 13) % 360) * RAD;
+        dx = Math.cos(angle);
+        dy = Math.sin(angle);
+        dist = 1;
+      }
+      moved = true;
+      const shift = (minDist - dist) / 2;
+      const ux = (dx / dist) * shift;
+      const uy = (dy / dist) * shift;
+      a.x -= ux;
+      a.y -= uy;
+      b.x += ux;
+      b.y += uy;
+    }
+  }
+  return moved;
 }
 
 /**
- * Push overlapping dots apart while pulling each back toward its true
- * location. Deterministic, so the layout is stable across renders.
+ * Lay the dots out so none overlap while keeping each as close to its true
+ * location as packing allows. Deterministic, so the layout is stable across
+ * renders.
+ *
+ * Phase 1 anneals: separation competes with a pull back toward the recorded
+ * coordinate, and the pull fades out so dots settle near where they belong.
+ * Phase 2 then separates only, which is what actually guarantees the final
+ * layout is overlap-free — the pull in phase 1 can otherwise hold two dots
+ * inside each other indefinitely.
  */
 function relaxOverlaps(nodes: SubPopNode[]): void {
-  const PAD = 3;
-  const LABEL_ROOM = 5;
+  const ANNEAL = 600;
+  for (let iter = 0; iter < ANNEAL; iter++) {
+    const pull = 0.03 * (1 - iter / ANNEAL);
+    for (const n of nodes) {
+      n.x += (n.ax - n.x) * pull;
+      n.y += (n.ay - n.y) * pull;
+    }
+    separate(nodes);
+    clampToMap(nodes);
+  }
   for (let iter = 0; iter < 400; iter++) {
-    for (const n of nodes) {
-      n.x += (n.ax - n.x) * 0.02;
-      n.y += (n.ay - n.y) * 0.02;
-    }
-    for (let i = 0; i < nodes.length; i++) {
-      for (let j = i + 1; j < nodes.length; j++) {
-        const a = nodes[i];
-        const b = nodes[j];
-        const minDist = a.r + b.r + PAD + LABEL_ROOM;
-        let dx = b.x - a.x;
-        let dy = b.y - a.y;
-        let dist = Math.hypot(dx, dy);
-        if (dist >= minDist) continue;
-        if (dist < 1e-6) {
-          // Co-located populations (e.g. GBR/ITU/STU all sit on the same UK
-          // point): fan them out along a fixed angle so the result is stable.
-          const angle = ((i * 7 + j * 13) % 360) * RAD;
-          dx = Math.cos(angle);
-          dy = Math.sin(angle);
-          dist = 1;
-        }
-        const shift = (minDist - dist) / 2;
-        const ux = (dx / dist) * shift;
-        const uy = (dy / dist) * shift;
-        a.x -= ux;
-        a.y -= uy;
-        b.x += ux;
-        b.y += uy;
-      }
-    }
-    for (const n of nodes) {
-      n.x = Math.min(WIDTH - n.r - 2, Math.max(n.r + 2, n.x));
-      n.y = Math.min(HEIGHT - n.r - 10, Math.max(n.r + 2, n.y));
-    }
+    if (!separate(nodes)) break;
+    clampToMap(nodes);
   }
 }
+
+// --- legend swatches -----------------------------------------------------
+// Each swatch mimics the part of the glyph it labels, so the key can be read
+// straight onto the map: a disc for the core, a ring segment for the gender
+// ring, and — most usefully — a wedge sitting at that assay's real clock
+// position, since the petal order is fixed and otherwise has to be counted out.
+
+const SWATCH = 20; // px; large enough that a wedge's clock position is readable
+
+function CoreSwatch({ color }: { color: string }) {
+  return (
+    <svg width={SWATCH} height={SWATCH} viewBox="-10 -10 20 20" aria-hidden="true" className="flex-shrink-0">
+      <circle r={6.4} fill={color} />
+    </svg>
+  );
+}
+
+function RingSwatch({ color, nightMode }: { color: string; nightMode: boolean }) {
+  const track = nightMode ? '#374151' : '#d7dee7';
+  return (
+    <svg width={SWATCH} height={SWATCH} viewBox="-10 -10 20 20" aria-hidden="true" className="flex-shrink-0">
+      <path d={arcPath(4.6, 8.4, 0, 359.9)} fill={track} />
+      <path d={arcPath(4.6, 8.4, 10, 190)} fill={color} />
+    </svg>
+  );
+}
+
+function PetalSwatch({ index, color, nightMode }: { index: number; color: string; nightMode: boolean }) {
+  const span = 360 / DATA_RING.length;
+  const a0 = index * span - span / 2 + 2;
+  const a1 = a0 + span - 4;
+  const track = nightMode ? '#374151' : '#d7dee7';
+  return (
+    <svg width={SWATCH} height={SWATCH} viewBox="-10 -10 20 20" aria-hidden="true" className="flex-shrink-0">
+      {/* faint full dial, so the coloured wedge reads as a position on it */}
+      {DATA_RING.map((_, i) => {
+        const s = i * span - span / 2 + 2;
+        return <path key={i} d={arcPath(4.4, 9, s, s + span - 4)} fill={track} />;
+      })}
+      <path d={arcPath(4.4, 9, a0, a1)} fill={color} />
+    </svg>
+  );
+}
+
+// Illustrative coverage for the anatomy diagram's petals (not real data).
+const DEMO_FRACS = [1, 1, 1, 0.75, 0.3, 0.9];
 
 // --- dot glyph -----------------------------------------------------------
 
@@ -350,6 +453,23 @@ export default function PopulationDataMap({
 
   const isDimmed = (node: SubPopNode) => superFilter !== 'all' && node.superPop !== superFilter;
 
+  // Dots that packing pushed clear of their own glyph get an arrow pointing
+  // back to the coordinate the samples were actually recorded at. Below this
+  // the true location still sits under the pie, where an arrow would point
+  // into the dot's own body and mean nothing.
+  const strayNodes = nodes.filter((n) => Math.hypot(n.x - n.ax, n.y - n.ay) > n.r + ARROW_HEAD);
+  const arrowTargets = strayNodes.map((n) => ({ x: n.ax, y: n.ay }));
+
+  // Smallest / middling / largest sub-population. Used only to size the key's
+  // circles, so their relative steps mirror the real spread on the map.
+  const sizeScale = useMemo(() => {
+    if (nodes.length === 0) return [];
+    const counts = nodes.map((n) => n.count).sort((a, b) => a - b);
+    return Array.from(
+      new Set([counts[0], counts[Math.floor(counts.length / 2)], counts[counts.length - 1]])
+    );
+  }, [nodes]);
+
   // Draw order: dimmed first, active last, so the focused dot is never covered.
   const drawOrder = [...nodes].sort((a, b) => {
     const rank = (n: SubPopNode) => (n.abbr === activeAbbr ? 2 : isDimmed(n) ? 0 : 1);
@@ -365,7 +485,7 @@ export default function PopulationDataMap({
     <div className={`${card} rounded-2xl shadow-fancy border p-6 hover-lift transition-colors duration-300`}>
       <div className="flex items-start gap-3 mb-4">
         {showIcon && (
-          <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-primary-600 rounded-xl flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center flex-shrink-0">
             <GlobeAmericasIcon className="w-5 h-5 text-white" />
           </div>
         )}
@@ -472,15 +592,20 @@ export default function PopulationDataMap({
             </Marker>
           ))}
 
-          {/* labels last, so a neighbouring dot can never cover them */}
+          {/* labels above the dots, so a neighbouring dot can never cover them */}
           {drawOrder.map((node) => {
-            const label = `${node.abbr} ${node.count}`;
-            const w = label.length * 5.6 + 8;
+            const w = labelWidth(node);
             const dimmed = isDimmed(node);
+            // A pill normally hangs below its dot, but that is also where a
+            // shared coordinate tends to sit (STU's label lands right on the UK
+            // point). Flip it above so the arrow tip stays readable.
+            const flip =
+              labelCoversArrowTarget(node, arrowTargets) && node.y - node.r - LABEL_H - 3 > 2;
+            const dy = node.y - node.ay + (flip ? -node.r - 15 : node.r + 3);
             return (
               <Marker key={`label-${node.abbr}`} coordinates={[node.lon, node.lat]}>
                 <g
-                  transform={`translate(${node.x - node.ax}, ${node.y - node.ay + node.r + 3})`}
+                  transform={`translate(${node.x - node.ax}, ${dy})`}
                   className="pointer-events-none"
                   opacity={dimmed ? 0.3 : 1}
                 >
@@ -503,6 +628,43 @@ export default function PopulationDataMap({
                     {node.abbr}
                     <tspan style={{ fontWeight: 500, opacity: 0.65 }}> {node.count}</tspan>
                   </text>
+                </g>
+              </Marker>
+            );
+          })}
+
+          {/* Arrows from a displaced dot back to its recorded coordinate. Drawn
+              in the Marker's frame, so the origin IS the true location: the
+              shaft starts at the glyph edge and the head lands on the origin.
+              Drawn above the labels — where several sub-populations share one
+              coordinate the target often falls under a neighbour's label pill,
+              and the whole point of the arrow is that its tip stays visible. */}
+          {strayNodes.map((node) => {
+            const cx = node.x - node.ax;
+            const cy = node.y - node.ay;
+            const d = Math.hypot(cx, cy);
+            // unit vector pointing from the dot centre back to the origin
+            const ux = -cx / d;
+            const uy = -cy / d;
+            const startX = cx + ux * (node.r + 1.5);
+            const startY = cy + uy * (node.r + 1.5);
+            const baseX = -ux * ARROW_HEAD;
+            const baseY = -uy * ARROW_HEAD;
+            const wing = ARROW_HEAD * 0.5;
+            const color = POPULATION_COLORS[node.superPop];
+            const casing = nightMode ? '#0b1220' : '#ffffff';
+            return (
+              <Marker key={`arrow-${node.abbr}`} coordinates={[node.lon, node.lat]}>
+                <g className="pointer-events-none" opacity={isDimmed(node) ? 0.15 : 0.95}>
+                  {/* casing keeps the arrow legible over land, sea and label pills */}
+                  <line x1={startX} y1={startY} x2={baseX} y2={baseY} stroke={casing} strokeWidth={3.6} />
+                  <line x1={startX} y1={startY} x2={baseX} y2={baseY} stroke={color} strokeWidth={1.4} />
+                  <polygon
+                    points={`0,0 ${baseX - uy * wing},${baseY + ux * wing} ${baseX + uy * wing},${baseY - ux * wing}`}
+                    fill={color}
+                    stroke={casing}
+                    strokeWidth={0.8}
+                  />
                 </g>
               </Marker>
             );
@@ -576,89 +738,171 @@ export default function PopulationDataMap({
         )}
       </div>
 
-      {/* Legend row */}
-      <div className="mt-4 grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-5">
-        {/* Anatomy of a dot */}
-        <div
-          className={`flex items-center gap-4 rounded-xl border p-4 ${
-            nightMode ? 'bg-gray-900/40 border-gray-700' : 'bg-gray-50 border-gray-200'
-          }`}
-        >
-          <svg width={112} height={112} viewBox="-56 -56 112 112" aria-hidden="true">
-            <g>
-              <circle r={44} fill={nightMode ? '#0f172a' : '#ffffff'} />
-              {DATA_RING.map((dt, i) => {
-                const span = 360 / DATA_RING.length;
-                const a0 = i * span - span / 2 + 2;
-                const a1 = a0 + span - 4;
-                const frac = [1, 1, 1, 0.75, 0.3, 0.9][i];
+      {/* Legend — one panel, read from the core outwards like the glyph itself */}
+      <div
+        className={`mt-4 rounded-xl border overflow-hidden ${
+          nightMode ? 'bg-gray-900/40 border-gray-700' : 'bg-gray-50 border-gray-200'
+        }`}
+      >
+        <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr]">
+          {/* Annotated glyph + size scale */}
+          <div className="p-4">
+            <p className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${nightMode ? 'text-gray-500' : 'text-gray-400'}`}>
+              Anatomy of a dot
+            </p>
+            <svg width={292} height={150} viewBox="0 0 292 150" role="img" aria-label="How to read a dot">
+              {(() => {
+                const cx = 62;
+                const cy = 72;
+                const R = 50;
+                const dataInner = R * 0.6;
+                const genderInner = R * 0.36;
+                const genderOuter = R * 0.55;
+                const line = nightMode ? '#4b5563' : '#cbd5e1';
+                const term = nightMode ? '#e5e7eb' : '#1f2937';
+                const desc = nightMode ? '#9ca3af' : '#6b7280';
+                // callout anchors: on the core, the gender ring, and a petal
+                const callouts = [
+                  { r: 8, angle: 152, ty: 122, term: 'Core', desc: 'super population' },
+                  { r: (genderInner + genderOuter) / 2, angle: 106, ty: 92, term: 'Inner ring', desc: 'gender split' },
+                  { r: R * 0.86, angle: 52, ty: 40, term: 'Outer petals', desc: 'one wedge per assay' },
+                ];
                 return (
-                  <g key={dt.key}>
-                    <path d={arcPath(26.4, 44, a0, a1)} fill={dt.color} opacity={0.15} />
-                    <path d={arcPath(26.4, 26.4 + frac * 17.6, a0, a1)} fill={dt.color} />
+                  <g>
+                    <g transform={`translate(${cx}, ${cy})`}>
+                      <circle r={R + 1.5} fill={nightMode ? '#0f172a' : '#ffffff'} />
+                      {DATA_RING.map((dt, i) => {
+                        const span = 360 / DATA_RING.length;
+                        const a0 = i * span - span / 2 + 2;
+                        const a1 = a0 + span - 4;
+                        const frac = DEMO_FRACS[i] ?? 0.8;
+                        return (
+                          <g key={dt.key}>
+                            <path d={arcPath(dataInner, R, a0, a1)} fill={dt.color} opacity={0.15} />
+                            <path d={arcPath(dataInner, dataInner + frac * (R - dataInner), a0, a1)} fill={dt.color} />
+                          </g>
+                        );
+                      })}
+                      <path d={arcPath(genderInner, genderOuter, 0, 190)} fill={GENDER_SLICES[0].color} />
+                      <path d={arcPath(genderInner, genderOuter, 190, 360)} fill={GENDER_SLICES[1].color} />
+                      <circle r={R * 0.32} fill={POPULATION_COLORS.afr} />
+                    </g>
+                    {callouts.map((c) => {
+                      const [px, py] = polar(c.r, c.angle);
+                      const ax = cx + px;
+                      const ay = cy + py;
+                      return (
+                        <g key={c.term}>
+                          <path
+                            d={`M ${ax} ${ay} L ${138} ${c.ty} L ${152} ${c.ty}`}
+                            fill="none"
+                            stroke={line}
+                            strokeWidth={1}
+                          />
+                          <circle cx={ax} cy={ay} r={1.8} fill={line} />
+                          <text x={157} y={c.ty - 1} style={{ fontSize: 11, fontWeight: 700, fill: term }}>
+                            {c.term}
+                          </text>
+                          <text x={157} y={c.ty + 11} style={{ fontSize: 10, fill: desc }}>
+                            {c.desc}
+                          </text>
+                        </g>
+                      );
+                    })}
                   </g>
                 );
-              })}
-              <path d={arcPath(15.8, 24.2, 0, 190)} fill={GENDER_SLICES[0].color} />
-              <path d={arcPath(15.8, 24.2, 190, 360)} fill={GENDER_SLICES[1].color} />
-              <circle r={14} fill={POPULATION_COLORS.afr} />
-            </g>
-          </svg>
-          <div className={`text-xs space-y-2 ${nightMode ? 'text-gray-300' : 'text-gray-600'}`}>
-            <p className={`font-bold text-sm ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>Anatomy of a dot</p>
-            <p>
-              <strong>Core</strong> — super population
+              })()}
+            </svg>
+            {/* capped so the `auto` grid column tracks the diagram, not the prose */}
+            <p className={`text-[11px] leading-snug mt-1 max-w-[292px] ${nightMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              Petal length is the share of the sub-population with that assay — a stub means the assay is mostly missing.
             </p>
-            <p>
-              <strong>Inner ring</strong> — gender split
-            </p>
-            <p>
-              <strong>Outer petals</strong> — one per assay; petal length is the share of that sub-population with the
-              assay
-            </p>
-            <p className={nightMode ? 'text-gray-500' : 'text-gray-400'}>Dot size scales with sample count</p>
           </div>
-        </div>
 
-        {/* Color keys — outermost-last, matching the dot from the core outwards */}
-        <div className="space-y-3">
-          <div>
-            <p className={`text-[10px] font-bold uppercase tracking-widest mb-1.5 ${nightMode ? 'text-gray-500' : 'text-gray-400'}`}>
-              Super population (core)
-            </p>
-            <div className="flex flex-wrap gap-x-4 gap-y-1.5">
-              {SUPER_POPULATION_ORDER.map((key) => (
-                <span key={key} className={`inline-flex items-center gap-1.5 text-xs ${nightMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                  <span className="w-3 h-3 rounded-full" style={{ backgroundColor: POPULATION_COLORS[key] }} />
-                  {POPULATION_NAMES[key]}
-                </span>
+          {/* Colour keys */}
+          <div
+            className={`p-4 border-t lg:border-t-0 lg:border-l ${nightMode ? 'border-gray-700' : 'border-gray-200'}`}
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-[max-content_1fr] gap-x-4 gap-y-3 items-start">
+              {[
+                {
+                  head: 'Super population',
+                  sub: 'core',
+                  items: SUPER_POPULATION_ORDER.map((key) => ({
+                    key,
+                    label: POPULATION_NAMES[key],
+                    swatch: <CoreSwatch color={POPULATION_COLORS[key]} />,
+                  })),
+                },
+                {
+                  head: 'Gender',
+                  sub: 'inner ring',
+                  items: GENDER_SLICES.map((s) => ({
+                    key: s.key,
+                    label: s.label,
+                    swatch: <RingSwatch color={s.color} nightMode={nightMode} />,
+                  })),
+                },
+                {
+                  head: 'Assay',
+                  sub: 'outer petals',
+                  items: DATA_RING.map((dt, i) => ({
+                    key: dt.key,
+                    label: dt.label,
+                    swatch: <PetalSwatch index={i} color={dt.color} nightMode={nightMode} />,
+                  })),
+                },
+              ].map((group) => (
+                <div key={group.head} className="contents">
+                  <div className="sm:text-right">
+                    <p className={`text-[11px] font-bold ${nightMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      {group.head}
+                    </p>
+                    <p className={`text-[10px] ${nightMode ? 'text-gray-500' : 'text-gray-400'}`}>{group.sub}</p>
+                  </div>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1.5 pt-0.5">
+                    {group.items.map((item) => (
+                      <span
+                        key={item.key}
+                        className={`inline-flex items-center gap-1.5 text-xs whitespace-nowrap ${
+                          nightMode ? 'text-gray-300' : 'text-gray-600'
+                        }`}
+                      >
+                        {item.swatch}
+                        {item.label}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               ))}
-            </div>
-          </div>
-          <div>
-            <p className={`text-[10px] font-bold uppercase tracking-widest mb-1.5 ${nightMode ? 'text-gray-500' : 'text-gray-400'}`}>
-              Gender (inner ring)
-            </p>
-            <div className="flex flex-wrap gap-x-4 gap-y-1.5">
-              {GENDER_SLICES.map((s) => (
-                <span key={s.key} className={`inline-flex items-center gap-1.5 text-xs ${nightMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                  <span className="w-3 h-3 rounded-full" style={{ backgroundColor: s.color }} />
-                  {s.label}
-                </span>
-              ))}
-            </div>
-          </div>
-          <div>
-            <p className={`text-[10px] font-bold uppercase tracking-widest mb-1.5 ${nightMode ? 'text-gray-500' : 'text-gray-400'}`}>
-              Assay (outer petals, clockwise from top)
-            </p>
-            <div className="flex flex-wrap gap-x-4 gap-y-1.5">
-              {DATA_RING.map((dt) => (
-                <span key={dt.key} className={`inline-flex items-center gap-1.5 text-xs ${nightMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                  <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: dt.color }} />
-                  {dt.label}
-                </span>
-              ))}
+
+              {/* Size scale, aligned into the same two-column rhythm. These
+                  circles are drawn smaller than the real glyphs, so they are
+                  labelled by direction rather than with sample counts — a
+                  number here would invite measuring against the map. */}
+              <div className="sm:text-right">
+                <p className={`text-[11px] font-bold ${nightMode ? 'text-gray-300' : 'text-gray-700'}`}>Dot size</p>
+                <p className={`text-[10px] ${nightMode ? 'text-gray-500' : 'text-gray-400'}`}>sample count</p>
+              </div>
+              <div className="flex items-center gap-2 pt-0.5">
+                <span className={`text-[10px] ${nightMode ? 'text-gray-500' : 'text-gray-400'}`}>Fewer</span>
+                {sizeScale.map((n) => {
+                  const r = radiusFor(n) * 0.62;
+                  return (
+                    <svg key={n} width={r * 2} height={r * 2} aria-hidden="true" className="flex-shrink-0">
+                      <circle
+                        cx={r}
+                        cy={r}
+                        r={r - 0.75}
+                        fill="none"
+                        stroke={nightMode ? '#6b7280' : '#9ca3af'}
+                        strokeWidth={1.5}
+                      />
+                    </svg>
+                  );
+                })}
+                <span className={`text-[10px] ${nightMode ? 'text-gray-500' : 'text-gray-400'}`}>More</span>
+              </div>
             </div>
           </div>
         </div>
@@ -720,7 +964,8 @@ export default function PopulationDataMap({
         Hover a dot for the full breakdown · click to pin it below
         {missingCoords > 0 && ` · ${missingCoords} sample${missingCoords === 1 ? '' : 's'} without geographic metadata not shown`}
         <span className="block mt-1">
-          Dots are nudged slightly apart where sub-populations would otherwise overlap
+          Dots are moved apart so none overlap
+          {strayNodes.length > 0 && '; where one had to travel beyond its own edge, an arrow points at the recorded location'}
         </span>
       </p>
     </div>

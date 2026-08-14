@@ -1,5 +1,7 @@
 // Genome data service - handles loading and managing genome data
 import type { Genome, Population, DataLayer } from './genomeTypes';
+import { normalizeCoordinateKey, type CoordinateKey } from './theme';
+import { tsvRows } from './tsv';
 
 // In-memory genome data cache
 let genomeDataCache: Genome[] = [];
@@ -20,18 +22,15 @@ let trackDataCache: Record<string, TrackEntry[]> = {};
 export type DataType = 'assembly' | 'repeatmasker' | 'methylation' | 'expression' | 'chromatin_accessibility' | 'chromatin_conformation';
 export const DATA_TYPES: DataType[] = ['assembly', 'repeatmasker', 'methylation', 'expression', 'chromatin_accessibility', 'chromatin_conformation'];
 
-// Coordinate types
-export type Coordinate = 'hg38' | 'chm13' | 'DSA';
+// Coordinate types. Defined in utils/theme alongside their badge colours, so
+// the set of coordinates and the way they are drawn cannot drift apart.
+export type Coordinate = CoordinateKey;
 
 /**
  * Normalize coordinate string to standard format
  * Following the same logic as trackSelection.ts
  */
-export function normalizeCoordinate(coord: string): Coordinate {
-  if (coord === 'hg38') return 'hg38';
-  if (coord === 'chm13' || coord === 't2t-chm13-v2.0') return 'chm13';
-  return 'DSA'; // Diploid Donor-Specific Assembly
-}
+export const normalizeCoordinate = normalizeCoordinateKey;
 
 /**
  * Check if a sample has data of a specific type available
@@ -243,15 +242,20 @@ export async function loadTrackData(): Promise<Record<string, TrackEntry[]>> {
     if (!response.ok) {
       throw new Error(`Failed to load track data: ${response.statusText}`);
     }
-    const text = await response.text();
-    const lines = text.trim().split('\n');
-    
+    const rows = tsvRows(await response.text());
+
     // Skip header line, parse all fields as-is
     const tracks: Record<string, TrackEntry[]> = {};
-    for (let i = 1; i < lines.length; i++) {
-      const line = lines[i];
-      const [sample_id, data_type, size_bytes, data_attributes, browser_attributes] = line.split('\t');
-      
+    let skipped = 0;
+    for (let i = 1; i < rows.length; i++) {
+      const [sample_id, data_type, size_bytes, data_attributes, browser_attributes] = rows[i];
+
+      if (!sample_id || data_attributes === undefined || browser_attributes === undefined) {
+        skipped++;
+        console.warn(`Skipping malformed track row at line ${i + 1}: expected 5 columns, got ${rows[i].length}`);
+        continue;
+      }
+
       try {
         const entry: TrackEntry = {
           sample_id,
@@ -260,16 +264,24 @@ export async function loadTrackData(): Promise<Record<string, TrackEntry[]>> {
           data_attributes: JSON.parse(data_attributes),
           browser_attributes: JSON.parse(browser_attributes),
         };
-        
+
         if (!tracks[sample_id]) {
           tracks[sample_id] = [];
         }
         tracks[sample_id].push(entry);
       } catch (parseError) {
+        skipped++;
         console.warn(`Failed to parse track at line ${i + 1}:`, parseError);
       }
     }
-    
+
+    // A handful of bad rows is worth a warning; an empty table means the file
+    // is not what we think it is, and silently showing an empty portal is worse
+    // than saying so.
+    if (rows.length > 1 && Object.keys(tracks).length === 0) {
+      throw new Error(`No usable rows in tracks.tsv (${skipped} of ${rows.length - 1} failed to parse)`);
+    }
+
     trackDataCache = tracks;
     return trackDataCache;
   } catch (error) {

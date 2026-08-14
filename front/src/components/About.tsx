@@ -28,7 +28,7 @@ function About({ nightMode }: AboutProps) {
                 href="https://wang.wustl.edu/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`inline-flex items-center ${nightMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'} text-lg font-medium transition-colors`}
+                className={`inline-flex items-center ${nightMode ? 'text-primary-300 hover:text-primary-200' : 'text-primary-600 hover:text-primary-800'} text-lg font-medium transition-colors`}
               >
                 Wang Lab at Washington University in St. Louis
                 <ArrowTopRightOnSquareIcon className="w-5 h-5 ml-2" />
@@ -50,7 +50,7 @@ function About({ nightMode }: AboutProps) {
                 href="https://github.com/twlab/HPRCEB"
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`inline-flex items-center ${nightMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'} text-lg font-medium transition-colors`}
+                className={`inline-flex items-center ${nightMode ? 'text-primary-300 hover:text-primary-200' : 'text-primary-600 hover:text-primary-800'} text-lg font-medium transition-colors`}
               >
                 GitHub: twlab/HPRCEB
                 <ArrowTopRightOnSquareIcon className="w-5 h-5 ml-2" />
@@ -72,7 +72,7 @@ function About({ nightMode }: AboutProps) {
                 href="https://humanpangenome.org/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`inline-flex items-center ${nightMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'} text-lg font-medium transition-colors`}
+                className={`inline-flex items-center ${nightMode ? 'text-primary-300 hover:text-primary-200' : 'text-primary-600 hover:text-primary-800'} text-lg font-medium transition-colors`}
               >
                 Human Pangenome Reference Consortium
                 <ArrowTopRightOnSquareIcon className="w-5 h-5 ml-2" />
@@ -95,7 +95,7 @@ function About({ nightMode }: AboutProps) {
                 href="https://registry.opendata.aws/hprc-epigenome/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`inline-flex items-center ${nightMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'} text-lg font-medium transition-colors`}
+                className={`inline-flex items-center ${nightMode ? 'text-primary-300 hover:text-primary-200' : 'text-primary-600 hover:text-primary-800'} text-lg font-medium transition-colors`}
               >
                 Registry of Open Data on AWS
                 <ArrowTopRightOnSquareIcon className="w-5 h-5 ml-2" />

@@ -1,5 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { PlayCircleIcon } from '@heroicons/react/24/outline';
+import { DATA_LAYER_INFO } from '../utils/constants';
+import { DATA_TYPES, BUTTON, secondaryButton } from '../utils/theme';
+import { MAX_SESSIONS } from '../utils/sessionUtils';
+import type { DataLayer } from '../utils/genomeTypes';
 
 interface TutorialsProps {
   nightMode?: boolean;
@@ -7,7 +11,7 @@ interface TutorialsProps {
 }
 
 export default function Tutorials({ nightMode = false, onStartInteractiveGuide }: TutorialsProps) {
-  const [copiedSession, setCopiedSession] = useState(false);
+  const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle');
 
   const exampleSession = `[
   {
@@ -106,10 +110,20 @@ export default function Tutorials({ nightMode = false, onStartInteractiveGuide }
   }
 ]`;
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(exampleSession);
-    setCopiedSession(true);
-    setTimeout(() => setCopiedSession(false), 2000);
+  // `navigator.clipboard` is undefined outside a secure context and the write
+  // can be refused by permissions. The old call reported "Copied" regardless
+  // and left the rejection unhandled; now a failure says so, and the user can
+  // still select the block by hand.
+  const copyToClipboard = async () => {
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error('Clipboard API unavailable');
+      await navigator.clipboard.writeText(exampleSession);
+      setCopyState('copied');
+    } catch (error) {
+      console.warn('Clipboard write failed:', error);
+      setCopyState('failed');
+    }
+    setTimeout(() => setCopyState('idle'), 2500);
   };
 
   // Shared, consistent styles for a professional, restrained look
@@ -123,17 +137,20 @@ export default function Tutorials({ nightMode = false, onStartInteractiveGuide }
     { name: 'Sample', desc: 'Select genomes, choose data layers (Methylation, Expression, Chromatin Accessibility), and pick a reference genome (hg38 or chm13). Filter by population and view data visualizations.' },
     { name: 'Track', desc: 'Configure which tracks to display in the browser. Enable or disable individual tracks and filter by type. Reference tracks (ruler, genes) and sample tracks (methylation, expression, genome alignments) can be customized. Genome alignment tracks are always enabled.' },
     { name: 'Browser', desc: 'Visualize your configured tracks in the WashU Epigenome Browser. Navigate chromosomes, zoom, and explore data interactively. Supports fullscreen mode (press F or use the fullscreen button).' },
-    { name: 'Sessions', desc: 'Save your complete configuration (genomes, data layers, and track selections) as sessions. Store up to 10 sessions, export or import as JSON, and quickly restore your work.' },
+    { name: 'Sessions', desc: `Save your complete configuration (reference genome, samples, data layers, track selections and browser location) as a session. Keep up to ${MAX_SESSIONS} sessions, export or import them as JSON, and restore your work in one click.` },
     { name: 'Data Availability', desc: 'Overview of all genomes and their available data types. Useful for quickly seeing what data is available across samples.' },
     { name: 'Tutorials', desc: 'Documentation and guides. You can also restart the interactive tutorial from here.' },
   ];
 
-  const dataLayers = [
-    { name: 'DNA Methylation', detail: 'ONT / PacBio · ~15 GB/sample', dot: 'bg-cyan-500' },
-    { name: 'Expression', detail: 'Iso-Seq · ~8 GB/sample', dot: 'bg-green-500' },
-    { name: 'Chromatin Accessibility', detail: 'Fiber-seq · ~20 GB/sample', dot: 'bg-orange-500' },
-    { name: 'Chromatin Conformation', detail: 'Omni-C · ~25 GB/sample', dot: 'bg-purple-500' },
-  ];
+  // Names, platforms, sizes and swatches all come from the shared tables, so
+  // this page cannot describe a layer differently from the picker that offers it.
+  const dataLayers = (
+    ['methylation', 'expression', 'chromatin_accessibility', 'chromatin_conformation'] as DataLayer[]
+  ).map((id) => ({
+    name: DATA_LAYER_INFO[id].name,
+    detail: `${DATA_LAYER_INFO[id].type} · ~${DATA_LAYER_INFO[id].avgSize} GB/sample`,
+    dot: DATA_TYPES[id].dot,
+  }));
 
   return (
     <div className={`${card} rounded-2xl shadow-sm border p-8 transition-colors duration-300`}>
@@ -146,7 +163,7 @@ export default function Tutorials({ nightMode = false, onStartInteractiveGuide }
         {onStartInteractiveGuide && (
           <button
             onClick={onStartInteractiveGuide}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm flex-shrink-0"
+            className={`inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-lg transition-colors flex-shrink-0 ${BUTTON.primary}`}
           >
             <PlayCircleIcon className="w-5 h-5" />
             <span>Start Interactive Guide</span>
@@ -167,7 +184,7 @@ export default function Tutorials({ nightMode = false, onStartInteractiveGuide }
               href="https://epgg.github.io/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary-600 hover:text-primary-800 underline font-medium"
+              className={`underline font-medium ${nightMode ? 'text-primary-300 hover:text-primary-200' : 'text-primary-600 hover:text-primary-800'}`}
             >
               epgg.github.io
             </a>
@@ -250,15 +267,16 @@ export default function Tutorials({ nightMode = false, onStartInteractiveGuide }
             </pre>
             <button
               onClick={copyToClipboard}
+              aria-live="polite"
               className={`absolute top-2 right-2 px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                copiedSession
+                copyState === 'copied'
                   ? 'bg-green-600 text-white'
-                  : nightMode
-                    ? 'bg-gray-700 text-gray-200 hover:bg-gray-600'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  : copyState === 'failed'
+                    ? 'bg-red-600 text-white'
+                    : secondaryButton(nightMode)
               }`}
             >
-              {copiedSession ? 'Copied' : 'Copy'}
+              {copyState === 'copied' ? 'Copied' : copyState === 'failed' ? 'Copy failed — select manually' : 'Copy'}
             </button>
           </div>
         </section>
@@ -284,7 +302,7 @@ export default function Tutorials({ nightMode = false, onStartInteractiveGuide }
               href="https://humanpangenome.org"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary-600 hover:text-primary-800 underline font-medium"
+              className={`underline font-medium ${nightMode ? 'text-primary-300 hover:text-primary-200' : 'text-primary-600 hover:text-primary-800'}`}
             >
               humanpangenome.org
             </a>

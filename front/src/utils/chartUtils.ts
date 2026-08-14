@@ -2,10 +2,31 @@
 import { Chart, registerables, ChartConfiguration } from 'chart.js';
 import type { DataLayer } from './genomeTypes';
 import { getSampleDataSize, DataType } from './genomeDataService';
+import { dataTypeToken } from './theme';
 
 Chart.register(...registerables);
 
 let chartInstance: Chart | null = null;
+
+/** `#rrggbb` → `rgba(r, g, b, alpha)`, so a bar's fill and its border can share one token. */
+function withAlpha(hex: string, alpha: number): string {
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!m) return hex;
+  const [r, g, b] = [m[1], m[2], m[3]].map((c) => parseInt(c, 16));
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+/** One stacked bar series, coloured from the shared assay palette. */
+function datasetFor(dataType: DataType, selectedGenomes: string[]) {
+  const token = dataTypeToken(dataType);
+  return {
+    label: token.label,
+    data: selectedGenomes.map((id) => getSampleDataSize(id, [dataType])),
+    backgroundColor: withAlpha(token.hex, 0.7),
+    borderColor: token.hex,
+    borderWidth: 1,
+  };
+}
 
 export function createDataChart(
   selectedGenomes: string[],
@@ -27,57 +48,20 @@ export function createDataChart(
   // Prepare data for the chart
   const labels = selectedGenomes;
 
-  const datasets: ChartConfiguration<'bar'>['data']['datasets'] = [];
+  // Assembly is always stacked in; the functional layers follow the picker.
+  const LAYER_ORDER: DataLayer[] = [
+    'methylation',
+    'expression',
+    'chromatin_accessibility',
+    'chromatin_conformation',
+  ];
 
-  // Assembly data
-  datasets.push({
-    label: "Assembly",
-    data: selectedGenomes.map((id) => getSampleDataSize(id, ['assembly'])),
-    backgroundColor: "rgba(107, 114, 128, 0.7)",
-    borderColor: "rgba(107, 114, 128, 1)",
-    borderWidth: 1,
-  });
-
-  // Add selected data layers
-  if (selectedLayers.includes("methylation")) {
-    datasets.push({
-      label: "Methylation",
-      data: selectedGenomes.map((id) => getSampleDataSize(id, ['methylation'])),
-      backgroundColor: "rgba(62, 91, 149, 0.7)", // Academic blue
-      borderColor: "rgba(62, 91, 149, 1)",
-      borderWidth: 1,
-    });
-  }
-
-  if (selectedLayers.includes("expression")) {
-    datasets.push({
-      label: "Expression",
-      data: selectedGenomes.map((id) => getSampleDataSize(id, ['expression'])),
-      backgroundColor: "rgba(16, 185, 129, 0.7)",
-      borderColor: "rgba(16, 185, 129, 1)",
-      borderWidth: 1,
-    });
-  }
-
-  if (selectedLayers.includes("chromatin_accessibility")) {
-    datasets.push({
-      label: "Chromatin Accessibility",
-      data: selectedGenomes.map((id) => getSampleDataSize(id, ['chromatin_accessibility'])),
-      backgroundColor: "rgba(245, 158, 11, 0.7)",
-      borderColor: "rgba(245, 158, 11, 1)",
-      borderWidth: 1,
-    });
-  }
-
-  if (selectedLayers.includes("chromatin_conformation")) {
-    datasets.push({
-      label: "Chromatin Conformation",
-      data: selectedGenomes.map((id) => getSampleDataSize(id, ['chromatin_conformation'])),
-      backgroundColor: "rgba(139, 92, 246, 0.7)",
-      borderColor: "rgba(139, 92, 246, 1)",
-      borderWidth: 1,
-    });
-  }
+  const datasets: ChartConfiguration<'bar'>['data']['datasets'] = [
+    datasetFor('assembly', selectedGenomes),
+    ...LAYER_ORDER.filter((layer) => selectedLayers.includes(layer)).map((layer) =>
+      datasetFor(layer as DataType, selectedGenomes)
+    ),
+  ];
 
   chartInstance = new Chart(ctx, {
     type: "bar",

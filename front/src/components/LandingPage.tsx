@@ -10,7 +10,7 @@ import {
   CircleStackIcon,
 } from '@heroicons/react/24/outline';
 import { LuDna } from 'react-icons/lu';
-import { getGenomeData, getDataStatistics } from '../utils/genomeDataService';
+import { getDataStatistics } from '../utils/genomeDataService';
 import { setCookie } from '../utils/cookieUtils';
 
 interface LandingPageProps {
@@ -18,7 +18,6 @@ interface LandingPageProps {
 }
 
 export default function LandingPage({ onEnter }: LandingPageProps) {
-  const genomeData = getGenomeData();
   const [skipLandingPage, setSkipLandingPage] = useState(false);
   
   const handleEnter = () => {
@@ -44,7 +43,7 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
       ),
       title: "Complete Genome Assemblies",
       description: "Access high-quality haplotype-resolved genome assemblies from diverse populations worldwide.",
-      gradient: "from-primary-500 to-cyan-500"
+      gradient: "from-primary-400 to-primary-600"
     },
     {
       icon: (
@@ -52,7 +51,7 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
       ),
       title: "Epigenomic Landscapes",
       description: "Explore DNA methylation, chromatin accessibility, chromatin conformation, and gene expression across the pangenome.",
-      gradient: "from-primary-500 to-primary-600"
+      gradient: "from-primary-500 to-primary-700"
     },
     {
       icon: (
@@ -60,7 +59,7 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
       ),
       title: "Interactive Browser",
       description: "Visualize genomic and epigenomic data with an integrated genome browser interface.",
-      gradient: "from-green-500 to-teal-500"
+      gradient: "from-primary-500 to-primary-800"
     },
     {
       icon: (
@@ -68,7 +67,7 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
       ),
       title: "Population Diversity",
       description: "Investigate genetic and epigenetic variation across African, American, Asian, European, and South Asian populations.",
-      gradient: "from-amber-500 to-orange-500"
+      gradient: "from-primary-600 to-primary-900"
     }
   ];
 
@@ -84,11 +83,11 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50 relative overflow-hidden">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-primary-200/30 to-transparent rounded-full blur-3xl animate-pulse-slow"></div>
-        <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-blue-200/30 to-transparent rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-primary-100/40 to-transparent rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '1s' }}></div>
       </div>
 
       <div className="relative z-10">
@@ -106,7 +105,7 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
 
             {/* Main Title */}
             <h1 className="text-6xl md:text-7xl lg:text-8xl font-black mb-6 animate-fade-in-up">
-              <span style={{ color: '#3e5b95' }}>
+              <span className="text-primary-600">
                 HPRC
               </span>
               <br />

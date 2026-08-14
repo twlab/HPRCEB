@@ -7,37 +7,30 @@ import "wuepgg/style.css";
 
 interface BrowserProps {
   tracks: Track[];
-  selectedGenomes: string[];
   referenceGenome: string;
   nightMode?: boolean;
-  onNavigateToDataSelector?: () => void;
   viewRegion?: string;
   onViewRegionChange?: (viewRegion: string) => void;
 }
 
-/**
- * Parse userViewRegion string and convert float coordinates to integers.
- * Format: chrXXX:start-end where start and end might be floats.
- */
-function normalizeViewRegion(viewRegion: string): string {
-  const match = viewRegion.match(/^(chr[^:]+):([0-9.]+)-([0-9.]+)$/);
-  if (!match) return viewRegion;
+export default function Browser({ tracks: tracksProp, referenceGenome, nightMode = false, viewRegion = "chr7:27053397-27153397", onViewRegionChange }: BrowserProps) {
+  const selectedTracks = useMemo<TracksProps[]>(
+    () => tracksProp.filter((t) => t.isSelected).map((t) => ({ ...t.displayAttributes })),
+    [tracksProp]
+  );
 
-  const [, chr, startStr, endStr] = match;
-  const start = Math.floor(parseFloat(startStr));
-  const end = Math.floor(parseFloat(endStr));
-
-  return `${chr}:${start}-${end}`;
-}
-
-export default function Browser({ tracks: tracksProp, selectedGenomes, referenceGenome, nightMode = false, onNavigateToDataSelector, viewRegion = "chr7:27053397-27153397", onViewRegionChange }: BrowserProps) {
-  const browserTracks = tracksProp
-    .filter(t => t.isSelected)
-    .map(t => ({ ...t.displayAttributes }));  // Create new object without isSelected
-  
-  const [tracks, setTracks] = useState<TracksProps[]>(browserTracks);
-  const [allTracks, setAllTracks] = useState<TracksProps[]>(browserTracks);
-  const [isLoadingTracks, setIsLoadingTracks] = useState(false);
+  // GenomeHub builds its store during its own first render and only picks the
+  // track list up from a *later* prop change, so it has to arrive after mount —
+  // handing it the full list immediately renders an empty browser.
+  //
+  // The original code got this right by accident, via two pieces of state that
+  // copied each other through a pair of effects. Deriving the list directly
+  // looked like dead weight and silently broke the browser; this keeps the one
+  // deferral that matters and drops the duplicate state.
+  const [tracks, setTracks] = useState<TracksProps[]>([]);
+  useEffect(() => {
+    setTracks(selectedTracks);
+  }, [selectedTracks]);
 
   const [isFullscreen, setIsFullscreen] = useState(false);
   const browserContainerRef = useRef<HTMLDivElement>(null);
@@ -80,24 +73,7 @@ export default function Browser({ tracks: tracksProp, selectedGenomes, reference
     return () => document.removeEventListener('keydown', handleKeyPress);
   }, []);
 
-  useEffect(() => {
-    const selectedTracks = tracksProp
-      .filter(t => t.isSelected)
-      .map(t => ({ ...t.displayAttributes }));
-    // console.log("Browser: selected count:", selectedTracks.length, "total:", tracksProp.length);
-    // console.log("Browser: selected tracks:", selectedTracks.map(t => t.name));
-    setAllTracks(selectedTracks);
-    setTracks(selectedTracks);
-    setIsLoadingTracks(false);
-  }, [tracksProp]);
-
-  useEffect(() => {
-    setTracks(allTracks);
-  }, [allTracks]);
-
-  const storeId = useMemo(() => 'hprc-browser', []);
-
-  const storeConfig = useMemo(() => ({ storeId }), [storeId]);
+  const storeConfig = useMemo(() => ({ storeId: 'hprc-browser' }), []);
 
   // Capture viewRegion once on mount so switching tabs restores the last position
   const viewRegionMemo = useMemo(

@@ -19,7 +19,7 @@ export default function CohortOverview({ nightMode = false }: CohortOverviewProp
   return (
     <div className={`${card} rounded-2xl shadow-fancy border p-6 mb-6 transition-colors duration-300`}>
       <div className="flex items-center gap-3 mb-5">
-        <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-cyan-600 rounded-xl flex items-center justify-center flex-shrink-0">
+        <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center flex-shrink-0">
           <UsersIcon className="w-5 h-5 text-white" />
         </div>
         <div>

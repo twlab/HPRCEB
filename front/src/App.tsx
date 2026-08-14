@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { ExclamationCircleIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import Header from './components/Header';
-import TabNavigation, { TabType } from './components/TabNavigation';
+import TabNavigation, { TABS, TabType } from './components/TabNavigation';
 import DataAvailabilityMatrix from './components/DataAvailabilityMatrix';
 import DataSelector, { DataSelectorState } from './components/DataSelector';
 import Tracks from './components/Tracks';
@@ -24,18 +24,18 @@ function App() {
   const skipLanding = getCookie('hprc_skip_landing') === 'true';
   const [showLanding, setShowLanding] = useState(!skipLanding);
   
-  // Get initial tab from URL parameter
-  const getInitialTab = (): TabType => {
-    const params = new URLSearchParams(window.location.search);
-    const tabParam = params.get('tab');
-    const validTabs: TabType[] = ['availability-matrix', 'sample', 'tracks', 'browser', 'tutorials', 'sessions', 'about'];
-    if (tabParam && validTabs.includes(tabParam as TabType)) {
-      return tabParam as TabType;
-    }
-    return 'sample';
-  };
-  
-  const [currentTab, setCurrentTab] = useState<TabType>(getInitialTab());
+  // Validate against the one list of tabs rather than a second copy that has to
+  // be kept in step with it. An unrecognised `?tab=` used to be accepted and
+  // then matched nothing in the render, leaving the page body blank.
+  const toTabType = (value: string | null): TabType | null =>
+    value && TABS.some((t) => t.id === value) ? (value as TabType) : null;
+
+  const getInitialTab = (): TabType =>
+    toTabType(new URLSearchParams(window.location.search).get('tab')) ?? 'sample';
+
+  // Lazy initialiser: passing `getInitialTab()` re-parsed the query string on
+  // every render just to throw the result away.
+  const [currentTab, setCurrentTab] = useState<TabType>(getInitialTab);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [nightMode, setNightMode] = useState(false);
@@ -45,7 +45,8 @@ function App() {
   // Tutorial state
   const tutorialCompleted = localStorage.getItem('hprc_tutorial_completed') === 'true';
   const [showTutorial, setShowTutorial] = useState(false);
-  const [tutorialTriggerRequested, setTutorialTriggerRequested] = useState(false);
+  // Where the user was before the tour drove them around the tabs.
+  const tutorialReturnTab = useRef<TabType>('sample');
   
   // Shared state for DataSelector and Browser
   const [dataSelectorState, setDataSelectorState] = useState<DataSelectorState>({
@@ -62,26 +63,34 @@ function App() {
   // Selected tracks to display (result of selectTracks)
   const [selectedTracks, setSelectedTracks] = useState<Track[]>([]);
   
-  // Ref to skip automatic track regeneration (used when loading sessions)
-  // Using ref instead of state to avoid triggering the useEffect
-  const skipTrackRegenerationRef = useRef(false);
+  // The last inputs selectTracks was run against. Regeneration is driven by
+  // comparing against this rather than by a "skip the next run" flag on a
+  // 100 ms timer: loading a session sets the selection and the restored track
+  // choices together, and whether the timer outlived the re-render decided
+  // whether those choices survived. On a slow render they silently did not.
+  const lastTrackInputs = useRef<{ key: string; source: Record<string, TrackEntry[]> } | null>(null);
+
+  const trackInputsKey = (state: DataSelectorState) =>
+    JSON.stringify([state.referenceGenome, state.selectedGenomes, state.selectedLayers]);
 
   // Fire selectTracks only when reference, samples, or functional data layers change
   useEffect(() => {
-    // Skip if we're loading a session (tracks are already restored)
-    if (skipTrackRegenerationRef.current) {
+    const key = trackInputsKey(dataSelectorState);
+    const previous = lastTrackInputs.current;
+    if (previous && previous.key === key && previous.source === availableTracks) {
       return;
     }
-    
+    lastTrackInputs.current = { key, source: availableTracks };
+
     const result = selectTracks({
       selectedSamples: dataSelectorState.selectedGenomes,
       reference: dataSelectorState.referenceGenome,
       availableTracks: availableTracks,
       selectedLayers: dataSelectorState.selectedLayers,
     });
-    
+
     setSelectedTracks(result.tracks);
-  }, [dataSelectorState.selectedGenomes, dataSelectorState.referenceGenome, availableTracks, dataSelectorState.selectedLayers]);
+  }, [dataSelectorState, availableTracks]);
 
   // Load genome and track data on mount
   useEffect(() => {
@@ -107,47 +116,65 @@ function App() {
     if (!showLanding && !tutorialCompleted && !isLoading && !error) {
       // Small delay to ensure DOM is ready
       const timer = setTimeout(() => {
+        tutorialReturnTab.current = currentTab;
         setShowTutorial(true);
       }, 800);
       return () => clearTimeout(timer);
     }
+    // `currentTab` is read, not tracked: re-running on every tab change would
+    // relaunch the tour while the user is working.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showLanding, tutorialCompleted, isLoading, error]);
 
-  // Handle tutorial restart request (kept for future use)
-  useEffect(() => {
-    if (tutorialTriggerRequested && !showLanding && !isLoading && !error) {
-      setTutorialTriggerRequested(false);
-      const timer = setTimeout(() => {
-        setShowTutorial(true);
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-  }, [tutorialTriggerRequested, showLanding, isLoading, error]);
+  // Mirror of `currentTab` for the popstate listener, which is registered once
+  // and would otherwise read the value from its first render forever.
+  const currentTabRef = useRef(currentTab);
+  currentTabRef.current = currentTab;
 
-  // Update URL when tab changes
+  // Set while applying a Back/Forward navigation, so the effect below does not
+  // push the entry the user just navigated away from straight back on.
+  const fromHistoryNavigation = useRef(false);
+  const historyInitialised = useRef(false);
+
+  // Reflect the current tab in the URL.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     params.set('tab', currentTab);
-    const newUrl = `${window.location.pathname}?${params.toString()}`;
-    window.history.pushState({ tab: currentTab }, '', newUrl);
+    const url = `${window.location.pathname}?${params.toString()}`;
+
+    if (fromHistoryNavigation.current) {
+      // The entry already exists — pushing here appended a duplicate, which
+      // discarded the forward stack and made the Forward button dead.
+      fromHistoryNavigation.current = false;
+      return;
+    }
+
+    if (historyInitialised.current) {
+      window.history.pushState({ tab: currentTab }, '', url);
+    } else {
+      // First run is the page the user just opened. Pushing here meant the
+      // first Back press only landed on the same view again.
+      historyInitialised.current = true;
+      window.history.replaceState({ tab: currentTab }, '', url);
+    }
   }, [currentTab]);
 
   // Handle browser back/forward buttons
   useEffect(() => {
     const handlePopState = (event: PopStateEvent) => {
-      if (event.state && event.state.tab) {
-        setCurrentTab(event.state.tab);
-      } else {
-        const params = new URLSearchParams(window.location.search);
-        const tabParam = params.get('tab');
-        if (tabParam) {
-          setCurrentTab(tabParam as TabType);
-        }
-      }
+      const params = new URLSearchParams(window.location.search);
+      const next =
+        toTabType((event.state as { tab?: string } | null)?.tab ?? null) ??
+        toTabType(params.get('tab'));
+
+      if (!next || next === currentTabRef.current) return;
+      fromHistoryNavigation.current = true;
+      setCurrentTab(next);
     };
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Handler to navigate to Sample tab
@@ -168,6 +195,7 @@ function App() {
 
   const handleRestartTutorial = () => {
     localStorage.removeItem('hprc_tutorial_completed');
+    tutorialReturnTab.current = currentTab;
     setShowTutorial(true);
   };
 
@@ -187,10 +215,14 @@ function App() {
   // Early returns after all hooks
   if (isLoading) {
     return (
-      <div className={`fixed inset-0 ${nightMode ? 'bg-gray-950' : 'bg-gray-900'} bg-opacity-50 flex items-center justify-center z-50`}>
+      <div
+        className={`fixed inset-0 ${nightMode ? 'bg-gray-950/50' : 'bg-gray-900/50'} flex items-center justify-center z-50`}
+        role="status"
+        aria-live="polite"
+      >
         <div className={`${nightMode ? 'bg-gray-800 text-gray-100' : 'bg-white text-gray-700'} rounded-lg p-8 max-w-sm`}>
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-center">Loading genome data...</p>
+          <p className="mt-4 text-center">Loading genome data…</p>
         </div>
       </div>
     );
@@ -198,7 +230,7 @@ function App() {
 
   if (error) {
     return (
-      <div className="fixed top-4 right-4 bg-red-600 text-white px-6 py-4 rounded-lg shadow-lg z-50 max-w-md">
+      <div className="fixed top-4 right-4 bg-red-600 text-white px-6 py-4 rounded-lg shadow-lg z-50 max-w-md" role="alert">
         <div className="flex items-start">
           <ExclamationCircleIcon className="w-6 h-6 mr-3 flex-shrink-0" />
           <div>
@@ -218,7 +250,7 @@ function App() {
   // Show main application
   return (
     <div
-      className={`${nightMode ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900' : 'bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50'} transition-colors duration-300`}
+      className={`${nightMode ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900' : 'bg-gradient-to-br from-gray-50 via-primary-50 to-gray-50'} transition-colors duration-300`}
       style={currentTab === 'browser' ? { height: '100vh', display: 'flex', flexDirection: 'column' } : { minHeight: '100vh', display: 'flex', flexDirection: 'column' }}
     >
       {/* Interactive Tutorial Overlay */}
@@ -228,6 +260,7 @@ function App() {
           onComplete={handleTutorialComplete}
           onSkip={handleTutorialSkip}
           onTabChange={setCurrentTab}
+          returnTab={tutorialReturnTab.current}
         />
       )}
 
@@ -239,12 +272,10 @@ function App() {
         // NOTE: padding here causes GenomeHub to rerender twice — keep this wrapper padding-free
         <main className="flex flex-col flex-1" style={{ minHeight: 0, overflow: 'hidden' }}>
           <section className="flex-1 flex flex-col" style={{ minHeight: 0, overflow: 'hidden' }}>
-            <Browser 
+            <Browser
               tracks={selectedTracks}
-              selectedGenomes={dataSelectorState.selectedGenomes}
               referenceGenome={dataSelectorState.referenceGenome}
               nightMode={nightMode}
-              onNavigateToDataSelector={handleNavigateToDataSelector}
               viewRegion={dataSelectorState.userViewRegion}
               onViewRegionChange={(region) => {
                 setDataSelectorState(prev => {
@@ -259,7 +290,6 @@ function App() {
         <main className="px-4 sm:px-6 lg:px-8 py-8">
           <Tracks
             tracks={selectedTracks}
-            selectedGenomes={dataSelectorState.selectedGenomes}
             referenceGenome={dataSelectorState.referenceGenome}
             nightMode={nightMode}
             onTracksChange={setSelectedTracks}
@@ -289,17 +319,16 @@ function App() {
               dataSelectorState={dataSelectorState}
               selectedTracks={selectedTracks}
               onLoadSession={(state, tracks) => {
-                // Set flag to skip automatic track regeneration
-                skipTrackRegenerationRef.current = true;
-                // Reset the flag after state updates are processed
-                setTimeout(() => {
-                  skipTrackRegenerationRef.current = false;
-                }, 100);
+                // Record the incoming selection as already applied, so the
+                // regeneration effect sees no change and leaves the session's
+                // per-track choices intact.
+                lastTrackInputs.current = { key: trackInputsKey(state), source: availableTracks };
                 // Restore both states (dataSelectorState includes userViewRegion)
                 setSelectedTracks(tracks);
                 setDataSelectorState(state);
               }}
               nightMode={nightMode}
+              onNavigateToSampleTab={handleNavigateToDataSelector}
             />
           )}
           {currentTab === 'about' && <About nightMode={nightMode} />}

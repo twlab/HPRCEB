@@ -4,7 +4,15 @@ import { DocumentChartBarIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import StepBadge, { stepBorder } from './StepBadge';
 import { getGenomeData, hasDataType, getSampleDataSize } from '../utils/genomeDataService';
 import type { DataLayer, Genome } from '../utils/genomeTypes';
-import { POPULATION_MAP } from '../utils/constants';
+import { DATA_TYPES, dataTypeBadge } from '../utils/theme';
+
+/** The functional layers, in the order the picker offers them. */
+const LAYER_ORDER: DataLayer[] = [
+  'methylation',
+  'expression',
+  'chromatin_accessibility',
+  'chromatin_conformation',
+];
 
 interface DataVisualizationProps {
   selectedGenomes: string[];
@@ -58,19 +66,13 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
       const genome = genomeData.find((g) => g.id === genomeId);
       if (!genome) return null;
 
-      const layers = [];
-      if (selectedLayers.includes("methylation") && hasDataType(genomeId, 'methylation')) {
-        layers.push(<span key="methylation" className="px-2 py-1 text-xs bg-cyan-100 text-cyan-800 rounded">Methylation</span>);
-      }
-      if (selectedLayers.includes("expression") && hasDataType(genomeId, 'expression')) {
-        layers.push(<span key="expression" className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">Expression</span>);
-      }
-      if (selectedLayers.includes("chromatin_accessibility") && hasDataType(genomeId, 'chromatin_accessibility')) {
-        layers.push(<span key="chromatin_accessibility" className="px-2 py-1 text-xs bg-orange-100 text-orange-800 rounded">Chromatin Accessibility</span>);
-      }
-      if (selectedLayers.includes("chromatin_conformation") && hasDataType(genomeId, 'chromatin_conformation')) {
-        layers.push(<span key="chromatin_conformation" className="px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded">Chromatin Conformation</span>);
-      }
+      const layers = LAYER_ORDER.filter(
+        (layer) => selectedLayers.includes(layer) && hasDataType(genomeId, layer)
+      ).map((layer) => (
+        <span key={layer} className={`px-2 py-1 text-xs rounded ${dataTypeBadge(layer, nightMode)}`}>
+          {DATA_TYPES[layer].label}
+        </span>
+      ));
 
       return (
         <tr
@@ -289,37 +291,28 @@ export default function DataVisualization({ selectedGenomes, selectedLayers, nig
               <div>
                 <h4 className={`text-lg font-bold ${nightMode ? 'text-gray-200' : 'text-gray-900'} mb-3`}>Available Data Layers</h4>
                 <div className="space-y-2">
-                  {hasDataType(selectedGenomeForDetails.id, 'methylation') && (
-                    <div className={`flex items-center justify-between p-3 ${nightMode ? 'bg-gray-700/50' : 'bg-cyan-50'} rounded-lg`}>
-                      <span className={`font-medium ${nightMode ? 'text-gray-200' : 'text-gray-900'}`}>Methylation</span>
-                      <span className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                        {getSampleDataSize(selectedGenomeForDetails.id, ['methylation']).toFixed(1)} GB
+                  {LAYER_ORDER.filter((layer) => hasDataType(selectedGenomeForDetails.id, layer)).map((layer) => (
+                    <div
+                      key={layer}
+                      className={`flex items-center gap-3 p-3 rounded-lg ${nightMode ? 'bg-gray-700/50' : DATA_TYPES[layer].panel}`}
+                    >
+                      <span
+                        className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: DATA_TYPES[layer].hex }}
+                        aria-hidden="true"
+                      />
+                      <span className={`font-medium ${nightMode ? 'text-gray-200' : 'text-gray-900'}`}>
+                        {DATA_TYPES[layer].label}
+                      </span>
+                      <span className={`ml-auto text-sm ${nightMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        {getSampleDataSize(selectedGenomeForDetails.id, [layer]).toFixed(1)} GB
                       </span>
                     </div>
-                  )}
-                  {hasDataType(selectedGenomeForDetails.id, 'expression') && (
-                    <div className={`flex items-center justify-between p-3 ${nightMode ? 'bg-gray-700/50' : 'bg-green-50'} rounded-lg`}>
-                      <span className={`font-medium ${nightMode ? 'text-gray-200' : 'text-gray-900'}`}>Expression</span>
-                      <span className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                        {getSampleDataSize(selectedGenomeForDetails.id, ['expression']).toFixed(1)} GB
-                      </span>
-                    </div>
-                  )}
-                  {hasDataType(selectedGenomeForDetails.id, 'chromatin_accessibility') && (
-                    <div className={`flex items-center justify-between p-3 ${nightMode ? 'bg-gray-700/50' : 'bg-orange-50'} rounded-lg`}>
-                      <span className={`font-medium ${nightMode ? 'text-gray-200' : 'text-gray-900'}`}>Chromatin Accessibility</span>
-                      <span className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                        {getSampleDataSize(selectedGenomeForDetails.id, ['chromatin_accessibility']).toFixed(1)} GB
-                      </span>
-                    </div>
-                  )}
-                  {hasDataType(selectedGenomeForDetails.id, 'chromatin_conformation') && (
-                    <div className={`flex items-center justify-between p-3 ${nightMode ? 'bg-gray-700/50' : 'bg-purple-50'} rounded-lg`}>
-                      <span className={`font-medium ${nightMode ? 'text-gray-200' : 'text-gray-900'}`}>Chromatin Conformation</span>
-                      <span className={`text-sm ${nightMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                        {getSampleDataSize(selectedGenomeForDetails.id, ['chromatin_conformation']).toFixed(1)} GB
-                      </span>
-                    </div>
+                  ))}
+                  {LAYER_ORDER.every((layer) => !hasDataType(selectedGenomeForDetails.id, layer)) && (
+                    <p className={`text-sm italic ${nightMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                      No functional data layers available for this sample.
+                    </p>
                   )}
                 </div>
               </div>

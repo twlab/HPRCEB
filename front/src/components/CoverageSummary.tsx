@@ -6,23 +6,14 @@ import {
   getSampleDataAvailability,
   DATA_TYPES,
 } from '../utils/genomeDataService';
-import type { DataType, Coordinate } from '../utils/genomeDataService';
+import type { DataType } from '../utils/genomeDataService';
+import { dataTypeToken } from '../utils/theme';
 
 interface CoverageSummaryProps {
   nightMode?: boolean;
   /** Render as a section inside another card instead of a standalone panel. */
   embedded?: boolean;
 }
-
-// Short + full labels and a base color per data type (matches the availability matrix hues)
-const DATA_TYPE_META: Record<DataType, { short: string; full: string; color: string }> = {
-  assembly: { short: 'Align', full: 'Genome Alignment', color: '#3b82f6' },
-  repeatmasker: { short: 'Repeats', full: 'RepeatMasker', color: '#64748b' },
-  methylation: { short: 'Methyl', full: 'Methylation', color: '#06b6d4' },
-  expression: { short: 'Expr', full: 'Expression', color: '#10b981' },
-  chromatin_accessibility: { short: 'Acc.', full: 'Chromatin Accessibility', color: '#f59e0b' },
-  chromatin_conformation: { short: 'Conf.', full: 'Chromatin Conformation', color: '#8b5cf6' },
-};
 
 type SortMode = 'name' | 'coverage';
 
@@ -33,7 +24,9 @@ export default function CoverageSummary({ nightMode = false, embedded = false }:
   const genomes = getGenomeData();
   const total = genomes.length;
 
-  const coverage = useMemo(() => getDataTypeCoverage(), [total]);
+  // Keyed on the cached array, not on its length: two datasets of the same size
+  // would have reused the first one's coverage numbers.
+  const coverage = useMemo(() => getDataTypeCoverage(), [genomes]);
 
   // Per-sample availability (size of the coordinate set per data type)
   const rows = useMemo(() => {
@@ -69,7 +62,7 @@ export default function CoverageSummary({ nightMode = false, embedded = false }:
     </div>
   ) : (
     <div className="flex items-center gap-3 mb-5">
-      <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-cyan-600 rounded-xl flex items-center justify-center">
+      <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center">
         <DocumentChartBarIcon className="w-5 h-5 text-white" />
       </div>
       <div>
@@ -94,16 +87,16 @@ export default function CoverageSummary({ nightMode = false, embedded = false }:
         {DATA_TYPES.map((type) => {
           const count = coverage[type] || 0;
           const pct = total > 0 ? (count / total) * 100 : 0;
-          const meta = DATA_TYPE_META[type];
+          const meta = dataTypeToken(type);
           return (
             <div key={type} className="flex items-center gap-3">
               <div className={`${embedded ? 'w-32 text-xs' : 'w-40 text-sm'} flex-shrink-0 font-medium ${nightMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                {meta.full}
+                {meta.label}
               </div>
               <div className={`flex-1 h-6 rounded-md overflow-hidden ${nightMode ? 'bg-gray-700/60' : 'bg-gray-100'}`}>
                 <div
                   className="h-full rounded-md transition-all duration-500 flex items-center justify-end pr-2"
-                  style={{ width: `${Math.max(pct, 4)}%`, backgroundColor: meta.color }}
+                  style={{ width: `${Math.max(pct, 4)}%`, backgroundColor: meta.hex }}
                 >
                   {pct >= 18 && (
                     <span className="text-[11px] font-bold text-white/95 whitespace-nowrap">{pct.toFixed(0)}%</span>
@@ -169,10 +162,10 @@ export default function CoverageSummary({ nightMode = false, embedded = false }:
           {DATA_TYPES.map((type) => (
             <div
               key={type}
-              title={DATA_TYPE_META[type].full}
+              title={dataTypeToken(type).label}
               className={`px-1 py-2 text-center text-[10px] font-bold uppercase tracking-wide ${nightMode ? 'text-gray-400' : 'text-gray-500'}`}
             >
-              {DATA_TYPE_META[type].short}
+              {dataTypeToken(type).short}
             </div>
           ))}
         </div>
@@ -190,17 +183,17 @@ export default function CoverageSummary({ nightMode = false, embedded = false }:
               </div>
               {DATA_TYPES.map((type) => {
                 const size = row.perType[type];
-                const meta = DATA_TYPE_META[type];
+                const meta = dataTypeToken(type);
                 return (
                   <div key={type} className="px-1 py-1 flex justify-center">
                     <div
                       className="w-full h-5 rounded"
                       title={
                         size > 0
-                          ? `${row.id} · ${meta.full}: available`
-                          : `${row.id} · ${meta.full}: not available`
+                          ? `${row.id} · ${meta.label}: available`
+                          : `${row.id} · ${meta.label}: not available`
                       }
-                      style={{ backgroundColor: size > 0 ? meta.color : emptyCell }}
+                      style={{ backgroundColor: size > 0 ? meta.hex : emptyCell }}
                     />
                   </div>
                 );
@@ -210,10 +203,20 @@ export default function CoverageSummary({ nightMode = false, embedded = false }:
         </div>
       </div>
 
-      {/* Legend */}
+      {/* Legend. Filled cells are coloured by assay, so the "available" swatch
+          shows the actual column colours rather than a stand-in grey. */}
       <div className={`mt-3 flex flex-wrap items-center gap-4 text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'}`}>
         <span className="flex items-center gap-1.5">
-          <span className="w-4 h-4 rounded" style={{ backgroundColor: '#6b7280' }} /> Available
+          <span className="flex gap-0.5">
+            {DATA_TYPES.map((type) => (
+              <span
+                key={type}
+                className="w-2 h-4 rounded-[2px]"
+                style={{ backgroundColor: dataTypeToken(type).hex }}
+              />
+            ))}
+          </span>
+          Available (coloured by assay)
         </span>
         <span className="flex items-center gap-1.5">
           <span className="w-4 h-4 rounded" style={{ backgroundColor: emptyCell }} /> Not available

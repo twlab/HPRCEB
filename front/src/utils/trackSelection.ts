@@ -25,6 +25,16 @@ export interface TrackSelectionOutput {
 
 
 
+/**
+ * Reference tracks that ship in the list but start switched off — they
+ * duplicate refGene and only get in the way until someone asks for them.
+ *
+ * Keyed by track name. The previous version disabled `result[2]` and
+ * `result[3]` by index, which quietly pointed at whichever tracks happened to
+ * sit in those slots and would have thrown outright on a shorter list.
+ */
+const DEFAULT_TRACKS_OFF = new Set(['gencodeV47', 'MANE_select_1.4']);
+
 const hg38_default_tracks = [{
     type: "ruler",
     name: "Ruler",
@@ -100,8 +110,6 @@ export function selectTracks(input: TrackSelectionInput): TrackSelectionOutput {
   // console.log("reference", reference);
   // console.log("availableTracks", availableTracks);
   // console.log("selectedLayers", selectedLayers);
-  let chm13_adapter_i = 0;
-
   const default_tracks = reference === "t2t-chm13-v2.0" 
     ? chm13_default_tracks 
     : hg38_default_tracks;
@@ -118,13 +126,8 @@ export function selectTracks(input: TrackSelectionInput): TrackSelectionOutput {
         url: "-",
       },
       displayAttributes: trackAttrs,
-      isSelected: true,
+      isSelected: !DEFAULT_TRACKS_OFF.has(trackAttrs.name),
     });
-  }
-
-  if (reference == 'hg38') {
-    result[2].isSelected = false;
-    result[3].isSelected = false;
   }
 
   for (const sample of selectedSamples) {

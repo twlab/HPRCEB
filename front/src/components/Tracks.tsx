@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { ChartBarIcon, CheckIcon, FunnelIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import { BUTTON, secondaryButton } from '../utils/theme';
 import type { Track } from '../utils/trackSelection';
 
 interface TracksComponentProps {
   tracks: Track[];
-  selectedGenomes: string[];
   referenceGenome: string;
   nightMode?: boolean;
   onTracksChange: (tracks: Track[]) => void;
@@ -34,10 +34,9 @@ const getTrackCoordinate = (track: Track): string | undefined => {
   return track.metadata?.coordinate as string | undefined;
 };
 
-export default function Tracks({ 
+export default function Tracks({
   tracks,
-  selectedGenomes, 
-  referenceGenome, 
+  referenceGenome,
   nightMode = false,
   onTracksChange,
   onNavigateToDataSelector,
@@ -73,7 +72,7 @@ export default function Tracks({
     const locked = new Set<number>();
     
     // Now check all selected non-genome-align tracks to see which query genomes they depend on
-    tracks.forEach((track, index) => {
+    tracks.forEach((track) => {
       if (!isGenomeAlignTrack(track) && track.isSelected) {
         const coordinate = getTrackCoordinate(track);
         // Check if this coordinate matches a query genome from a genome align track
@@ -99,21 +98,29 @@ export default function Tracks({
     return Array.from(keys);
   }, [tracks]);
 
+  // Position of each track in the unfiltered list. Every row needed its
+  // original index and looked it up with `tracks.indexOf(track)`, which made
+  // rendering the table quadratic in the number of tracks — noticeable once a
+  // few samples are selected and the list runs to a thousand rows.
+  const trackIndexOf = useMemo(() => {
+    const map = new Map<Track, number>();
+    tracks.forEach((track, index) => map.set(track, index));
+    return map;
+  }, [tracks]);
+
   // Filter tracks based on search and sample filter
   const filteredTracks = React.useMemo(() => {
+    const needle = searchTerm.trim().toLowerCase();
     return tracks.filter((track) => {
+      const matchesSample = filterSample === 'all' || track.sampleId === filterSample;
+      if (!matchesSample) return false;
+      if (needle === '') return true;
+
       const trackName = (track.displayAttributes.name || '').toLowerCase();
       const sampleId = track.sampleId.toLowerCase();
       const metadataStr = Object.values(track.metadata).join(' ').toLowerCase();
-      
-      const matchesSearch = searchTerm === '' || 
-        trackName.includes(searchTerm.toLowerCase()) ||
-        sampleId.includes(searchTerm.toLowerCase()) ||
-        metadataStr.includes(searchTerm.toLowerCase());
-      
-      const matchesSample = filterSample === 'all' || track.sampleId === filterSample;
-      
-      return matchesSearch && matchesSample;
+
+      return trackName.includes(needle) || sampleId.includes(needle) || metadataStr.includes(needle);
     });
   }, [tracks, searchTerm, filterSample]);
 
@@ -203,7 +210,7 @@ export default function Tracks({
 
   // Enable filtered tracks (also enables required genome align tracks)
   const enableFiltered = () => {
-    const filteredIndices = new Set(filteredTracks.map(t => tracks.indexOf(t)));
+    const filteredIndices = new Set(filteredTracks.map((t) => trackIndexOf.get(t)!));
     
     // First, enable the filtered tracks
     let newTracks = tracks.map((track, i) => 
@@ -231,7 +238,7 @@ export default function Tracks({
 
   // Disable filtered tracks (respects locked genome align tracks)
   const disableFiltered = () => {
-    const filteredIndices = new Set(filteredTracks.map(t => tracks.indexOf(t)));
+    const filteredIndices = new Set(filteredTracks.map((t) => trackIndexOf.get(t)!));
     const newTracks = tracks.map((track, i) => {
       if (!filteredIndices.has(i)) return track;
       // Keep locked genome align tracks selected
@@ -335,45 +342,30 @@ export default function Tracks({
             </div>
           </div>
 
-          {/* Bulk Actions */}
-          <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-300">
+          {/* Bulk actions. "Select" is the primary action in both scopes, so
+              both use the brand fill; "deselect" is the quiet counterpart. */}
+          <div className={`flex flex-wrap gap-2 mt-4 pt-4 border-t ${nightMode ? 'border-gray-600' : 'border-gray-300'}`}>
             <button
               onClick={enableAll}
-              className={`px-3 py-2 text-xs font-medium rounded-lg transition-all ${
-                nightMode
-                  ? 'bg-green-600 hover:bg-green-700 text-white'
-                  : 'bg-green-500 hover:bg-green-600 text-white'
-              }`}
+              className={`px-3 py-2 text-xs font-medium rounded-lg transition-all ${BUTTON.primary}`}
             >
               Select All ({tracks.length})
             </button>
             <button
-              onClick={disableAll}
-              className={`px-3 py-2 text-xs font-medium rounded-lg transition-all ${
-                nightMode
-                  ? 'bg-red-600 hover:bg-red-700 text-white'
-                  : 'bg-red-500 hover:bg-red-600 text-white'
-              }`}
-            >
-              Deselect All
-            </button>
-            <button
               onClick={enableFiltered}
-              className={`px-3 py-2 text-xs font-medium rounded-lg transition-all ${
-                nightMode
-                  ? 'bg-primary-600 hover:bg-primary-700 text-white'
-                  : 'bg-primary-500 hover:bg-primary-600 text-white'
-              }`}
+              className={`px-3 py-2 text-xs font-medium rounded-lg transition-all ${BUTTON.primary}`}
             >
               Select Filtered ({filteredTracks.length})
             </button>
             <button
+              onClick={disableAll}
+              className={`px-3 py-2 text-xs font-medium rounded-lg transition-all ${secondaryButton(nightMode)}`}
+            >
+              Deselect All
+            </button>
+            <button
               onClick={disableFiltered}
-              className={`px-3 py-2 text-xs font-medium rounded-lg transition-all ${
-                nightMode
-                  ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
-                  : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-              }`}
+              className={`px-3 py-2 text-xs font-medium rounded-lg transition-all ${secondaryButton(nightMode)}`}
             >
               Deselect Filtered
             </button>
@@ -405,7 +397,7 @@ export default function Tracks({
               </thead>
               <tbody className={`${nightMode ? 'bg-gray-800' : 'bg-white'} divide-y ${nightMode ? 'divide-gray-700' : 'divide-gray-200'}`}>
                 {filteredTracks.map((track) => {
-                  const originalIndex = tracks.indexOf(track);
+                  const originalIndex = trackIndexOf.get(track)!;
                   const isRef = isReferenceTrack(track, referenceGenome);
                   const isLocked = lockedGenomeAlignIndices.has(originalIndex);
 
@@ -414,11 +406,16 @@ export default function Tracks({
                       key={originalIndex}
                       onMouseDown={handleRowMouseDown}
                       onClick={(e) => handleRowClick(e, originalIndex)}
+                      /* Hover has to be a complete literal class: Tailwind
+                         cannot see `hover:${...}`, so the interpolated form
+                         compiled to nothing and rows never highlighted. */
                       className={`${
                         track.isSelected
                           ? nightMode ? 'bg-primary-900/20' : 'bg-primary-50'
                           : nightMode ? 'bg-gray-800' : 'bg-white'
-                      } ${isLocked ? 'cursor-not-allowed' : 'cursor-pointer'} hover:${nightMode ? 'bg-gray-700' : 'bg-gray-50'} transition-colors`}
+                      } ${isLocked ? 'cursor-not-allowed' : 'cursor-pointer'} ${
+                        nightMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
+                      } transition-colors`}
                     >
                       <td className={`px-4 py-3 whitespace-nowrap text-sm ${nightMode ? 'text-gray-400' : 'text-gray-500'}`}>
                         {originalIndex + 1}
@@ -449,16 +446,22 @@ export default function Tracks({
                           )}
                         </div>
                       </td>
+                      {/* Reference rows get the brand tint, sample rows stay
+                          neutral. Neither reuses an assay or coordinate hue,
+                          which both appear in the metadata columns alongside. */}
                       <td className={`px-4 py-3 whitespace-nowrap`}>
-                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          isRef
-                            ? nightMode 
-                              ? 'bg-purple-900/50 text-purple-300' 
-                              : 'bg-purple-100 text-purple-800'
-                            : nightMode 
-                              ? 'bg-green-900/50 text-green-300' 
-                              : 'bg-green-100 text-green-800'
-                        }`}>
+                        <span
+                          title={isRef ? 'Reference genome track' : 'Sample track'}
+                          className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            isRef
+                              ? nightMode
+                                ? 'bg-primary-900/50 text-primary-200'
+                                : 'bg-primary-100 text-primary-800'
+                              : nightMode
+                                ? 'bg-gray-700 text-gray-200'
+                                : 'bg-gray-100 text-gray-700'
+                          }`}
+                        >
                           {track.sampleId}
                         </span>
                       </td>
@@ -483,11 +486,7 @@ export default function Tracks({
             {onNavigateToDataSelector && (
               <button
                 onClick={onNavigateToDataSelector}
-                className={`mt-4 px-4 py-2 rounded-lg ${
-                  nightMode 
-                    ? 'bg-primary-600 hover:bg-primary-700 text-white' 
-                    : 'bg-primary-500 hover:bg-primary-600 text-white'
-                }`}
+                className={`mt-4 px-4 py-2 rounded-lg ${BUTTON.primary}`}
               >
                 Go to Sample Selection
               </button>
@@ -507,11 +506,7 @@ export default function Tracks({
               <div className="flex justify-end">
                 <button
                   onClick={onNextTab}
-                  className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold shadow-lg transition-all ${
-                    nightMode
-                      ? 'bg-primary-600 hover:bg-primary-500 text-white'
-                      : 'bg-primary-600 hover:bg-primary-700 text-white'
-                  }`}
+                  className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold transition-all ${BUTTON.primary}`}
                 >
                   Next: Browser
                   <ChevronRightIcon className="w-4 h-4" />

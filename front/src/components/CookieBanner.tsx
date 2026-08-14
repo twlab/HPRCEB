@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ClockIcon } from '@heroicons/react/24/outline';
 import { hasConsent, setConsent } from '../utils/cookieUtils';
+import { BUTTON } from '../utils/theme';
 
 interface CookieBannerProps {
   nightMode: boolean;
@@ -64,7 +65,7 @@ function CookieBanner({ nightMode, onShowSettings }: CookieBannerProps) {
                 {/* Cookie icon */}
                 <ClockIcon
                   className={`w-6 h-6 flex-shrink-0 mt-0.5 ${
-                    nightMode ? 'text-blue-400' : 'text-blue-600'
+                    nightMode ? 'text-primary-300' : 'text-primary-600'
                   }`}
                 />
                 
@@ -90,8 +91,8 @@ function CookieBanner({ nightMode, onShowSettings }: CookieBannerProps) {
                       rel="noopener noreferrer"
                       className={`underline hover:no-underline ${
                         nightMode 
-                          ? 'text-blue-400 hover:text-blue-300' 
-                          : 'text-blue-600 hover:text-blue-700'
+                          ? 'text-primary-300 hover:text-primary-200'
+                          : 'text-primary-600 hover:text-primary-800'
                       }`}
                     >
                       Learn more
@@ -119,8 +120,8 @@ function CookieBanner({ nightMode, onShowSettings }: CookieBannerProps) {
                   onClick={handleCustomize}
                   className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-lg font-medium text-sm sm:text-base transition-all duration-200 ${
                     nightMode
-                      ? 'bg-gray-700 text-blue-400 hover:bg-gray-600 border border-gray-600'
-                      : 'bg-white text-blue-600 hover:bg-gray-50 border border-blue-300'
+                      ? 'bg-gray-700 text-primary-300 hover:bg-gray-600 border border-gray-600'
+                      : 'bg-white text-primary-600 hover:bg-gray-50 border border-primary-300'
                   }`}
                   aria-label="Customize cookie settings"
                 >
@@ -130,10 +131,8 @@ function CookieBanner({ nightMode, onShowSettings }: CookieBannerProps) {
               <button
                 onClick={handleAccept}
                 className={`w-full sm:w-auto px-6 py-2.5 rounded-lg font-medium text-sm sm:text-base transition-all duration-200 ${
-                  nightMode
-                    ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl'
-                    : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl'
-                }`}
+                  BUTTON.primary
+                } shadow-lg hover:shadow-xl`}
                 aria-label="Accept cookies"
               >
                 Accept All

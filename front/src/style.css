@@ -1,12 +1,17 @@
 @import "tailwindcss";
 
-/* Prevent overscroll/rubber banding */
+/* Prevent overscroll/rubber banding.
+   `overflow-x` is set on <html> only, and deliberately not on <body>: an
+   overflow on body makes it a scroll container that never actually scrolls,
+   and `position: sticky` then resolves against that dead scrollport — which is
+   why the tab bar used to scroll away instead of pinning to the top. On <html>
+   the value propagates to the viewport and sticky keeps working. */
 html, body {
   overscroll-behavior-x: none;
-  overflow-x: hidden;
 }
 
 html {
+  overflow-x: hidden;
   scroll-behavior: smooth;
 }
 
@@ -105,6 +110,17 @@ body {
   }
 }
 
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes float {
   0%,
   100% {
@@ -143,6 +159,35 @@ body {
 }
 
 /* Border color compatibility for v4 - removed aggressive global styles */
+
+/* Guided-tour spotlight. Lives here rather than in an injected <style> tag so
+   the halo picks up the brand blue alongside every other accent. */
+@keyframes tour-spotlight {
+  0%, 100% {
+    box-shadow: 0 0 0 4px rgba(62, 91, 149, 0.85), 0 0 40px 10px rgba(62, 91, 149, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(82, 112, 175, 0.9), 0 0 60px 16px rgba(82, 112, 175, 0.55);
+  }
+}
+
+.tour-spotlight {
+  box-shadow: 0 0 0 4px rgba(62, 91, 149, 0.85), 0 0 40px 10px rgba(62, 91, 149, 0.4);
+  animation: tour-spotlight 2.4s ease-in-out infinite;
+}
+
+/* Readers who ask the OS for less motion get the layout without the movement.
+   Transitions are shortened rather than removed so state changes stay legible. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
@@ -199,8 +244,22 @@ input[type="checkbox"].peer:checked ~ label .check-icon {
               0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
+/* One glow per data-type family in utils/theme.ts. The set has to be complete:
+   a card asking for a glow that was never defined silently loses its accent. */
 .shadow-glow {
-  box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+  box-shadow: 0 0 20px rgba(62, 91, 149, 0.3);
+}
+
+.shadow-glow-blue {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+}
+
+.shadow-glow-slate {
+  box-shadow: 0 0 20px rgba(100, 116, 139, 0.3);
+}
+
+.shadow-glow-gray {
+  box-shadow: 0 0 20px rgba(107, 114, 128, 0.3);
 }
 
 .shadow-glow-cyan {
@@ -208,11 +267,15 @@ input[type="checkbox"].peer:checked ~ label .check-icon {
 }
 
 .shadow-glow-green {
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
 }
 
 .shadow-glow-orange {
   box-shadow: 0 0 20px rgba(249, 115, 22, 0.3);
+}
+
+.shadow-glow-purple {
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
 }
 
 /* Animation classes */
@@ -234,6 +297,10 @@ input[type="checkbox"].peer:checked ~ label .check-icon {
 
 .animate-slide-up {
   animation: slideUp 0.5s ease-out;
+}
+
+.animate-slide-in-up {
+  animation: slideInUp 0.35s ease-out both;
 }
 
 .animate-pulse-slow {

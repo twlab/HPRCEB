@@ -1,6 +1,16 @@
 import type { Genome } from '../utils/genomeTypes';
+import type { DataType } from '../utils/genomeDataService';
 import { hasDataType } from '../utils/genomeDataService';
-import { POPULATION_EMOJI, POPULATION_MAP } from '../utils/constants';
+import { POPULATION_EMOJI } from '../utils/constants';
+import { DATA_TYPES, sexBadge, superPopBadge } from '../utils/theme';
+
+/** Availability pips shown under a sample, in picker order. */
+const LAYER_ORDER: DataType[] = [
+  'methylation',
+  'expression',
+  'chromatin_accessibility',
+  'chromatin_conformation',
+];
 
 interface GenomeListProps {
   genomes: Genome[];
@@ -30,14 +40,11 @@ export default function GenomeList({ genomes, selectedGenomes, onGenomeToggle, n
         const populationEmoji = POPULATION_EMOJI[genome.super_population || ''] || '🌍';
         
         // Check if parent IDs exist and are not N/A
-        const hasParents = (genome.paternal_id && genome.paternal_id !== 'N/A') || 
+        const hasParents = (genome.paternal_id && genome.paternal_id !== 'N/A') ||
                           (genome.maternal_id && genome.maternal_id !== 'N/A');
 
         // Check data availability from track data
-        const hasMethylation = hasDataType(genome.id, 'methylation');
-        const hasExpression = hasDataType(genome.id, 'expression');
-        const hasChromatinAccessibility = hasDataType(genome.id, 'chromatin_accessibility');
-        const hasChromatinConformation = hasDataType(genome.id, 'chromatin_conformation');
+        const availableLayers = LAYER_ORDER.filter((layer) => hasDataType(genome.id, layer));
 
         return (
           <div
@@ -78,46 +85,29 @@ export default function GenomeList({ genomes, selectedGenomes, onGenomeToggle, n
                   </div>
                 </div>
                 <div className="flex items-center gap-2 mt-2 ml-8">
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-100 text-blue-800 shadow-sm">
+                  <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold shadow-sm ${superPopBadge(genome.super_population || '', nightMode)}`}>
                     {populationEmoji} {populationCode}
                   </span>
-                  <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold shadow-sm ${
-                    sex === 'male' ? 'bg-blue-100 text-blue-800' :
-                    sex === 'female' ? 'bg-pink-100 text-pink-800' :
-                    'bg-gray-100 text-gray-800'
-                  }`}>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold shadow-sm ${sexBadge(sex, nightMode)}`}
+                    title={sex === 'unknown' ? 'Sex not recorded' : sex}
+                  >
                     {sexIcon}
                   </span>
                 </div>
-                <div className="mt-2 ml-8 flex gap-1.5">
-                  {hasMethylation && (
-                    <span 
-                      className="w-2.5 h-2.5 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full shadow-sm animate-pulse-slow" 
-                      title="Methylation"
-                    />
-                  )}
-                  {hasExpression && (
-                    <span 
-                      className="w-2.5 h-2.5 bg-gradient-to-br from-green-400 to-green-600 rounded-full shadow-sm animate-pulse-slow" 
-                      title="Expression"
-                      style={{ animationDelay: '0.5s' }}
-                    />
-                  )}
-                  {hasChromatinAccessibility && (
-                    <span 
-                      className="w-2.5 h-2.5 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full shadow-sm animate-pulse-slow" 
-                      title="Chromatin Accessibility"
-                      style={{ animationDelay: '1s' }}
-                    />
-                  )}
-                  {hasChromatinConformation && (
-                    <span 
-                      className="w-2.5 h-2.5 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full shadow-sm animate-pulse-slow" 
-                      title="Chromatin Conformation"
-                      style={{ animationDelay: '1.5s' }}
-                    />
-                  )}
-                </div>
+                {/* Availability pips, coloured from the shared assay palette so
+                    they read the same as the chips on every other tab. */}
+                {availableLayers.length > 0 && (
+                  <div className="mt-2 ml-8 flex gap-1.5">
+                    {availableLayers.map((layer) => (
+                      <span
+                        key={layer}
+                        className={`w-2.5 h-2.5 rounded-full shadow-sm bg-gradient-to-br ${DATA_TYPES[layer].pip}`}
+                        title={DATA_TYPES[layer].label}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
