@@ -75,6 +75,24 @@ for s in genome_align_samples:
             l = [s, "chromatin_conformation", 3800000000, data_attrs, browser_attrs]
             line = "\t".join(list(map(str, l)))
             tracks_example += line + "\n"
+
+            track_name = f"{s} insulation score"
+            url = f"https://hprc-epigenome.s3.us-east-2.amazonaws.com/samples/{s}/{ref}.hic.insulation.bedgraph.gz"
+
+            data_attrs = json.dumps({"description": f"Hi-C insulation score"})
+            browser_attrs = json.dumps({"coordinate": f"{ref}", "type": "bedgraph", "url": url, "name": track_name, "options":{}})
+            l = [s, "chromatin_conformation", 3800000000, data_attrs, browser_attrs]
+            line = "\t".join(list(map(str, l)))
+            tracks_example += line + "\n"
+
+            track_name = f"{s} Hi-C TAD boundary"
+            url = f"https://hprc-epigenome.s3.us-east-2.amazonaws.com/samples/{s}/{ref}.hic.boundary.bedgraph.gz"
+
+            data_attrs = json.dumps({"description": f"Hi-C TAD boundary"})
+            browser_attrs = json.dumps({"coordinate": f"{ref}", "type": "categorical", "url": url, "name": track_name, "options":{}})
+            l = [s, "chromatin_conformation", 3800000000, data_attrs, browser_attrs]
+            line = "\t".join(list(map(str, l)))
+            tracks_example += line + "\n"
     
     for h in [1, 2]:
         for ref in ["hg38", "chm13"]:
