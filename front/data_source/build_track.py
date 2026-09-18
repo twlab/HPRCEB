@@ -203,6 +203,12 @@ for s in genome_align_samples:
                 url = f"https://hprc-epigenome.s3.us-east-2.amazonaws.com/samples/{s}/fiberseq.ONT.all.{tn}.bw"
                 data_attrs = json.dumps({"description": f"ONT Fiber-seq {tn}"})
                 browser_attrs = json.dumps({"coordinate": f"{s}_{h}", "type": "bigwig", "url": url, "name": track_name, "metadata": {"genome": f"{s}_{h}"}, "options":{"color":fiberseq_color1}})
+                if tn == "percent.accessible":
+                    browser_attrs = json.loads(browser_attrs)
+                    browser_attrs["options"]["yScale"] = "fixed"
+                    browser_attrs["options"]["yMin"] = 0
+                    browser_attrs["options"]["yMax"] = 100
+                    browser_attrs = json.dumps(browser_attrs)
                 l = [s, "chromatin_accessibility", 720000000, data_attrs, browser_attrs]
                 line = "\t".join(list(map(str, l)))
                 tracks_example += line + "\n"
@@ -222,7 +228,30 @@ for s in genome_align_samples:
                 url = f"https://hprc-epigenome.s3.us-east-2.amazonaws.com/samples/{s}/fiberseq.PacBio.all.{tn}.bw"
                 data_attrs = json.dumps({"description": f"PacBio Fiber-seq {tn}"})
                 browser_attrs = json.dumps({"coordinate": f"{s}_{h}", "type": "bigwig", "url": url, "name": track_name, "metadata": {"genome": f"{s}_{h}"}, "options":{"color":fiberseq_color2}})
+                if tn == "percent.accessible":
+                    browser_attrs = json.loads(browser_attrs)
+                    browser_attrs["options"]["yScale"] = "fixed"
+                    browser_attrs["options"]["yMin"] = 0
+                    browser_attrs["options"]["yMax"] = 100
+                    browser_attrs = json.dumps(browser_attrs)
                 l = [s, "chromatin_accessibility", 720000000, data_attrs, browser_attrs]
+                line = "\t".join(list(map(str, l)))
+                tracks_example += line + "\n"
+
+        if s in omnic_samples:
+            for hic_tt in ["specific", "withambi"]:
+
+                hic_tt_full = hic_tt
+                description = "Hi-C contact matrix that only includes read-pair phased to either haplotype."
+                if hic_tt == "withambi":
+                    hic_tt_full = f"withambiguous"
+                    description = "Hi-C contact matrix that includes read-pair phased to either haplotype or ambiguous read-pair."
+                track_name = f"{s} Hi-C {hic_tt_full}"
+                url = f"https://hprc-epigenome.s3.amazonaws.com/samples/{s}/ind_{hic_tt_full}.hic"
+
+                data_attrs = json.dumps({"description": description})
+                browser_attrs = json.dumps({"coordinate": f"{s}_{h}", "type": "hic", "url": url, "name": track_name, "metadata": {"genome": f"{s}_{h}"}, "options":{"displayMode": "heatmap", "normalization": "SCALE", "binSize": "10000"}})
+                l = [s, "chromatin_conformation", 3800000000, data_attrs, browser_attrs]
                 line = "\t".join(list(map(str, l)))
                 tracks_example += line + "\n"
 
