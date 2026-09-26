@@ -170,7 +170,7 @@ for s in genome_align_samples:
             # url = f"https://wangcluster.wustl.edu/~wzhang/projects/HPRCEN/data/methylation_modbed/{s}_ONT.{h}.modbed.gz"
             url = f"https://hprc-epigenome.s3.us-east-2.amazonaws.com/samples/{s}/methylation.ONT.hap{h}.modbed.gz"
 
-            data_attrs = json.dumps({"description": f"PacBio methylation"})
+            data_attrs = json.dumps({"description": f"ONT methylation"})
             browser_attrs = json.dumps({"coordinate": f"{s}_{h}", "type": "modbed", "url": url, "name": track_name, "metadata": {"genome": f"{s}_{h}"}, "options":{"color":methylation_color1, "displayMode": "summary"}})
             l = [s, "methylation", 3200000000, data_attrs, browser_attrs]
             line = "\t".join(list(map(str, l)))

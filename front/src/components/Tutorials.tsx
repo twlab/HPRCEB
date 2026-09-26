@@ -1,9 +1,80 @@
 import { useState } from 'react';
-import { PlayCircleIcon } from '@heroicons/react/24/outline';
+import {
+  ArrowTopRightOnSquareIcon,
+  BookOpenIcon,
+  PlayCircleIcon,
+  QueueListIcon,
+} from '@heroicons/react/24/outline';
 import { DATA_LAYER_INFO } from '../utils/constants';
 import { DATA_TYPES, BUTTON, secondaryButton } from '../utils/theme';
 import { MAX_SESSIONS } from '../utils/sessionUtils';
 import type { DataLayer } from '../utils/genomeTypes';
+
+/** Walkthrough of this portal. */
+const WALKTHROUGH_VIDEO_ID = 'cRSbqXqvBEU';
+
+/** The full WashU Epigenome Browser series, of which this portal is one host. */
+const WASHU_PLAYLIST_URL =
+  'https://www.youtube.com/watch?v=FzzUT7YEqmA&list=PLE0UMwf5se6ng1Nzq--MbFphSgPkIe5ZF';
+
+/** Written documentation for the embedded browser itself. */
+const BROWSER_DOCS_URL = 'https://epgg.github.io/';
+
+interface VideoEmbedProps {
+  videoId: string;
+  title: string;
+  nightMode: boolean;
+}
+
+/**
+ * Click-to-load YouTube embed.
+ *
+ * Nothing is requested from YouTube until the reader actually asks for the
+ * video, so simply opening the Tutorials tab does not hand a third party a page
+ * view and a set of cookies — which would sit badly beside the portal's own
+ * consent banner. The poster frame is drawn locally rather than fetched from
+ * i.ytimg.com for the same reason, and the player is loaded from
+ * youtube-nocookie.com once the reader opts in.
+ */
+function VideoEmbed({ videoId, title, nightMode }: VideoEmbedProps) {
+  const [playing, setPlaying] = useState(false);
+
+  if (playing) {
+    return (
+      <div className="aspect-video w-full overflow-hidden rounded-xl bg-black">
+        <iframe
+          className="w-full h-full"
+          src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`}
+          title={title}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      </div>
+    );
+  }
+
+  return (
+    <button
+      onClick={() => setPlaying(true)}
+      aria-label={`Play “${title}” (loads YouTube)`}
+      className={`group relative aspect-video w-full overflow-hidden rounded-xl border transition-all ${
+        nightMode
+          ? 'border-gray-700 bg-gradient-to-br from-gray-900 via-primary-900/40 to-gray-900 hover:border-primary-600'
+          : 'border-gray-200 bg-gradient-to-br from-primary-50 via-white to-primary-100 hover:border-primary-400'
+      }`}
+    >
+      <span className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+        <span className="flex items-center justify-center w-16 h-16 rounded-full bg-primary-600 text-white shadow-lg transition-transform group-hover:scale-110">
+          <PlayCircleIcon className="w-10 h-10" />
+        </span>
+        <span className={`text-sm font-semibold ${nightMode ? 'text-gray-100' : 'text-gray-900'}`}>{title}</span>
+        <span className={`text-xs ${nightMode ? 'text-gray-400' : 'text-gray-500'}`}>
+          Click to play — the video loads from YouTube
+        </span>
+      </span>
+    </button>
+  );
+}
 
 interface TutorialsProps {
   nightMode?: boolean;
@@ -181,7 +252,7 @@ export default function Tutorials({ nightMode = false, onStartInteractiveGuide }
           <p className={`text-sm ${muted}`}>
             Browser documentation:{' '}
             <a
-              href="https://epgg.github.io/"
+              href={BROWSER_DOCS_URL}
               target="_blank"
               rel="noopener noreferrer"
               className={`underline font-medium ${nightMode ? 'text-primary-300 hover:text-primary-200' : 'text-primary-600 hover:text-primary-800'}`}
@@ -292,6 +363,62 @@ export default function Tutorials({ nightMode = false, onStartInteractiveGuide }
             <li>Save sessions to preserve your genome, data layer, and track selections.</li>
             <li>Press F or use the fullscreen button in the Browser for immersive viewing.</li>
           </ul>
+        </section>
+
+        {/* Video Tutorials */}
+        <section>
+          <h3 className={`text-lg font-semibold ${heading} mb-2`}>Video Tutorials</h3>
+          <p className={`text-sm ${muted} mb-4`}>
+            A full walkthrough of this portal, plus the complete WashU Epigenome Browser series.
+          </p>
+
+          <VideoEmbed
+            videoId={WALKTHROUGH_VIDEO_ID}
+            title="HPRC Epigenome Browser — full walkthrough"
+            nightMode={nightMode}
+          />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+            <a
+              href={WASHU_PLAYLIST_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`flex items-start gap-3 p-4 rounded-lg border transition-colors ${divider} ${
+                nightMode ? 'bg-gray-800/40 hover:bg-gray-700/50' : 'bg-gray-50 hover:bg-gray-100'
+              }`}
+            >
+              <QueueListIcon className={`w-5 h-5 flex-shrink-0 mt-0.5 ${nightMode ? 'text-primary-300' : 'text-primary-600'}`} />
+              <span className="min-w-0">
+                <span className={`flex items-center gap-1.5 font-semibold text-sm ${heading}`}>
+                  WashU Epigenome Browser playlist
+                  <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5 flex-shrink-0" />
+                </span>
+                <span className={`block text-xs mt-0.5 ${muted}`}>
+                  The full video series on the browser powering this portal.
+                </span>
+              </span>
+            </a>
+
+            <a
+              href={BROWSER_DOCS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`flex items-start gap-3 p-4 rounded-lg border transition-colors ${divider} ${
+                nightMode ? 'bg-gray-800/40 hover:bg-gray-700/50' : 'bg-gray-50 hover:bg-gray-100'
+              }`}
+            >
+              <BookOpenIcon className={`w-5 h-5 flex-shrink-0 mt-0.5 ${nightMode ? 'text-primary-300' : 'text-primary-600'}`} />
+              <span className="min-w-0">
+                <span className={`flex items-center gap-1.5 font-semibold text-sm ${heading}`}>
+                  epgg.github.io
+                  <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5 flex-shrink-0" />
+                </span>
+                <span className={`block text-xs mt-0.5 ${muted}`}>
+                  Written documentation for the WashU Epigenome Browser.
+                </span>
+              </span>
+            </a>
+          </div>
         </section>
 
         {/* Learn More */}
